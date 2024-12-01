@@ -1,0 +1,152 @@
+/* General container for the form */
+.signup-container {
+  max-width: 400px;
+  margin: 50px auto;
+  padding: 20px;
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  font-family: Arial, sans-serif;
+}
+
+/* Header styling */
+.signup-header {
+  text-align: center;
+  font-size: 24px;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+/* Input fields styling */
+.signup-container input {
+  width: 100%;
+  padding: 12px;
+  margin: 10px 0;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 16px;
+}
+
+.signup-container input:focus {
+  outline: none;
+  border-color: #4caf50;
+  box-shadow: 0 0 4px rgba(76, 175, 80, 0.4);
+}
+
+/* Button styling */
+.signup-button {
+  width: 100%;
+  padding: 12px;
+  margin-top: 10px;
+  background-color: #4caf50;
+  color: white;
+  font-size: 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.signup-button:disabled {
+  background-color: #9e9e9e;
+  cursor: not-allowed;
+}
+
+.signup-button:hover {
+  background-color: #45a049;
+}
+
+/* Link to login */
+.login-link {
+  display: block;
+  text-align: center;
+  margin-top: 15px;
+  background: none;
+  border: none;
+  color: #4caf50;
+  font-size: 16px;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* Responsive breakpoints */
+
+/* Large screens (1024px and above) */
+@media (max-width: 1024px) {
+  .signup-container {
+    max-width: 800px;
+    padding: 20px;
+  }
+
+  .signup-header {
+    font-size: 22px;
+  }
+
+  .signup-container input {
+    font-size: 15px;
+  }
+
+  .signup-button {
+    font-size: 15px;
+  }
+}
+
+/* Medium screens (768px and above) */
+@media (max-width: 768px) {
+  .signup-container {
+    max-width: 600px;
+    padding: 18px;
+  }
+
+  .signup-header {
+    font-size: 20px;
+  }
+
+  .signup-container input {
+    font-size: 14px;
+  }
+
+  .signup-button {
+    font-size: 14px;
+  }
+}
+
+/* Small screens (480px and above) */
+@media (max-width: 480px) {
+  .signup-container {
+    max-width: 400px;
+    padding: 15px;
+  }
+
+  .signup-header {
+    font-size: 18px;
+  }
+
+  .signup-container input {
+    font-size: 13px;
+  }
+
+  .signup-button {
+    font-size: 13px;
+  }
+}
+
+/* Extra small screens (320px and above) */
+@media (max-width: 320px) {
+  .signup-container {
+    max-width: 300px;
+    padding: 10px;
+  }
+
+  .signup-header {
+    font-size: 16px;
+  }
+
+  .signup-container input {
+    font-size: 12px;
+  }
+
+  .signup-button {
+    font-size: 12px;
+  }
+}

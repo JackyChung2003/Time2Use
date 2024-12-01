@@ -1,0 +1,215 @@
+/* General container for all pages */
+.container {
+  max-width: 400px;
+  margin: 50px auto;
+  padding: 20px;
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  font-family: Arial, sans-serif;
+}
+
+/* Headers */
+.header {
+  text-align: center;
+  font-size: 24px;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+/* Input fields */
+input {
+  width: 100%;
+  padding: 12px;
+  margin: 10px 0;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 16px;
+}
+
+input:focus {
+  outline: none;
+  border-color: #4caf50;
+  box-shadow: 0 0 4px rgba(76, 175, 80, 0.4);
+}
+
+/* Buttons */
+.login-button {
+  width: 100%;
+  padding: 12px;
+  margin-top: 10px;
+  background-color: #4caf50;
+  color: white;
+  font-size: 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.login-button:hover {
+  background-color: #45a049;
+}
+
+.signup-link {
+  background: none;
+  border: none;
+  color: #4caf50;
+  font-size: 16px;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* Footer link text */
+.footer {
+  text-align: center;
+  margin-top: 10px;
+}
+
+/* Dashboard styles */
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.signout-button {
+  padding: 10px 20px;
+  background-color: #f44336;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.signout-button:hover {
+  background-color: #e53935;
+}
+
+.dashboard-widgets {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 20px;
+}
+
+.widget {
+  width: 30%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  text-align: center;
+}
+
+/* Responsive breakpoints */
+
+/* Large screens (1024px and above) */
+@media (max-width: 1024px) {
+  .container {
+    max-width: 800px;
+    padding: 20px;
+  }
+
+  .header {
+    font-size: 22px;
+  }
+
+  input {
+    font-size: 15px;
+  }
+
+  .login-button,
+  .signout-button {
+    font-size: 15px;
+  }
+
+  .dashboard-widgets {
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+
+  .widget {
+    width: 45%;
+    margin-bottom: 20px;
+  }
+}
+
+/* Medium screens (768px and above) */
+@media (max-width: 768px) {
+  .container {
+    max-width: 600px;
+    padding: 18px;
+  }
+
+  .header {
+    font-size: 20px;
+  }
+
+  input {
+    font-size: 14px;
+  }
+
+  .login-button,
+  .signout-button {
+    font-size: 14px;
+  }
+
+  .dashboard-widgets {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .widget {
+    width: 70%;
+    margin-bottom: 20px;
+  }
+}
+
+/* Small screens (480px and above) */
+@media (max-width: 480px) {
+  .container {
+    max-width: 400px;
+    padding: 15px;
+  }
+
+  .header {
+    font-size: 18px;
+  }
+
+  input {
+    font-size: 13px;
+  }
+
+  .login-button,
+  .signout-button {
+    font-size: 13px;
+  }
+
+  .widget {
+    width: 90%;
+  }
+}
+
+/* Extra small screens (320px and above) */
+@media (max-width: 320px) {
+  .container {
+    max-width: 300px;
+    padding: 10px;
+  }
+
+  .header {
+    font-size: 16px;
+  }
+
+  input {
+    font-size: 12px;
+  }
+
+  .login-button,
+  .signout-button {
+    font-size: 12px;
+  }
+
+  .widget {
+    width: 100%;
+  }
+}
