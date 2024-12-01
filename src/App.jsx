@@ -57,9 +57,15 @@ import Signup from './containers/Authentication/Registration';
 
 import supabase from './config/supabaseClient';
 import ProtectedRoute from './components/ProtectedRoute';
-import Dashboard from './containers/Dashboard';
-import HorizontalNavbar from './containers/Navigation/HorizontalNavBar';
-import BottomNavBar from './containers/Navigation/BottomNavBar';
+
+// Client Components
+import HorizontalNavbar from './containers/Client/Navigation/HorizontalNavBar';
+import BottomNavBar from './containers/Client/Navigation/BottomNavBar';
+import Dashboard from './containers/Client/Dashboard';
+import Inventory from './containers/Client/Inventory';
+import Scan from './containers/Client/Scan';
+import Recipe from './containers/Client/Recipe';
+import Profile from './containers/Client/Profile';
 
 const App = () => {
     return (
@@ -89,6 +95,38 @@ const App = () => {
                         element={
                             <ProtectedRoute>
                                 <Dashboard />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/inventory"
+                        element={
+                            <ProtectedRoute>
+                                <Inventory />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/scan"
+                        element={
+                            <ProtectedRoute>
+                                <Scan />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/recipe"
+                        element={
+                            <ProtectedRoute>
+                                <Recipe />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/profile"
+                        element={
+                            <ProtectedRoute>
+                                <Profile />
                             </ProtectedRoute>
                         }
                     />

@@ -54,7 +54,7 @@
 
 
 import { useEffect, useState } from 'react';
-import supabase from '../../config/supabaseClient';
+import supabase from '../../../config/supabaseClient';
 import { useNavigate } from 'react-router-dom';
 
 const Dashboard = () => {

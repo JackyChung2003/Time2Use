@@ -6,6 +6,7 @@
   background-color: white;
   box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
   z-index: 1000;
+  display: none;
 }
 
 /* Wrapper to align items */
@@ -85,6 +86,9 @@
 
 /* Responsive adjustments for tablets */
 @media screen and (max-width: 768px) {
+  .bottom-nav-container {
+    display: block;
+  }
   .bottom-nav-wrapper {
     height: 60px;
   }

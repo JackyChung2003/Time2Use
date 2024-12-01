@@ -1,7 +1,7 @@
 import { Link, NavLink } from "react-router-dom"; // Use NavLink instead of Link
 // import { FaBars } from "react-icons/fa";
 // import logoNameImage from "../../../assets/images/logo-name.png";
-import logoPNGImage from "../../../assets/images/Time2Use-logo.png";
+import logoPNGImage from "../../../../assets/images/Time2Use-logo.png";
 import navBarItems from "../navBarItems";
 import "./index.css";
 
