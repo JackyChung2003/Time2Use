@@ -1,0 +1,132 @@
+/* General Navigation Bar */
+nav {
+  height: 70px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  /* padding: 1rem 2rem; */
+  padding: 10px 20px;
+
+  background: white;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  width: 100%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Logo Styling */
+.logo-icon {
+  height: 50px;
+  width: auto;
+  margin-right: 10px;
+}
+
+.logo-name {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #051f20; /* Brand color */
+  display: none; /* Hidden on mobile by default */
+}
+
+/* Link Styling */
+.link {
+  text-decoration: none;
+  color: black;
+  font-size: 1rem;
+  padding: 0 1rem;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  position: relative;
+  cursor: pointer;
+}
+
+.link.active {
+  color: #333;
+  font-weight: 600;
+}
+
+/* Underline effect for active link */
+.link.active::after {
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background-color: #051f20; /* Brand underline color */
+  border-radius: 2px;
+}
+
+/* Hover underline effect for inactive links */
+.link:not(.active):hover::after {
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background-color: #bbb;
+  width: 100%;
+}
+
+/* Menu Items */
+.menu-items {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* Icons Section */
+.icons {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.github-icon {
+  color: black;
+  transition: color 0.3s ease;
+}
+
+.github-icon:hover {
+  color: #051f20; /* Brand hover color */
+}
+
+/* Mobile Menu Icon */
+.mobile-menu-icon {
+  display: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+/* Responsive Design */
+@media screen and (max-width: 768px) {
+  .menu-items {
+    display: none; /* Hide menu items on mobile */
+  }
+
+  .logo-name {
+    display: none; /* Keep logo text hidden on smaller screens */
+  }
+
+  .mobile-menu-icon {
+    display: block;
+    color: black;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  nav {
+    padding: 1rem;
+  }
+
+  .logo-icon {
+    height: 40px; /* Adjust logo size for smaller screens */
+  }
+
+  .link {
+    font-size: 0.9rem;
+  }
+}

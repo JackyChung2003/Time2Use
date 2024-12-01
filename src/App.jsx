@@ -57,38 +57,45 @@ import Signup from './containers/Authentication/Registration';
 import supabase from './config/supabaseClient';
 import ProtectedRoute from './components/ProtectedRoute';
 import Dashboard from './containers/Dashboard';
+import HorizontalNavbar from './containers/Navigation/HorizontalNavBar';
 
 const App = () => {
     return (
-        <Router>
-            <Routes>
-                {/* Default Route Logic */}
-                <Route
-                    path="/"
-                    element={
-                        supabase.auth.getUser() ? (
-                            <Navigate to="/dashboard" />
-                        ) : (
-                            <Navigate to="/login" />
-                        )
-                    }
-                />
+        <div className="App">
+			<HorizontalNavbar/>
+			{/* <div className="stickyBottm">
+				<BottomNavBar toggle={toggle} />
+			</div> */}
+            <main>   
+                <Routes>
+                    {/* Default Route Logic */}
+                    <Route
+                        path="/"
+                        element={
+                            supabase.auth.getUser() ? (
+                                <Navigate to="/dashboard" />
+                            ) : (
+                                <Navigate to="/login" />
+                            )
+                        }
+                    />
 
-                <Route path="/login" element={<Login />} />
-                <Route path="/signup" element={<Signup />} />
-                <Route
-                    path="/dashboard"
-                    element={
-                        <ProtectedRoute>
-                            <Dashboard />
-                        </ProtectedRoute>
-                    }
-                />
-                
-                {/* Fallback for unmatched routes */}
-                <Route path="*" element={<Navigate to="/" />} />
-            </Routes>
-        </Router>
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/signup" element={<Signup />} />
+                    <Route
+                        path="/dashboard"
+                        element={
+                            <ProtectedRoute>
+                                <Dashboard />
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    {/* Fallback for unmatched routes */}
+                    <Route path="*" element={<Navigate to="/" />} />
+                </Routes>
+            </main>
+        </div>
     );
 };
 
