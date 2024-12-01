@@ -49,7 +49,8 @@
 // export default App
 
 // import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+// import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 // import Login from './components/Login';
 import Login from './containers/Authentication/Login/index';
 import Signup from './containers/Authentication/Registration';
@@ -58,14 +59,15 @@ import supabase from './config/supabaseClient';
 import ProtectedRoute from './components/ProtectedRoute';
 import Dashboard from './containers/Dashboard';
 import HorizontalNavbar from './containers/Navigation/HorizontalNavBar';
+import BottomNavBar from './containers/Navigation/BottomNavBar';
 
 const App = () => {
     return (
         <div className="App">
 			<HorizontalNavbar/>
-			{/* <div className="stickyBottm">
-				<BottomNavBar toggle={toggle} />
-			</div> */}
+			<div className="stickyBottm">
+				<BottomNavBar />
+			</div>
             <main>   
                 <Routes>
                     {/* Default Route Logic */}
