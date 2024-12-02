@@ -1,56 +1,5 @@
-// import { useEffect, useState } from 'react'
-// import reactLogo from './assets/react.svg'
-// import viteLogo from '/vite.svg'
-// import './App.css'
-// import supabase from './config/supabaseClient'
-
-// function App() {
-//   const [count, setCount] = useState(0)
-//   console.log(supabase)
-
-//   const login = async() => {
-//     await supabase.auth.signInWithOAuth({
-//       provider: 'github',
-//     })
-//   }
-
-//   useEffect(() => {
-//     const session = supabase.auth.session()
-//     console.log(session)
-//   }
-//   )
-//   return (
-//     <>
-//       <div>
-//         <a href="https://vite.dev" target="_blank">
-//           <img src={viteLogo} className="logo" alt="Vite logo" />
-//         </a>
-//         <a href="https://react.dev" target="_blank">
-//           <img src={reactLogo} className="logo react" alt="React logo" />
-//         </a>
-//       </div>
-//       <h1>Vite + React</h1>
-//       <div className="card">
-//         <button onClick={() => setCount((count) => count + 1)}>
-//           count is {count}
-//         </button>
-//         <p>
-//           Edit <code>src/App.jsx</code> and save to test HMR
-//         </p>
-//       </div>
-//       <p className="read-the-docs">
-//         Click on the Vite and React logos to learn more
-//       </p>
-//       <button onClick={login}>Login with Github</button>
-//     </>
-//   )
-// }
-
-// export default App
-
-// import React from 'react';
-// import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Routes, Route, Navigate } from 'react-router-dom';
+import { useEffect, useState } from "react";
 // import Login from './components/Login';
 import Login from './containers/Authentication/Login/index';
 import Signup from './containers/Authentication/Registration';
@@ -67,69 +16,145 @@ import Scan from './containers/Client/Scan';
 import Recipe from './containers/Client/Recipe';
 import Profile from './containers/Client/Profile';
 
+// Admin Components
+import SideNavBar from './containers/Admin/Admin_Navigation/SideNavBar';
+import AdminDashboard from './containers/Admin/Admin_Dashboard';
+
+
 const App = () => {
+    const [userRole, setUserRole] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [isCollapsed, setIsCollapsed] = useState(false); // Sidebar collapse state
+
+    useEffect(() => {
+        const fetchUser = async () => {
+            const { data, error } = await supabase.auth.getUser();
+
+            if (data?.user) {
+                // Check for user role in metadata
+                
+                // Hardcoded role for now
+                const role = "admin";   // Uncomment this line to test admin dashboard
+                // const role = "client"; // Uncomment this line to test client dashboard
+
+                // Following comment is for future reference when done with authentication to differentiate between client and admin
+                // const role = data.user.user_metadata?.role || "client"; // Default to "client"
+                setUserRole(role);
+                console.log("User role:", role);
+            } else {
+                setUserRole(null); // Not logged in
+            }
+            setLoading(false);
+        };
+
+        fetchUser();
+    }, []);
+
+    const toggleSidebar = () => {
+        setIsCollapsed(!isCollapsed);
+    };
+
+    if (loading) {
+        return <div>Loading...</div>; // Add a spinner or skeleton loader here in the future
+    }
+
     return (
-        <div className="App">
-			<HorizontalNavbar/>
-			<div className="stickyBottm">
-				<BottomNavBar />
-			</div>
-            <main>   
+        <div className={`App ${userRole === "admin" ? (isCollapsed ? "sidebar-collapsed" : "sidebar-expanded") : ""}`}>
+            {/* Conditional Navigation Rendering */}
+            {userRole === "client" ? (
+                <>
+                    <HorizontalNavbar />
+                    <div className="stickyBottom">
+                        <BottomNavBar />
+                    </div>
+                </>
+            ) : userRole === "admin" ? (
+                <SideNavBar isCollapsed={isCollapsed} toggleSidebar={toggleSidebar} />
+            ) : null}
+
+            {/* Main Content */}
+            <main className={userRole === "admin" ? "admin-main-content" : ""}>
                 <Routes>
-                    {/* Default Route Logic */}
+                    {/* Default Route */}
                     <Route
                         path="/"
                         element={
-                            supabase.auth.getUser() ? (
-                                <Navigate to="/dashboard" />
+                            userRole ? (
+                                userRole === "admin" ? (
+                                    <Navigate to="/admin/dashboard" />
+                                ) : (
+                                    <Navigate to="/dashboard" />
+                                )
                             ) : (
                                 <Navigate to="/login" />
                             )
                         }
                     />
 
+                    {/* Authentication Routes */}
                     <Route path="/login" element={<Login />} />
                     <Route path="/signup" element={<Signup />} />
-                    <Route
-                        path="/dashboard"
-                        element={
-                            <ProtectedRoute>
-                                <Dashboard />
-                            </ProtectedRoute>
-                        }
-                    />
-                    <Route
-                        path="/inventory"
-                        element={
-                            <ProtectedRoute>
-                                <Inventory />
-                            </ProtectedRoute>
-                        }
-                    />
-                    <Route
-                        path="/scan"
-                        element={
-                            <ProtectedRoute>
-                                <Scan />
-                            </ProtectedRoute>
-                        }
-                    />
-                    <Route
-                        path="/recipe"
-                        element={
-                            <ProtectedRoute>
-                                <Recipe />
-                            </ProtectedRoute>
-                        }
-                    />
-                    <Route
-                        path="/profile"
-                        element={
-                            <ProtectedRoute>
-                                <Profile />
-                            </ProtectedRoute>
-                        }
-                    />
+
+                    {/* Client Routes */}
+                    {userRole === "client" && (
+                        <>
+                            <Route
+                                path="/dashboard"
+                                element={
+                                    <ProtectedRoute>
+                                        <Dashboard />
+                                    </ProtectedRoute>
+                                }
+                            />
+                            <Route
+                                path="/inventory"
+                                element={
+                                    <ProtectedRoute>
+                                        <Inventory />
+                                    </ProtectedRoute>
+                                }
+                            />
+                            <Route
+                                path="/scan"
+                                element={
+                                    <ProtectedRoute>
+                                        <Scan />
+                                    </ProtectedRoute>
+                                }
+                            />
+                            <Route
+                                path="/recipe"
+                                element={
+                                    <ProtectedRoute>
+                                        <Recipe />
+                                    </ProtectedRoute>
+                                }
+                            />
+                            <Route
+                                path="/profile"
+                                element={
+                                    <ProtectedRoute>
+                                        <Profile />
+                                    </ProtectedRoute>
+                                }
+                            />
+                        </>
+                    )}
+
+                    {/* Admin Routes */}
+                    {userRole === "admin" && (
+                        <>
+                            <Route
+                                path="/admin/dashboard"
+                                element={
+                                    <ProtectedRoute>
+                                        <AdminDashboard />
+                                    </ProtectedRoute>
+                                }
+                            />
+                            {/* Add more admin-specific routes here */}
+                        </>
+                    )}
 
                     {/* Fallback for unmatched routes */}
                     <Route path="*" element={<Navigate to="/" />} />

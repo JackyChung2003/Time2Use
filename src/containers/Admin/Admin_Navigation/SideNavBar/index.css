@@ -1,0 +1,110 @@
+/* Side Navigation Container */
+
+/* Admin Layout Adjustments */
+.App.sidebar-expanded .admin-main-content {
+  margin-left: 250px; /* Sidebar width when expanded */
+  transition: margin-left 0.3s ease;
+}
+
+.App.sidebar-collapsed .admin-main-content {
+  margin-left: 70px; /* Sidebar width when collapsed */
+  transition: margin-left 0.3s ease;
+}
+
+/* Main Content */
+.admin-main-content {
+  padding: 20px;
+  /* background-color: #f8f9fa;  */
+  min-height: 100vh;
+}
+
+.side-nav-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 250px; /* Expanded width */
+  background-color: #1e293b;
+  color: white;
+  transition: width 0.3s ease;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+}
+
+.side-nav-container.collapsed {
+  width: 70px; /* Collapsed width */
+}
+
+/* Toggle Button */
+.toggle-btn {
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1.5rem;
+  color: white;
+  background-color: #111827;
+  border-bottom: 1px solid #374151;
+}
+
+/* Navigation Items */
+.side-nav-items {
+  list-style: none;
+  /* padding: 0;
+  margin: 0;
+  flex-grow: 1; */
+
+  width: 100%; /* Ensure it spans the full width */
+}
+
+.side-nav-item {
+  display: flex;
+  align-items: center;
+  height: 50px;
+}
+
+.side-nav-item a {
+  /* text-decoration: none;
+  color: white;
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  height: 100%;
+  transition: background-color 0.3s ease; */
+  display: flex;
+  align-items: center;
+  padding: 10px 20px; /* Add some padding for spacing */
+  text-decoration: none; /* Remove underline */
+  color: #fff; /* Default text color */
+  background-color: transparent; /* Default background color */
+  width: 100%; /* Full width */
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.side-nav-item a.active {
+  background-color: #2563eb;
+}
+
+.side-nav-item a:hover {
+  background-color: #374151;
+}
+
+.nav-icon {
+  font-size: 1.2rem;
+  margin-right: 15px;
+}
+
+.nav-title {
+  font-size: 1rem;
+}
+
+/* Collapsed Sidebar */
+.side-nav-container.collapsed .nav-title {
+  display: none;
+}
+
+.side-nav-container.collapsed .nav-icon {
+  margin-right: 0;
+}
