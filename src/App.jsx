@@ -17,6 +17,7 @@ import Recipe from './containers/Client/Recipe';
 import Profile from './containers/Client/Profile';
 
 // Admin Components
+import AdminLayout from './components/AdminLayout';
 import SideNavBar from './containers/Admin/Admin_Navigation/SideNavBar';
 import AdminDashboard from './containers/Admin/Admin_Dashboard';
 
@@ -147,9 +148,12 @@ const App = () => {
                             <Route
                                 path="/admin/dashboard"
                                 element={
-                                    <ProtectedRoute>
+                                    // <ProtectedRoute>
+                                    //     <AdminDashboard />
+                                    // </ProtectedRoute>
+                                    <AdminLayout isCollapsed={isCollapsed} toggleSidebar={toggleSidebar}>
                                         <AdminDashboard />
-                                    </ProtectedRoute>
+                                    </AdminLayout>
                                 }
                             />
                             {/* Add more admin-specific routes here */}

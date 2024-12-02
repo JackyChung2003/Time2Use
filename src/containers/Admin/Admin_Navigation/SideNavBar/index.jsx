@@ -1,20 +1,12 @@
 import { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
-import { FaBars, FaTimes, FaAngleUp, FaAngleDown, FaChevronDown} from "react-icons/fa"; // Icons for toggle button
+import { FaBars, FaTimes, FaAngleUp, FaChevronDown} from "react-icons/fa"; // Icons for toggle button
 import PropTypes from "prop-types"; // Import PropTypes for props validation
 import adminNavBarItems from "../AdminNavBarItems";
 import "./index.css"; // Side navigation styles
 
 const SideNavBar = ({ isCollapsed, toggleSidebar }) => {
-    const [expandedSections, setExpandedSections] = useState({}); // To track expanded/collapsed sections
     const [expandedDropdown, setExpandedDropdown] = useState(null); // For dropdowns
-
-    const toggleSection = (index) => {
-        setExpandedSections((prev) => ({
-            ...prev,
-            [index]: !prev[index],
-        }));
-    };
 
     const toggleDropdown = (index) => {
         // If isCollapsed is true, expand the sidebar first

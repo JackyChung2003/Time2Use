@@ -1,0 +1,55 @@
+/* Layout Container */
+.admin-layout-container {
+  display: flex;
+  width: 100%;
+  min-height: 100vh;
+}
+
+/* Sidebar Adjustments */
+.side-nav-container {
+  flex-shrink: 0; /* Prevent the sidebar from resizing */
+  z-index: 1000;
+}
+
+.collapsed .side-nav-container {
+  width: 70px; /* Adjust width for collapsed state */
+}
+
+/* Main Content Wrapper */
+.admin-content-wrapper {
+  flex: 1; /* Take up remaining space */
+  display: flex;
+  flex-direction: column;
+  /* background-color: #f8f9fa;  */
+  transition: margin-left 0.3s ease; /* Smooth transition for sidebar */
+}
+
+.admin-layout-container.collapsed .admin-content-wrapper {
+  margin-left: 70px; /* Adjust for collapsed sidebar */
+}
+
+.admin-layout-container:not(.collapsed) .admin-content-wrapper {
+  margin-left: 250px; /* Full-width sidebar */
+}
+
+/* Header */
+.admin-header {
+  padding: 20px;
+  background-color: #1e293b;
+  color: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Content Area */
+.admin-content {
+  padding: 20px;
+  flex-grow: 1; /* Push footer to the bottom */
+}
+
+/* Footer */
+.admin-footer {
+  padding: 10px 20px;
+  background-color: #1e293b;
+  color: white;
+  text-align: center;
+}
