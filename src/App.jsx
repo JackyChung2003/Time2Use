@@ -35,8 +35,8 @@ const App = () => {
                 // Check for user role in metadata
                 
                 // Hardcoded role for now
-                const role = "admin";   // Uncomment this line to test admin dashboard
-                // const role = "client"; // Uncomment this line to test client dashboard
+                // const role = "admin";   // Uncomment this line to test admin dashboard
+                const role = "client"; // Uncomment this line to test client dashboard
 
                 // Following comment is for future reference when done with authentication to differentiate between client and admin
                 // const role = data.user.user_metadata?.role || "client"; // Default to "client"
@@ -49,6 +49,25 @@ const App = () => {
         };
 
         fetchUser();
+    }, []);
+
+    useEffect(() => {
+        const handleResize = () => {
+            if (window.innerWidth <= 768) {
+                setIsCollapsed(true); // Collapse sidebar for mobile
+            } else {
+                setIsCollapsed(false); // Expand sidebar for larger screens
+            }
+        };
+
+        // Run the check on initial load
+        handleResize();
+
+        // Add a resize event listener
+        window.addEventListener("resize", handleResize);
+
+        // Cleanup listener on component unmount
+        return () => window.removeEventListener("resize", handleResize);
     }, []);
 
     const toggleSidebar = () => {

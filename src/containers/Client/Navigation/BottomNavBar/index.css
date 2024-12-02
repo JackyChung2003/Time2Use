@@ -105,6 +105,13 @@
   .nav-icon {
     font-size: 20px;
   }
+
+  /* Disable the color of the third element for small devices */
+  .bottom-nav-wrapper .bottom-nav-links:nth-child(3) {
+    color: #fff; /* Disabled color (light gray) */
+    opacity: 0;
+    pointer-events: none; /* Disable clicks */
+  }
 }
 
 /* Responsive adjustments for phones */

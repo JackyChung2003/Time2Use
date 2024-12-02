@@ -10,7 +10,7 @@ const BottomNavBar = () => {
     <div className="bottom-nav-container">
       <div className="bottom-nav-wrapper">
         {/* Left-side nav items */}
-        {navBarItems.slice(0, 2).map((item, index) => (
+        {navBarItems.slice(0, 3).map((item, index) => (
           <Link
             to={item.link}
             key={index}
@@ -32,10 +32,10 @@ const BottomNavBar = () => {
         </div>
 
         {/* Right-side nav items */}
-        {navBarItems.slice(2, 5).map((item, index) => (
+        {navBarItems.slice(3, 5).map((item, index) => (
           <Link
             to={item.link}
-            key={index + 2}
+            key={index + 3}
             className={`bottom-nav-links ${location.pathname === item.link ? "active" : ""}`}
           >
             <div className="nav-item">
