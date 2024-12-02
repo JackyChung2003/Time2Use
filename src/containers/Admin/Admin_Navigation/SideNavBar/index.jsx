@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
 import { FaBars, FaTimes, FaAngleUp, FaAngleDown, FaChevronDown} from "react-icons/fa"; // Icons for toggle button
 import PropTypes from "prop-types"; // Import PropTypes for props validation
@@ -17,8 +17,20 @@ const SideNavBar = ({ isCollapsed, toggleSidebar }) => {
     };
 
     const toggleDropdown = (index) => {
+        // If isCollapsed is true, expand the sidebar first
+        if (isCollapsed) {
+          toggleSidebar(); // This will set isCollapsed to false
+        }
+        // Then toggle the dropdown state
         setExpandedDropdown(expandedDropdown === index ? null : index);
       };
+
+    // Close dropdowns when isCollapsed is true
+    useEffect(() => {
+      if (isCollapsed) {
+        setExpandedDropdown(null);
+      }
+    }, [isCollapsed]);
 
     return (
         <div className={`side-nav-container ${isCollapsed ? "collapsed" : ""}`}>
