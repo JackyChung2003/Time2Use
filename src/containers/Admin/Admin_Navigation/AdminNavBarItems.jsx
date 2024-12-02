@@ -1,4 +1,4 @@
-import { FaTachometerAlt, FaUser, FaCog } from "react-icons/fa";
+import { FaTachometerAlt, FaUser, FaCog, FaClipboardList } from "react-icons/fa";
 
 const adminNavBarItems = [
     {
@@ -15,6 +15,25 @@ const adminNavBarItems = [
         title: "Settings",
         link: "/admin/settings",
         icon: <FaCog />,
+    },
+    {
+        title: "Reports",
+        icon: <FaClipboardList />,
+        dropdown: true, // Indicates dropdown
+        items: [
+            {
+                title: "Monthly Reports",
+                link: "/admin/reports/monthly",
+            },
+            {
+                title: "Annual Reports",
+                link: "/admin/reports/annual",
+            },
+            {
+                title: "Custom Reports",
+                link: "/admin/reports/custom",
+            },
+        ],
     },
 ];
 

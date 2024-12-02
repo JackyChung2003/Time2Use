@@ -1,39 +1,21 @@
-/* Side Navigation Container */
-
-/* Admin Layout Adjustments */
-.App.sidebar-expanded .admin-main-content {
-  margin-left: 250px; /* Sidebar width when expanded */
-  transition: margin-left 0.3s ease;
-}
-
-.App.sidebar-collapsed .admin-main-content {
-  margin-left: 70px; /* Sidebar width when collapsed */
-  transition: margin-left 0.3s ease;
-}
-
-/* Main Content */
-.admin-main-content {
-  padding: 20px;
-  /* background-color: #f8f9fa;  */
-  min-height: 100vh;
-}
-
+/* Main Navigation Container */
 .side-nav-container {
   position: fixed;
   top: 0;
   left: 0;
   height: 100%;
-  width: 250px; /* Expanded width */
+  width: 250px;
   background-color: #1e293b;
   color: white;
   transition: width 0.3s ease;
   z-index: 1000;
   display: flex;
   flex-direction: column;
+  box-sizing: border-box; /* Ensures padding is included in width/height */
 }
 
 .side-nav-container.collapsed {
-  width: 70px; /* Collapsed width */
+  width: 70px;
 }
 
 /* Toggle Button */
@@ -47,40 +29,37 @@
   color: white;
   background-color: #111827;
   border-bottom: 1px solid #374151;
+  box-sizing: border-box; /* Consistent box-sizing */
 }
 
 /* Navigation Items */
 .side-nav-items {
   list-style: none;
-  /* padding: 0;
+  padding: 0;
   margin: 0;
-  flex-grow: 1; */
-
-  width: 100%; /* Ensure it spans the full width */
+  width: 100%;
 }
 
 .side-nav-item {
   display: flex;
-  align-items: center;
-  height: 50px;
+  flex-direction: column; /* Allow dropdown to appear below */
+  align-items: stretch;
+  justify-content: flex-start;
+  width: 100%;
+  box-sizing: border-box; /* Ensures proper width with padding */
 }
 
 .side-nav-item a {
-  /* text-decoration: none;
-  color: white;
   display: flex;
   align-items: center;
-  padding: 0 20px;
-  height: 100%;
-  transition: background-color 0.3s ease; */
-  display: flex;
-  align-items: center;
-  padding: 10px 20px; /* Add some padding for spacing */
-  text-decoration: none; /* Remove underline */
-  color: #fff; /* Default text color */
-  background-color: transparent; /* Default background color */
-  width: 100%; /* Full width */
+  justify-content: flex-start;
+  padding: 15px 20px; /* Uniform padding */
+  text-decoration: none;
+  color: #fff;
+  background-color: transparent;
+  width: 100%; /* Ensure full width */
   transition: background-color 0.3s ease, color 0.3s ease;
+  box-sizing: border-box; /* Include padding in width */
 }
 
 .side-nav-item a.active {
@@ -91,13 +70,21 @@
   background-color: #374151;
 }
 
+/* Icon Styling */
 .nav-icon {
-  font-size: 1.2rem;
+  font-size: 1.5rem; /* Adjust icon size */
+  flex-shrink: 0; /* Prevent icon from shrinking */
   margin-right: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .nav-title {
-  font-size: 1rem;
+  font-size: 1rem; /* Adjust text size */
+  white-space: nowrap; /* Prevent text wrapping */
+  overflow: hidden;
+  text-overflow: ellipsis; /* Add ellipsis for overflow */
 }
 
 /* Collapsed Sidebar */
@@ -107,4 +94,61 @@
 
 .side-nav-container.collapsed .nav-icon {
   margin-right: 0;
+}
+
+/* Dropdown Header */
+.dropdown-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 15px 20px;
+  cursor: pointer;
+  background-color: transparent;
+  color: white;
+  transition: background-color 0.3s ease;
+}
+
+.dropdown-header:hover {
+  background-color: #374151;
+}
+
+/* Dropdown Arrow */
+.dropdown-header .dropdown-arrow {
+  margin-left: auto;
+  transition: transform 0.3s ease;
+}
+
+.dropdown-header.expanded .dropdown-arrow {
+  transform: rotate(180deg);
+}
+
+/* Nested Menu (Dropdown Content) */
+.nested-menu {
+  list-style: none;
+  margin: 0;
+  padding-left: 20px; /* Indentation for nested items */
+  background-color: #1e293b;
+  display: none; /* Hidden by default */
+}
+
+.nested-menu.expanded {
+  display: block; /* Show when expanded */
+}
+
+.nested-item {
+  padding: 10px 20px;
+}
+
+.nested-item a {
+  text-decoration: none;
+  color: white;
+  transition: color 0.3s ease;
+}
+
+.nested-item a.active {
+  color: #2563eb; /* Active link color */
+}
+
+.nested-item a:hover {
+  color: #2563eb;
 }
