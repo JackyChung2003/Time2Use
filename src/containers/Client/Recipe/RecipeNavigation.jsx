@@ -11,26 +11,25 @@ const RecipeNavigation = () => {
     return (
         <Routes>
             {/* Default route within the Recipe module */}
-            {/* <Route path="/" element={<Navigate to="/recipes" />} /> */}
-            <Route path="/" element={<Navigate to="/recipes/dashboard" />} />
+            <Route path="/" element={<Navigate to="dashboard" />} />
 
             {/* Recipe Dashboard */}
-            <Route path="/dashboard" element={<RecipeDashboard />} />
+            <Route path="dashboard" element={<RecipeDashboard />} />
 
             {/* Recipe Explore page */}
-            <Route path="/recipe" element={<RecipeExplore />} />
+            <Route path="explore" element={<RecipeExplore />} />
 
             {/* Recipe Detail page */}
-            <Route path="/recipe/:id" element={<RecipeDetail />} />
+            <Route path="recipe/:id" element={<RecipeDetail />} />
 
             {/* Recipe Calendar page */}
-            <Route path="/calendar" element={<RecipeCalendar />} />
+            <Route path="calendar" element={<RecipeCalendar />} />
 
             {/* Favorites page */}
-            <Route path="/favorites" element={<RecipeFavorites />} />
+            <Route path="favorites" element={<RecipeFavorites />} />
 
             {/* Fallback */}
-            <Route path="*" element={<Navigate to="/recipes/dashboard" />} />
+            <Route path="*" element={<Navigate to="dashboard" />} />
         </Routes>
     );
 };

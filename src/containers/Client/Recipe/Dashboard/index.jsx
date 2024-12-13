@@ -11,7 +11,7 @@ const RecipeDashboard = () => {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 {/* Navigate to Recipe Explore */}
                 <button 
-                    onClick={() => navigate('/recipes/recipe')} 
+                    onClick={() => navigate('/recipes/explore')} 
                     style={{ padding: '10px 20px', cursor: 'pointer', backgroundColor: '#4CAF50', color: 'white', border: 'none', borderRadius: '5px' }}
                 >
                     Explore Recipes
