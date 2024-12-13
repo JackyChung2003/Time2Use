@@ -13,7 +13,8 @@ import BottomNavBar from './containers/Client/Navigation/BottomNavBar';
 import Dashboard from './containers/Client/Dashboard';
 import Inventory from './containers/Client/Inventory';
 import Scan from './containers/Client/Scan';
-import Recipe from './containers/Client/Recipe';
+// import Recipe from './containers/Client/Recipe';
+import RecipeNavigation from './containers/Client/Recipe/RecipeNavigation';
 import Profile from './containers/Client/Profile';
 
 // Admin Components
@@ -142,11 +143,19 @@ const App = () => {
                                     </ProtectedRoute>
                                 }
                             />
-                            <Route
+                            {/* <Route
                                 path="/recipe"
                                 element={
                                     <ProtectedRoute>
                                         <Recipe />
+                                    </ProtectedRoute>
+                                }
+                            /> */}
+                            <Route
+                                path="/recipes/*"
+                                element={
+                                    <ProtectedRoute>
+                                        <RecipeNavigation />
                                     </ProtectedRoute>
                                 }
                             />
