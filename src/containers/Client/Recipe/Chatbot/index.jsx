@@ -34,7 +34,20 @@ const sendMessage = async () => {
 
     setIsLoading(true);
     try {
-        const result = await model.generateContent(systemPrompt + userInput);
+      // Build the context string to send history msg to the model
+      const context = chatHistory
+      .map((msg) => `${msg.type === "user" ? "User:" : "Bot:"} ${msg.message}`)
+      .join("\n"); // Join messages with line breaks for better readability
+
+      // Append the system prompt and user input
+      const prompt = `${systemPrompt}\n${context}\nUser: ${userInput}`;
+
+      console.log("Sending prompt to API:", prompt);
+
+      // Send the concatenated string to the Gemini model
+      const result = await model.generateContent(prompt);
+
+      // const result = await model.generateContent(systemPrompt + userInput);
 
         const response = await result.response;
 
