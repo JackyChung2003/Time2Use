@@ -2,6 +2,9 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import supabase from '../../../../config/supabaseClient';
 
+import BackButton from '../../../../components/Button/BackButton';
+
+
 const RecipeExplore = () => {
     const [recipes, setRecipes] = useState([]);
     const [categories, setCategories] = useState([]);
@@ -246,6 +249,7 @@ const RecipeExplore = () => {
 
     return (
         <div style={{ padding: '20px' }}>
+            <BackButton />
             <h1>Explore Recipes</h1>
             <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
                 <input

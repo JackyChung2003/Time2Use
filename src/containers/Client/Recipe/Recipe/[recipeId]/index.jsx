@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import supabase from '../../../../../config/supabaseClient';
 
+import BackButton from '../../../../../components/Button/BackButton';
+
 const RecipeDetail = () => {
     const { id } = useParams();
     const navigate = useNavigate();
@@ -344,6 +346,7 @@ const RecipeDetail = () => {
 
     return (
         <div style={{ padding: '20px' }}>
+            <BackButton />
             <h1>{recipe.name}</h1>
             <button onClick={toggleFavorite}>
                 {isFavorite ? 'Remove from Favorites' : 'Save to Favorites'}
@@ -498,7 +501,16 @@ const RecipeDetail = () => {
                 </div>
             )}
 
-            <button onClick={() => navigate('/calendar')}>Reschedule</button>
+            {/* <button onClick={() => navigate('/calendar')}>Reschedule</button> */}
+            <button
+                onClick={() =>
+                    navigate('/recipes/calendar', {
+                        state: { recipeId: id, recipeName: recipe.name },
+                    })
+                }
+            >
+                Reschedule
+            </button>
 
             <h3>Related Recipes</h3>
             <ul>
