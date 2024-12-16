@@ -662,6 +662,8 @@ const RecipeExplore = () => {
                                 onClick={() => {
                                     if (!selectedIngredients.some((item) => item.name === ingredient.name)) {
                                         setSelectedIngredients((prev) => [...prev, ingredient]);
+                                        setIngredientSearch(''); // Clear the text box
+                                        setMatchingIngredients([]); // Clear the suggestions
                                     }
                                 }}
 
