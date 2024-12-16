@@ -111,7 +111,9 @@ const RecipeExplore = () => {
         }
     };
     
-    
+    const handleIngredientRemove = (ingredientName) => {
+        setSelectedIngredients((prev) => prev.filter((item) => item.name !== ingredientName));
+    };
     
 
     // const fetchFilterOptions = async () => {
@@ -370,6 +372,7 @@ const RecipeExplore = () => {
 
             {/* Filter Overlay */}
             {isOverlayOpen && (
+                
                 <div
                     style={{
                         position: 'fixed',
@@ -401,6 +404,9 @@ const RecipeExplore = () => {
                     >
                         X
                     </button>
+
+                    
+
                     <h2 style={{ padding: '20px' }}>Filter Options</h2>
                     
                     {/* Scrollable Content */}
@@ -424,6 +430,38 @@ const RecipeExplore = () => {
                     >
                         + Search Recipe by Ingredient
                     </button>
+
+                    <div style={{ padding: '20px' }}>
+                        <h3>Selected Ingredients:</h3>
+                        <div>
+                            {selectedIngredients.map((ingredient, index) => (
+                                <div
+                                    key={index}
+                                    style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        marginBottom: '10px',
+                                    }}
+                                >
+                                    <span>{ingredient.name}</span>
+                                    <button
+                                        onClick={() => handleIngredientRemove(ingredient.name)}
+                                        style={{
+                                            marginLeft: '10px',
+                                            background: 'red',
+                                            color: 'white',
+                                            border: 'none',
+                                            borderRadius: '5px',
+                                            padding: '5px',
+                                            cursor: 'pointer',
+                                        }}
+                                    >
+                                        X
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
                         <div style={{ marginBottom: '20px' }}>
                             <h3>Category</h3>
                             <select
