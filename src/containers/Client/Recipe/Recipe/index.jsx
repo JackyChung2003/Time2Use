@@ -249,17 +249,27 @@ const RecipeExplore = () => {
     // });
 
     const filteredRecipes = recipes.filter((recipe) => {
-        const matchesSearch = recipe.name.toLowerCase().includes(search.toLowerCase());
-        const matchesCategory = filters.category ? recipe.category_id === filters.category : true;
-        const matchesTags = filters.tags.length
-          ? filters.tags.every((tag) => recipe.tags.includes(tag))
-          : true;
-        const matchesEquipment = filters.equipment.length
-          ? filters.equipment.every((equip) => recipe.equipment.includes(equip))
-          : true;
+        const matchesSearch = recipe.name?.toLowerCase().includes(search.toLowerCase());
+    
+        const matchesCategory = filters.categories?.length
+            ? filters.categories.every((category) =>
+                  (recipe.categories || []).includes(category)
+              )
+            : true;
+    
+        const matchesTags = filters.tags?.length
+            ? filters.tags.every((tag) => (recipe.tags || []).includes(tag))
+            : true;
+    
+        const matchesEquipment = filters.equipment?.length
+            ? filters.equipment.every((equip) => (recipe.equipment || []).includes(equip))
+            : true;
     
         return matchesSearch && matchesCategory && matchesTags && matchesEquipment;
-      });
+    });
+    
+    
+    
 
     // const filteredRecipes = recipes.filter((recipe) => {
     //     const matchesSearch = recipe.name.toLowerCase().includes(search.toLowerCase());
@@ -507,7 +517,26 @@ const RecipeExplore = () => {
                     </div>
                         <div style={{ marginBottom: '20px' }}>
                             <h3>Category</h3>
-                            <select
+                            {categories.map((category) => (
+                                <label key={category.id} style={{ display: 'block', marginBottom: '5px' }}>
+                                    <input
+                                        type="checkbox"
+                                        checked={filters.categories?.includes(category.name)} // Safeguard includes
+                                        onChange={(e) => {
+                                            const checked = e.target.checked;
+                                            applyFilters({
+                                                ...filters,
+                                                categories: checked
+                                                    ? [...filters.categories, category.name]
+                                                    : filters.categories.filter((c) => c !== category.name),
+                                            });
+                                        }}
+                                    />
+                                    {category.name}
+                                </label>
+                            ))}
+
+                            {/* <select
                                 value={filters.category || ''} // Maintain selected category
                                 // onChange={(e) =>
                                 //     setFilters((prevFilters) => ({
@@ -524,11 +553,6 @@ const RecipeExplore = () => {
                                 style={{ padding: '10px', borderRadius: '5px', width: '100%' }}
                             >
                                 <option value="">All Categories</option>
-                                {/* {categories.map((category) => (
-                                    <option key={category.id} value={category.id}>
-                                        {category.name}
-                                    </option>
-                                ))} */}
                                 {categories.length > 0 ? (
                                     categories.map((category) => (
                                         <option key={category.id} value={category.id}>
@@ -538,7 +562,7 @@ const RecipeExplore = () => {
                                 ) : (
                                     <option disabled>No Categories Available</option>
                                 )}
-                            </select>
+                            </select> */}
                         </div>
                         <div style={{ marginBottom: '20px' }}>
                             <h3>Tags</h3>

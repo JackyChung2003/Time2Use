@@ -133,7 +133,7 @@ export const useRecipeContext = () => useContext(RecipeContext);
 export const RecipeProvider = ({ children }) => {
   const [recipes, setRecipes] = useState([]);
   const [filters, setFilters] = useState({
-    category: null,
+    categories: [],
     tags: [],
     equipment: [],
     cookTime: null,
@@ -169,9 +169,12 @@ const fetchRecipes = async () => {
           cook_time,
           image_path,
           recipe_tags ( tags (name) ),
-          recipe_equipment ( equipment (name) )
+          recipe_equipment ( equipment (name) ),
+          recipe_category ( category (name) )
         `);
-  
+      
+        console.log("Raw data fetched from Supabase:", data); // Log the raw data here
+
       if (error) {
         console.error("Error fetching recipes:", error);
       } else {
@@ -180,8 +183,10 @@ const fetchRecipes = async () => {
           ...recipe,
           tags: recipe.recipe_tags?.map((rt) => rt.tags.name) || [],
           equipment: recipe.recipe_equipment?.map((re) => re.equipment.name) || [],
+          categories: recipe.recipe_category?.map((rc) => rc.category.name) || [],
         }));
         setRecipes(recipesWithDetails || []);
+        console.log("Recipes with categories:", recipesWithDetails);
       }
     } catch (err) {
       console.error("Unexpected error:", err);
