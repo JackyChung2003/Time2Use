@@ -57,6 +57,8 @@ const sendMessage = async () => {
       // const responseText = response.text();
       const response = result.response.text();
 
+      console.log("Raw Response:", response);
+
         // setChatHistory((prev) => [
         //     ...prev,
         //     { type: "user", message: userInput },
@@ -65,27 +67,51 @@ const sendMessage = async () => {
         // console.log("Response:", response.text());
         // Parse response
       let parsedResponse;
+      // try {
+      //   parsedResponse = JSON.parse(response);
+      // } catch {
+      //   parsedResponse = null;
+      // }
       try {
-        parsedResponse = JSON.parse(response);
-      } catch {
+        // Clean up the response to remove Markdown block syntax
+        const cleanedResponse = response
+          .replace(/```json/g, "") // Remove ```json
+          .replace(/```/g, "");    // Remove closing ```
+      
+        console.log("Cleaned Response:", cleanedResponse);
+      
+        // Parse the cleaned response
+        parsedResponse = JSON.parse(cleanedResponse);
+      } catch (error) {
+        console.error("Failed to parse JSON:", error);
         parsedResponse = null;
       }
+      
+      console.log("Parsed Response:", parsedResponse);
 
       // If intent is "filter", apply filters dynamically
       if (parsedResponse?.intent === "filter") {
         
-        const { category, cookTime, tags, equipment } = parsedResponse.filters;
+        // const { category, cookTime, tags, equipment } = parsedResponse.filters;
+        const { category, tags, equipment, cookTime, ingredients } = parsedResponse.filters;
 
         console.log("Parsed Filters from API:", parsedResponse.filters);
 
         // setIsLoading(true); // Set loading while filters apply
         // Apply filters to context
+        // applyFilters({
+        //   category: category || null,
+        //   cookTime: cookTime || null,
+        //   tags: tags || [],
+        //   equipment: equipment || [],
+        // });
         applyFilters({
-          category: category || null,
-          cookTime: cookTime || null,
+          categories: category ? [category] : [],
           tags: tags || [],
           equipment: equipment || [],
-        });
+          cookTime: cookTime || null,
+          ingredients: ingredients || [],
+      });
 
         // setIsLoading(false);
 

@@ -549,7 +549,8 @@ const RecipeExplore = () => {
                                 <label key={category.id} style={{ display: 'block', marginBottom: '5px' }}>
                                     <input
                                         type="checkbox"
-                                        checked={filters.categories?.includes(category.name)} // Safeguard includes
+                                        // checked={filters.categories?.includes(category.name)} // Safeguard includes
+                                        checked={filters.categories.includes(category.name)}
                                         onChange={(e) => {
                                             const checked = e.target.checked;
                                             applyFilters({

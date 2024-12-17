@@ -198,19 +198,32 @@ const fetchRecipes = async () => {
   };
 
   // Function to apply filters
+  // const applyFilters = (newFilters) => {
+  //   console.log("Previous Filters:", filters);
+  //   console.log("New Filters Applied:", newFilters);
+  //   setFilters((prevFilters) => ({
+  //     ...prevFilters,
+  //     ...newFilters,
+  //   }));
+  //   console.log("Filters applied:", newFilters);
+  // };
+
   const applyFilters = (newFilters) => {
-    console.log("Previous Filters:", filters);
-    console.log("New Filters Applied:", newFilters);
     setFilters((prevFilters) => ({
-      ...prevFilters,
-      ...newFilters,
+        ...prevFilters,
+        ...newFilters,
     }));
-    console.log("Filters applied:", newFilters);
+    console.log("Filters updated:", newFilters);
   };
 
   useEffect(() => {
     fetchRecipes(); // Fetch recipes on mount
   }, []);
+
+  useEffect(() => {
+    console.log("Filters changed:", filters);
+    fetchRecipes(); // Re-fetch recipes based on new filters
+}, [filters]);
 
   return (
     <RecipeContext.Provider value={{ recipes, filters, fetchRecipes, applyFilters, loading }}>
