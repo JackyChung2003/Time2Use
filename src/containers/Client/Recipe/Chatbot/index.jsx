@@ -76,7 +76,9 @@ const sendMessage = async () => {
         
         const { category, cookTime, tags, equipment } = parsedResponse.filters;
 
-        setIsLoading(true); // Set loading while filters apply
+        console.log("Parsed Filters from API:", parsedResponse.filters);
+
+        // setIsLoading(true); // Set loading while filters apply
         // Apply filters to context
         applyFilters({
           category: category || null,
@@ -85,7 +87,7 @@ const sendMessage = async () => {
           equipment: equipment || [],
         });
 
-        setIsLoading(false);
+        // setIsLoading(false);
 
         setChatHistory((prev) => [
           ...prev,
@@ -94,6 +96,7 @@ const sendMessage = async () => {
         ]);
         
       } else {
+        console.log("API Response Text:", response);
         // If not a filter, add a normal chatbot response
         setChatHistory((prev) => [
           ...prev,

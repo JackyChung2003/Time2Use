@@ -192,6 +192,8 @@ const fetchRecipes = async () => {
 
   // Function to apply filters
   const applyFilters = (newFilters) => {
+    console.log("Previous Filters:", filters);
+    console.log("New Filters Applied:", newFilters);
     setFilters((prevFilters) => ({
       ...prevFilters,
       ...newFilters,

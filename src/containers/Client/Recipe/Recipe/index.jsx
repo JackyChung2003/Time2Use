@@ -191,6 +191,12 @@ const RecipeExplore = () => {
         fetchFilterOptions();
     }, []);
 
+    useEffect(() => {
+        console.log("Filters changed, re-fetching recipes:", filters);
+        fetchRecipes(); // Fetch recipes or re-filter based on filters
+      }, [filters]);
+
+
     // const filteredRecipes = recipes.filter((recipe) => {
     //     const matchesSearch = recipe.name.toLowerCase().includes(search.toLowerCase());
     //     const matchesCategory = filters.category
@@ -274,9 +280,9 @@ const RecipeExplore = () => {
         setOverlayOpen(false); // Close overlay on apply
     };
 
-    if (loading) {
-        return <div>Loading recipes...</div>;
-    }
+    // if (loading) {
+    //     return <div>Loading recipes...</div>;
+    // }
 
     return (
         <div style={{ padding: '20px' }}>
@@ -503,11 +509,17 @@ const RecipeExplore = () => {
                             <h3>Category</h3>
                             <select
                                 value={filters.category || ''} // Maintain selected category
+                                // onChange={(e) =>
+                                //     setFilters((prevFilters) => ({
+                                //         ...prevFilters,
+                                //         category: e.target.value ? Number(e.target.value) : null,
+                                //     }))
+                                // }
                                 onChange={(e) =>
-                                    setFilters((prevFilters) => ({
-                                        ...prevFilters,
+                                    applyFilters({
+                                        ...filters,
                                         category: e.target.value ? Number(e.target.value) : null,
-                                    }))
+                                    })
                                 }
                                 style={{ padding: '10px', borderRadius: '5px', width: '100%' }}
                             >
@@ -535,14 +547,23 @@ const RecipeExplore = () => {
                                     <input
                                         type="checkbox"
                                         checked={filters.tags.includes(tag.name)} // Maintain tag state
+                                        // onChange={(e) => {
+                                        //     const checked = e.target.checked;
+                                        //     setFilters((prevFilters) => ({
+                                        //         ...prevFilters,
+                                        //         tags: checked
+                                        //             ? [...prevFilters.tags, tag.name]
+                                        //             : prevFilters.tags.filter((t) => t !== tag.name),
+                                        //     }));
+                                        // }}
                                         onChange={(e) => {
                                             const checked = e.target.checked;
-                                            setFilters((prevFilters) => ({
-                                                ...prevFilters,
+                                            applyFilters({
+                                                ...filters,
                                                 tags: checked
-                                                    ? [...prevFilters.tags, tag.name]
-                                                    : prevFilters.tags.filter((t) => t !== tag.name),
-                                            }));
+                                                    ? [...filters.tags, tag.name]
+                                                    : filters.tags.filter((t) => t !== tag.name),
+                                            });
                                         }}
                                     />{' '}
                                     {tag.name}
@@ -556,14 +577,23 @@ const RecipeExplore = () => {
                                     <input
                                         type="checkbox"
                                         checked={filters.equipment.includes(equip.name)} // Maintain equipment state
+                                        // onChange={(e) => {
+                                        //     const checked = e.target.checked;
+                                        //     setFilters((prevFilters) => ({
+                                        //         ...prevFilters,
+                                        //         equipment: checked
+                                        //             ? [...prevFilters.equipment, equip.name]
+                                        //             : prevFilters.equipment.filter((eq) => eq !== equip.name),
+                                        //     }));
+                                        // }}
                                         onChange={(e) => {
                                             const checked = e.target.checked;
-                                            setFilters((prevFilters) => ({
-                                                ...prevFilters,
+                                            applyFilters({
+                                                ...filters,
                                                 equipment: checked
-                                                    ? [...prevFilters.equipment, equip.name]
-                                                    : prevFilters.equipment.filter((eq) => eq !== equip.name),
-                                            }));
+                                                    ? [...filters.equipment, equip.name]
+                                                    : filters.equipment.filter((eq) => eq !== equip.name),
+                                            });
                                         }}
                                     />{' '}
                                     {equip.name}
@@ -574,11 +604,17 @@ const RecipeExplore = () => {
                             <h3>Cooking Time</h3>
                             <select
                                 value={filters.cookTime || ''} // Maintain selected cooking time
+                                // onChange={(e) =>
+                                //     setFilters((prevFilters) => ({
+                                //         ...prevFilters,
+                                //         cookTime: e.target.value ? Number(e.target.value) : null,
+                                //     }))
+                                // }
                                 onChange={(e) =>
-                                    setFilters((prevFilters) => ({
-                                        ...prevFilters,
+                                    applyFilters({
+                                        ...filters,
                                         cookTime: e.target.value ? Number(e.target.value) : null,
-                                    }))
+                                    })
                                 }
                                 style={{ padding: '10px', borderRadius: '5px', width: '100%' }}
                             >
