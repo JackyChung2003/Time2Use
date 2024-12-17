@@ -5,19 +5,24 @@ import supabase from '../../../../config/supabaseClient';
 import BackButton from '../../../../components/Button/BackButton';
 
 
+import { useRecipeContext } from '../Contexts/RecipeContext';
+
+
 const RecipeExplore = () => {
-    const [recipes, setRecipes] = useState([]);
+    // const { recipes, filters, applyFilters, loading } = useRecipeContext();
+    const { recipes, filters, applyFilters, loading, fetchRecipes } = useRecipeContext(); // Get recipes and filters
+    // const [recipes, setRecipes] = useState([]);
     const [categories, setCategories] = useState([]);
     const [tags, setTags] = useState([]);
     const [equipment, setEquipment] = useState([]);
     const [search, setSearch] = useState('');
-    const [loading, setLoading] = useState(true);
-    const [filters, setFilters] = useState({
-        category: null,
-        tags: [],
-        equipment: [],
-        cookTime: null,
-    });
+    // const [loading, setLoading] = useState(true);
+    // const [filters, setFilters] = useState({
+    //     category: null,
+    //     tags: [],
+    //     equipment: [],
+    //     cookTime: null,
+    // });
     const [isOverlayOpen, setOverlayOpen] = useState(false);
 
     const [isIngredientOverlayOpen, setIngredientOverlayOpen] = useState(false);
@@ -69,50 +74,50 @@ const RecipeExplore = () => {
     //     }
     // };
 
-    const fetchRecipes = async () => {
-        try {
-            const { data, error } = await supabase
-                .from('recipes')
-                .select(`
-                    id,
-                    name,
-                    description,
-                    prep_time,
-                    cook_time,
-                    category_id,
-                    created_at,
-                    image_path,
-                    recipe_ingredients (
-                        ingredients (name)
-                    ),
-                    recipe_tags (
-                        tags (name)
-                    ),
-                    recipe_equipment (
-                        equipment (name)
-                    )
-                `);
+    // const fetchRecipes = async () => {
+    //     try {
+    //         const { data, error } = await supabase
+    //             .from('recipes')
+    //             .select(`
+    //                 id,
+    //                 name,
+    //                 description,
+    //                 prep_time,
+    //                 cook_time,
+    //                 category_id,
+    //                 created_at,
+    //                 image_path,
+    //                 recipe_ingredients (
+    //                     ingredients (name)
+    //                 ),
+    //                 recipe_tags (
+    //                     tags (name)
+    //                 ),
+    //                 recipe_equipment (
+    //                     equipment (name)
+    //                 )
+    //             `);
     
-            if (error) {
-                console.error('Error fetching recipes:', error);
-                return;
-            }
+    //         if (error) {
+    //             console.error('Error fetching recipes:', error);
+    //             return;
+    //         }
     
-            // Map the data correctly
-            const recipesWithDetails = data.map((recipe) => ({
-                ...recipe,
-                ingredients: recipe.recipe_ingredients?.map((ri) => ri.ingredients.name) || [],
-                tags: recipe.recipe_tags?.map((rt) => rt.tags.name) || [],
-                equipment: recipe.recipe_equipment?.map((re) => re.equipment.name) || [],
-            }));
+    //         // Map the data correctly
+    //         const recipesWithDetails = data.map((recipe) => ({
+    //             ...recipe,
+    //             ingredients: recipe.recipe_ingredients?.map((ri) => ri.ingredients.name) || [],
+    //             tags: recipe.recipe_tags?.map((rt) => rt.tags.name) || [],
+    //             equipment: recipe.recipe_equipment?.map((re) => re.equipment.name) || [],
+    //         }));
     
-            setRecipes(recipesWithDetails || []);
-        } catch (error) {
-            console.error('Unexpected error:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
+    //         setRecipes(recipesWithDetails || []);
+    //     } catch (error) {
+    //         console.error('Unexpected error:', error);
+    //     } finally {
+    //         setLoading(false);
+    //     }
+    // };
     
     const handleIngredientRemove = (ingredientName) => {
         setSelectedIngredients((prev) => prev.filter((item) => item.name !== ingredientName));
@@ -204,38 +209,64 @@ const RecipeExplore = () => {
     //     return matchesSearch && matchesCategory && matchesTags && matchesEquipment && matchesCookTime;
     // });
 
+    // const filteredRecipes = recipes.filter((recipe) => {
+    //     const matchesSearch = recipe.name.toLowerCase().includes(search.toLowerCase());
+    //     const matchesCategory = filters.category
+    //         ? recipe.category_id === filters.category
+    //         : true;
+    //     const matchesTags = filters.tags.length
+    //         ? filters.tags.every((tag) => (recipe.tags || []).includes(tag))
+    //         : true;
+    //     const matchesEquipment = filters.equipment.length
+    //         ? filters.equipment.every((equip) => (recipe.equipment || []).includes(equip))
+    //         : true;
+    //     const matchesCookTime = filters.cookTime
+    //         ? recipe.cook_time <= filters.cookTime
+    //         : true;
+    
+    //     const matchesIngredients = selectedIngredients.length
+    //         ? selectedIngredients.every((ing) =>
+    //               (recipe.ingredients || []).some((ingredient) =>
+    //                   ingredient.toLowerCase().includes(ing.name.toLowerCase())
+    //               )
+    //           )
+    //         : true;
+    
+    //     return (
+    //         matchesSearch &&
+    //         matchesCategory &&
+    //         matchesTags &&
+    //         matchesEquipment &&
+    //         matchesCookTime &&
+    //         matchesIngredients
+    //     );
+    // });
+
     const filteredRecipes = recipes.filter((recipe) => {
         const matchesSearch = recipe.name.toLowerCase().includes(search.toLowerCase());
-        const matchesCategory = filters.category
-            ? recipe.category_id === filters.category
-            : true;
+        const matchesCategory = filters.category ? recipe.category_id === filters.category : true;
         const matchesTags = filters.tags.length
-            ? filters.tags.every((tag) => (recipe.tags || []).includes(tag))
-            : true;
+          ? filters.tags.every((tag) => recipe.tags.includes(tag))
+          : true;
         const matchesEquipment = filters.equipment.length
-            ? filters.equipment.every((equip) => (recipe.equipment || []).includes(equip))
-            : true;
-        const matchesCookTime = filters.cookTime
-            ? recipe.cook_time <= filters.cookTime
-            : true;
+          ? filters.equipment.every((equip) => recipe.equipment.includes(equip))
+          : true;
     
-        const matchesIngredients = selectedIngredients.length
-            ? selectedIngredients.every((ing) =>
-                  (recipe.ingredients || []).some((ingredient) =>
-                      ingredient.toLowerCase().includes(ing.name.toLowerCase())
-                  )
-              )
-            : true;
+        return matchesSearch && matchesCategory && matchesTags && matchesEquipment;
+      });
+
+    // const filteredRecipes = recipes.filter((recipe) => {
+    //     const matchesSearch = recipe.name.toLowerCase().includes(search.toLowerCase());
+    //     const matchesCategory = filters.category ? recipe.category_id === filters.category : true;
+    //     const matchesTags = filters.tags.length ? filters.tags.every((tag) => recipe.tags.includes(tag)) : true;
+    //     const matchesEquipment = filters.equipment.length
+    //       ? filters.equipment.every((equip) => recipe.equipment.includes(equip))
+    //       : true;
+    //     const matchesCookTime = filters.cookTime ? recipe.cook_time <= filters.cookTime : true;
     
-        return (
-            matchesSearch &&
-            matchesCategory &&
-            matchesTags &&
-            matchesEquipment &&
-            matchesCookTime &&
-            matchesIngredients
-        );
-    });
+    //     return matchesSearch && matchesCategory && matchesTags && matchesEquipment && matchesCookTime;
+    //   });
+    
     
     
 
@@ -311,7 +342,8 @@ const RecipeExplore = () => {
                                 <p>Prep Time: {recipe.prep_time} mins</p>
                                 <p>Cook Time: {recipe.cook_time} mins</p>
                                 {/* Tags */}
-                                {recipe.tags.length > 0 && (
+                                {/* {recipe.tags.length > 0 && ( */}
+                                {(recipe.tags || []).length > 0 && (
                                     <div style={{ marginTop: '10px' }}>
                                         <strong>Tags:</strong>{' '}
                                         {/* {recipe.tags.map((tag, index) => ( */}
@@ -347,7 +379,8 @@ const RecipeExplore = () => {
                                     </div>
                                 )}
                                 {/* Equipment */}
-                                {recipe.equipment.length > 0 && (
+                                {/* {recipe.equipment.length > 0 && ( */}
+                                {(recipe.equipment || []).length > 0 && (
                                     <div style={{ marginTop: '10px' }}>
                                         <strong>Equipment:</strong>{' '}
                                         {recipe.equipment.map((item, index) => (
