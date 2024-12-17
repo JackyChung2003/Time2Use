@@ -264,8 +264,12 @@ const RecipeExplore = () => {
         const matchesEquipment = filters.equipment?.length
             ? filters.equipment.every((equip) => (recipe.equipment || []).includes(equip))
             : true;
+
+        const matchesCookTime = filters.cookTime
+            ? recipe.cook_time <= filters.cookTime // Check if cook_time is within the filter
+            : true;
     
-        return matchesSearch && matchesCategory && matchesTags && matchesEquipment;
+        return matchesSearch && matchesCategory && matchesTags && matchesEquipment && matchesCookTime;
     });
     
     
