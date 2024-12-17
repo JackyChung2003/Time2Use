@@ -268,8 +268,32 @@ const RecipeExplore = () => {
         const matchesCookTime = filters.cookTime
             ? recipe.cook_time <= filters.cookTime // Check if cook_time is within the filter
             : true;
+
+        // const matchesIngredients = selectedIngredients.length
+        //     ? selectedIngredients.every((ing) =>
+        //           (recipe.ingredients || []).some(
+        //               (ingredient) => ingredient.toLowerCase() === ing.name.toLowerCase()
+        //           )
+        //       )
+        //     : true;
+
+        // const matchesIngredients = selectedIngredients.length
+        //     selectedIngredients.every((ing) =>
+        //         (recipe.ingredients || []).includes(ing.name)
+        //     )
+        //     true;
+
+        const matchesIngredients = selectedIngredients.length
+        ? selectedIngredients.every((ing) =>
+              (recipe.ingredients || []).some(
+                  (ingredient) => ingredient.toLowerCase() === ing.name.toLowerCase()
+              )
+          )
+        : true;
+
+        console.log("Selected Ingredients:", selectedIngredients);
     
-        return matchesSearch && matchesCategory && matchesTags && matchesEquipment && matchesCookTime;
+        return matchesSearch && matchesCategory && matchesTags && matchesEquipment && matchesCookTime && matchesIngredients;
     });
     
     

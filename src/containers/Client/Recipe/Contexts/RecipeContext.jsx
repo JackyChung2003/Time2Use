@@ -170,7 +170,8 @@ const fetchRecipes = async () => {
           image_path,
           recipe_tags ( tags (name) ),
           recipe_equipment ( equipment (name) ),
-          recipe_category ( category (name) )
+          recipe_category ( category (name) ),
+          recipe_ingredients ( ingredients (name) )
         `);
       
         console.log("Raw data fetched from Supabase:", data); // Log the raw data here
@@ -184,6 +185,7 @@ const fetchRecipes = async () => {
           tags: recipe.recipe_tags?.map((rt) => rt.tags.name) || [],
           equipment: recipe.recipe_equipment?.map((re) => re.equipment.name) || [],
           categories: recipe.recipe_category?.map((rc) => rc.category.name) || [],
+          ingredients: recipe.recipe_ingredients?.map((ri) => ri.ingredients.name) || [],
         }));
         setRecipes(recipesWithDetails || []);
         console.log("Recipes with categories:", recipesWithDetails);
