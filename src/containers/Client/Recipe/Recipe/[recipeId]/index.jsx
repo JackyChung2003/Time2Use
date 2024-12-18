@@ -135,7 +135,7 @@ const RecipeDetail = () => {
                 .in('tag_id', tagIds)
                 .neq('recipes.id', id); // Explicitly use 'recipes.id'
     
-            console.log('Supabase Response:', data);
+            // console.log('Supabase Response:', data);
     
             if (error) {
                 console.error('Error fetching related recipes:', error);
@@ -145,7 +145,7 @@ const RecipeDetail = () => {
             const uniqueRecipes = [
                 ...new Map(data.map((item) => [item.recipes.id, item.recipes])).values(),
             ];
-            console.log('Unique Related Recipes:', uniqueRecipes);
+            // console.log('Unique Related Recipes:', uniqueRecipes);
             setRelatedRecipes(uniqueRecipes);
         } catch (error) {
             console.error('Unexpected error fetching related recipes:', error);
@@ -181,7 +181,7 @@ const RecipeDetail = () => {
             }
     
             const tagIds = data.map((tag) => tag.tag_id);
-            console.log('Tags for current recipe:', tagIds); // Log the fetched tag IDs
+            // console.log('Tags for current recipe:', tagIds); // Log the fetched tag IDs
             fetchRelatedRecipes(tagIds); // Fetch related recipes using tag IDs
         } catch (error) {
             console.error('Unexpected error fetching tags:', error);
@@ -219,7 +219,7 @@ const RecipeDetail = () => {
     };
 
     const startCooking = () => {
-        console.log('Selected Substitutions:', selectedSubstitutions);
+        // console.log('Selected Substitutions:', selectedSubstitutions);
         navigate(`/recipes/start-cooking/${id}`);
     };
 
@@ -298,7 +298,7 @@ const RecipeDetail = () => {
                 }
     
                 const tagIds = tagsData.map((tag) => tag.tag_id);
-                console.log('Tags for current recipe:', tagIds);
+                // console.log('Tags for current recipe:', tagIds);
                 setTags(tagIds);
     
                 // 3. Fetch Related Recipes Based on Tags
@@ -319,7 +319,7 @@ const RecipeDetail = () => {
                     const uniqueRecipes = [
                         ...new Map(relatedData.map((item) => [item.recipes.id, item.recipes])).values(),
                     ];
-                    console.log('Related Recipes:', uniqueRecipes);
+                    // console.log('Related Recipes:', uniqueRecipes);
                     setRelatedRecipes(uniqueRecipes);
                 }
             } catch (error) {

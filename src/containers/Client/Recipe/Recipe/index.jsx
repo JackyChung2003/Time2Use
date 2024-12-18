@@ -11,18 +11,10 @@ import { useRecipeContext } from '../Contexts/RecipeContext';
 const RecipeExplore = () => {
     // const { recipes, filters, applyFilters, loading } = useRecipeContext();
     const { recipes, filters, applyFilters, loading, fetchRecipes } = useRecipeContext(); // Get recipes and filters
-    // const [recipes, setRecipes] = useState([]);
     const [categories, setCategories] = useState([]);
     const [tags, setTags] = useState([]);
     const [equipment, setEquipment] = useState([]);
     const [search, setSearch] = useState('');
-    // const [loading, setLoading] = useState(true);
-    // const [filters, setFilters] = useState({
-    //     category: null,
-    //     tags: [],
-    //     equipment: [],
-    //     cookTime: null,
-    // });
     const [isOverlayOpen, setOverlayOpen] = useState(false);
 
     const [isIngredientOverlayOpen, setIngredientOverlayOpen] = useState(false);
@@ -30,116 +22,11 @@ const RecipeExplore = () => {
     const [matchingIngredients, setMatchingIngredients] = useState([]);
     const [selectedIngredients, setSelectedIngredients] = useState([]);
 
-
     const navigate = useNavigate();
-
-    // const fetchRecipes = async () => {
-    //     try {
-    //         const { data, error } = await supabase
-    //             .from('recipes')
-    //             .select(`
-    //                 id,
-    //                 name,
-    //                 description,
-    //                 prep_time,
-    //                 cook_time,
-    //                 category_id,
-    //                 created_at,
-    //                 image_path,
-    //                 recipe_tags (
-    //                     tags (name)
-    //                 ),
-    //                 recipe_equipment (
-    //                     equipment (name)
-    //                 )
-    //             `);
-
-    //         if (error) {
-    //             console.error('Error fetching recipes:', error);
-    //             return;
-    //         }
-
-    //         // Map tags and equipment for each recipe
-    //         const recipesWithDetails = data.map((recipe) => ({
-    //             ...recipe,
-    //             tags: recipe.recipe_tags?.map((rt) => rt.tags.name) || [],
-    //             equipment: recipe.recipe_equipment?.map((re) => re.equipment.name) || [],
-    //         }));
-
-    //         setRecipes(recipesWithDetails || []);
-    //     } catch (error) {
-    //         console.error('Unexpected error:', error);
-    //     } finally {
-    //         setLoading(false);
-    //     }
-    // };
-
-    // const fetchRecipes = async () => {
-    //     try {
-    //         const { data, error } = await supabase
-    //             .from('recipes')
-    //             .select(`
-    //                 id,
-    //                 name,
-    //                 description,
-    //                 prep_time,
-    //                 cook_time,
-    //                 category_id,
-    //                 created_at,
-    //                 image_path,
-    //                 recipe_ingredients (
-    //                     ingredients (name)
-    //                 ),
-    //                 recipe_tags (
-    //                     tags (name)
-    //                 ),
-    //                 recipe_equipment (
-    //                     equipment (name)
-    //                 )
-    //             `);
-    
-    //         if (error) {
-    //             console.error('Error fetching recipes:', error);
-    //             return;
-    //         }
-    
-    //         // Map the data correctly
-    //         const recipesWithDetails = data.map((recipe) => ({
-    //             ...recipe,
-    //             ingredients: recipe.recipe_ingredients?.map((ri) => ri.ingredients.name) || [],
-    //             tags: recipe.recipe_tags?.map((rt) => rt.tags.name) || [],
-    //             equipment: recipe.recipe_equipment?.map((re) => re.equipment.name) || [],
-    //         }));
-    
-    //         setRecipes(recipesWithDetails || []);
-    //     } catch (error) {
-    //         console.error('Unexpected error:', error);
-    //     } finally {
-    //         setLoading(false);
-    //     }
-    // };
     
     const handleIngredientRemove = (ingredientName) => {
         setSelectedIngredients((prev) => prev.filter((item) => item.name !== ingredientName));
     };
-    
-
-    // const fetchFilterOptions = async () => {
-    //     try {
-    //         // Fetch categories, tags, and equipment
-    //         const [{ data: categories }, { data: tags }, { data: equipment }] = await Promise.all([
-    //             supabase.from('categories').select('id, name'),
-    //             supabase.from('tags').select('id, name'),
-    //             supabase.from('equipment').select('id, name'),
-    //         ]);
-
-    //         setCategories(categories || []);
-    //         setTags(tags || []);
-    //         setEquipment(equipment || []);
-    //     } catch (error) {
-    //         console.error('Error fetching filter options:', error);
-    //     }
-    // };
 
     const fetchFilterOptions = async () => {
         try {
@@ -192,63 +79,16 @@ const RecipeExplore = () => {
     }, []);
 
     useEffect(() => {
-        console.log("Filters changed, re-fetching recipes:", filters);
+        // console.log("Filters changed, re-fetching recipes:", filters);
         fetchRecipes(); // Fetch recipes or re-filter based on filters
       }, [filters]);
 
-
-    // const filteredRecipes = recipes.filter((recipe) => {
-    //     const matchesSearch = recipe.name.toLowerCase().includes(search.toLowerCase());
-    //     const matchesCategory = filters.category
-    //         ? recipe.category_id === filters.category
-    //         : true;
-    //     const matchesTags = filters.tags.length
-    //         ? filters.tags.every((tag) => recipe.tags.includes(tag))
-    //         : true;
-    //     const matchesEquipment = filters.equipment.length
-    //         ? filters.equipment.every((equip) => recipe.equipment.includes(equip))
-    //         : true;
-    //     const matchesCookTime = filters.cookTime
-    //         ? recipe.cook_time <= filters.cookTime
-    //         : true;
-
-    //     return matchesSearch && matchesCategory && matchesTags && matchesEquipment && matchesCookTime;
-    // });
-
-    // const filteredRecipes = recipes.filter((recipe) => {
-    //     const matchesSearch = recipe.name.toLowerCase().includes(search.toLowerCase());
-    //     const matchesCategory = filters.category
-    //         ? recipe.category_id === filters.category
-    //         : true;
-    //     const matchesTags = filters.tags.length
-    //         ? filters.tags.every((tag) => (recipe.tags || []).includes(tag))
-    //         : true;
-    //     const matchesEquipment = filters.equipment.length
-    //         ? filters.equipment.every((equip) => (recipe.equipment || []).includes(equip))
-    //         : true;
-    //     const matchesCookTime = filters.cookTime
-    //         ? recipe.cook_time <= filters.cookTime
-    //         : true;
-    
-    //     const matchesIngredients = selectedIngredients.length
-    //         ? selectedIngredients.every((ing) =>
-    //               (recipe.ingredients || []).some((ingredient) =>
-    //                   ingredient.toLowerCase().includes(ing.name.toLowerCase())
-    //               )
-    //           )
-    //         : true;
-    
-    //     return (
-    //         matchesSearch &&
-    //         matchesCategory &&
-    //         matchesTags &&
-    //         matchesEquipment &&
-    //         matchesCookTime &&
-    //         matchesIngredients
-    //     );
-    // });
+      // console.log("Recipes:", recipes);
+      // console.log("Filters:", filters);
 
     const filteredRecipes = recipes.filter((recipe) => {
+        // console.log("Checking Recipe:", recipe);
+        // console.log("Current Filters:", filters);
         const matchesSearch = recipe.name?.toLowerCase().includes(search.toLowerCase());
     
         const matchesCategory = filters.categories?.length
@@ -269,20 +109,6 @@ const RecipeExplore = () => {
             ? recipe.cook_time <= filters.cookTime // Check if cook_time is within the filter
             : true;
 
-        // const matchesIngredients = selectedIngredients.length
-        //     ? selectedIngredients.every((ing) =>
-        //           (recipe.ingredients || []).some(
-        //               (ingredient) => ingredient.toLowerCase() === ing.name.toLowerCase()
-        //           )
-        //       )
-        //     : true;
-
-        // const matchesIngredients = selectedIngredients.length
-        //     selectedIngredients.every((ing) =>
-        //         (recipe.ingredients || []).includes(ing.name)
-        //     )
-        //     true;
-
         const matchesIngredients = selectedIngredients.length
         ? selectedIngredients.every((ing) =>
               (recipe.ingredients || []).some(
@@ -291,36 +117,14 @@ const RecipeExplore = () => {
           )
         : true;
 
-        console.log("Selected Ingredients:", selectedIngredients);
+        // console.log("Selected Ingredients:", selectedIngredients);
     
         return matchesSearch && matchesCategory && matchesTags && matchesEquipment && matchesCookTime && matchesIngredients;
     });
     
-    
-    
-
-    // const filteredRecipes = recipes.filter((recipe) => {
-    //     const matchesSearch = recipe.name.toLowerCase().includes(search.toLowerCase());
-    //     const matchesCategory = filters.category ? recipe.category_id === filters.category : true;
-    //     const matchesTags = filters.tags.length ? filters.tags.every((tag) => recipe.tags.includes(tag)) : true;
-    //     const matchesEquipment = filters.equipment.length
-    //       ? filters.equipment.every((equip) => recipe.equipment.includes(equip))
-    //       : true;
-    //     const matchesCookTime = filters.cookTime ? recipe.cook_time <= filters.cookTime : true;
-    
-    //     return matchesSearch && matchesCategory && matchesTags && matchesEquipment && matchesCookTime;
-    //   });
-    
-    
-    
-
     const handleApplyFilters = () => {
         setOverlayOpen(false); // Close overlay on apply
     };
-
-    // if (loading) {
-    //     return <div>Loading recipes...</div>;
-    // }
 
     return (
         <div style={{ padding: '20px' }}>
@@ -386,25 +190,9 @@ const RecipeExplore = () => {
                                 <p>Prep Time: {recipe.prep_time} mins</p>
                                 <p>Cook Time: {recipe.cook_time} mins</p>
                                 {/* Tags */}
-                                {/* {recipe.tags.length > 0 && ( */}
                                 {(recipe.tags || []).length > 0 && (
                                     <div style={{ marginTop: '10px' }}>
                                         <strong>Tags:</strong>{' '}
-                                        {/* {recipe.tags.map((tag, index) => ( */}
-                                        {/* {(recipe.tags || []).map((tag, index) => (
-                                            <span
-                                                key={index}
-                                                style={{
-                                                    background: '#000000',
-                                                    padding: '5px 10px',
-                                                    marginRight: '5px',
-                                                    borderRadius: '3px',
-                                                    fontSize: '12px',
-                                                }}
-                                            >
-                                                {tag}
-                                            </span>
-                                        ))} */}
                                         {recipe.tags.map((tag, index) => (
                                             <span
                                                 key={index}
@@ -423,7 +211,6 @@ const RecipeExplore = () => {
                                     </div>
                                 )}
                                 {/* Equipment */}
-                                {/* {recipe.equipment.length > 0 && ( */}
                                 {(recipe.equipment || []).length > 0 && (
                                     <div style={{ marginTop: '10px' }}>
                                         <strong>Equipment:</strong>{' '}
@@ -564,34 +351,6 @@ const RecipeExplore = () => {
                                     {category.name}
                                 </label>
                             ))}
-
-                            {/* <select
-                                value={filters.category || ''} // Maintain selected category
-                                // onChange={(e) =>
-                                //     setFilters((prevFilters) => ({
-                                //         ...prevFilters,
-                                //         category: e.target.value ? Number(e.target.value) : null,
-                                //     }))
-                                // }
-                                onChange={(e) =>
-                                    applyFilters({
-                                        ...filters,
-                                        category: e.target.value ? Number(e.target.value) : null,
-                                    })
-                                }
-                                style={{ padding: '10px', borderRadius: '5px', width: '100%' }}
-                            >
-                                <option value="">All Categories</option>
-                                {categories.length > 0 ? (
-                                    categories.map((category) => (
-                                        <option key={category.id} value={category.id}>
-                                            {category.name}
-                                        </option>
-                                    ))
-                                ) : (
-                                    <option disabled>No Categories Available</option>
-                                )}
-                            </select> */}
                         </div>
                         <div style={{ marginBottom: '20px' }}>
                             <h3>Tags</h3>
@@ -600,15 +359,6 @@ const RecipeExplore = () => {
                                     <input
                                         type="checkbox"
                                         checked={filters.tags.includes(tag.name)} // Maintain tag state
-                                        // onChange={(e) => {
-                                        //     const checked = e.target.checked;
-                                        //     setFilters((prevFilters) => ({
-                                        //         ...prevFilters,
-                                        //         tags: checked
-                                        //             ? [...prevFilters.tags, tag.name]
-                                        //             : prevFilters.tags.filter((t) => t !== tag.name),
-                                        //     }));
-                                        // }}
                                         onChange={(e) => {
                                             const checked = e.target.checked;
                                             applyFilters({
@@ -630,15 +380,6 @@ const RecipeExplore = () => {
                                     <input
                                         type="checkbox"
                                         checked={filters.equipment.includes(equip.name)} // Maintain equipment state
-                                        // onChange={(e) => {
-                                        //     const checked = e.target.checked;
-                                        //     setFilters((prevFilters) => ({
-                                        //         ...prevFilters,
-                                        //         equipment: checked
-                                        //             ? [...prevFilters.equipment, equip.name]
-                                        //             : prevFilters.equipment.filter((eq) => eq !== equip.name),
-                                        //     }));
-                                        // }}
                                         onChange={(e) => {
                                             const checked = e.target.checked;
                                             applyFilters({
@@ -657,12 +398,6 @@ const RecipeExplore = () => {
                             <h3>Cooking Time</h3>
                             <select
                                 value={filters.cookTime || ''} // Maintain selected cooking time
-                                // onChange={(e) =>
-                                //     setFilters((prevFilters) => ({
-                                //         ...prevFilters,
-                                //         cookTime: e.target.value ? Number(e.target.value) : null,
-                                //     }))
-                                // }
                                 onChange={(e) =>
                                     applyFilters({
                                         ...filters,
@@ -748,43 +483,11 @@ const RecipeExplore = () => {
                 </div>
                     
                 {/* Matching Ingredients List */}
-                {/* <div style={{ flex: 1, padding: '0 20px', overflowY: 'auto' }}>
-                    {matchingIngredients.length > 0 ? (
-                        matchingIngredients.map((ingredient, index) => (
-                            <div
-                                key={index}
-                                onClick={() => {
-                                    if (!selectedIngredients.includes(ingredient.name)) {
-                                        setSelectedIngredients((prev) => [...prev, ingredient.name]);
-                                    }
-                                }}
-                                style={{
-                                    padding: '10px',
-                                    marginBottom: '5px',
-                                    border: '1px solid #ddd',
-                                    borderRadius: '5px',
-                                    background: '#444',
-                                    cursor: 'pointer',
-                                }}
-                            >
-                                {ingredient.name}
-                            </div>
-                        ))
-                    ) : (
-                        <p>No matching ingredients found.</p>
-                    )}
-                </div> */}
                 <div style={{ flex: 1, padding: '0 20px', overflowY: 'auto' }}>
                     {matchingIngredients.length > 0 ? (
                         matchingIngredients.map((ingredient, index) => (
                             <div
                                 key={index}
-                                // onClick={() => {
-                                //     if (!selectedIngredients.includes(ingredient.name)) {
-                                //         setSelectedIngredients((prev) => [...prev, ingredient]);
-                                //     }
-                                // }}
-
                                 onClick={() => {
                                     if (!selectedIngredients.some((item) => item.name === ingredient.name)) {
                                         setSelectedIngredients((prev) => [...prev, ingredient]);
@@ -827,7 +530,7 @@ const RecipeExplore = () => {
 
                 
                 {/* Selected Ingredients */}
-                {/* <div style={{ padding: '20px', background: '#333', borderTop: '1px solid #555' }}>
+                <div style={{ padding: '20px', background: '#333', borderTop: '1px solid #555' }}>
                     <h3>Selected Ingredients:</h3>
                     {selectedIngredients.length > 0 ? (
                         selectedIngredients.map((ingredient, index) => (
@@ -835,8 +538,8 @@ const RecipeExplore = () => {
                                 key={index}
                                 style={{
                                     display: 'flex',
-                                    justifyContent: 'space-between',
                                     alignItems: 'center',
+                                    justifyContent: 'space-between',
                                     padding: '5px 10px',
                                     border: '1px solid #666',
                                     borderRadius: '5px',
@@ -844,11 +547,25 @@ const RecipeExplore = () => {
                                     background: '#555',
                                 }}
                             >
-                                <span>{ingredient}</span>
+                                <div style={{ display: 'flex', alignItems: 'center' }}>
+                                    <img
+                                        src={`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/${ingredient.icon_path}`}
+                                        alt={ingredient.name}
+                                        style={{
+                                            width: '30px',
+                                            height: '30px',
+                                            marginRight: '10px',
+                                            borderRadius: '50%',
+                                            objectFit: 'cover',
+                                            background: '#fff',
+                                        }}
+                                    />
+                                    <span>{ingredient.name}</span>
+                                </div>
                                 <button
                                     onClick={() =>
                                         setSelectedIngredients((prev) =>
-                                            prev.filter((item) => item !== ingredient)
+                                            prev.filter((item) => item.name !== ingredient.name)
                                         )
                                     }
                                     style={{
@@ -868,71 +585,14 @@ const RecipeExplore = () => {
                     ) : (
                         <p>No ingredients selected.</p>
                     )}
-                </div> */}
-
-<div style={{ padding: '20px', background: '#333', borderTop: '1px solid #555' }}>
-    <h3>Selected Ingredients:</h3>
-    {selectedIngredients.length > 0 ? (
-        selectedIngredients.map((ingredient, index) => (
-            <div
-                key={index}
-                style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '5px 10px',
-                    border: '1px solid #666',
-                    borderRadius: '5px',
-                    marginBottom: '5px',
-                    background: '#555',
-                }}
-            >
-                <div style={{ display: 'flex', alignItems: 'center' }}>
-                    <img
-                        src={`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/${ingredient.icon_path}`}
-                        alt={ingredient.name}
-                        style={{
-                            width: '30px',
-                            height: '30px',
-                            marginRight: '10px',
-                            borderRadius: '50%',
-                            objectFit: 'cover',
-                            background: '#fff',
-                        }}
-                    />
-                    <span>{ingredient.name}</span>
                 </div>
-                <button
-                    onClick={() =>
-                        setSelectedIngredients((prev) =>
-                            prev.filter((item) => item.name !== ingredient.name)
-                        )
-                    }
-                    style={{
-                        background: 'red',
-                        color: '#fff',
-                        border: 'none',
-                        borderRadius: '50%',
-                        width: '20px',
-                        height: '20px',
-                        cursor: 'pointer',
-                    }}
-                >
-                    X
-                </button>
-            </div>
-        ))
-    ) : (
-        <p>No ingredients selected.</p>
-    )}
-</div>
 
                 
                 {/* Search Button */}
                 <button
                     onClick={() => {
                         // Add logic to filter recipes based on selectedIngredients
-                        console.log('Selected Ingredients:', selectedIngredients);
+                        // console.log('Selected Ingredients:', selectedIngredients);
                         setIngredientOverlayOpen(false);
                     }}
                     style={{
