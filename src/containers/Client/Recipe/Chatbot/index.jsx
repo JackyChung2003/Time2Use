@@ -18,7 +18,12 @@ const Chatbot = () => {
 
   // const { applyFilters } = useRecipeContext(); // Access applyFilters from context
   // const { fetchRecipes, applyFilters } = useRecipeContext();
-  const { tags, filters, applyFilters, fetchRecipes } = useRecipeContext();
+  // const { tags, filters, applyFilters, fetchRecipes } = useRecipeContext();
+  const { tags, categories, equipment, filters, applyFilters, fetchRecipes } = useRecipeContext();
+
+  console.log("Categories:", categories); // Check if categories are being fetched properly
+  console.log("Equipment:", equipment);
+  console.log("Filters:", filters);
 
   const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
   if (!apiKey) {
@@ -108,8 +113,22 @@ const Chatbot = () => {
         normalizedInput.includes(tag.name.toLowerCase())
       );
 
+       // Match categories
+      const matchingCategory = categories.find((cat) =>
+        normalizedInput.includes(cat.name.toLowerCase())
+      );
+
+       // Match equipment
+      const matchingEquipment = equipment.find((equip) =>
+        normalizedInput.includes(equip.name.toLowerCase())
+      );
+
+      // Match cooking time (e.g., "under 30 minutes")
+      const cookTimeMatch = normalizedInput.match(/under (\d+)\s*minutes/);
+      const matchingCookTime = cookTimeMatch ? parseInt(cookTimeMatch[1]) : null;
   
-      if (matchingTag) {
+      // if (matchingTag) {
+      if (matchingCategory || matchingTag || matchingEquipment || matchingCookTime) {
         // const validTags = tags.filter(
         //   (tag) => tag && tag.name && tag.name.toLowerCase() === matchingTag.toLowerCase()
         // );
@@ -136,17 +155,42 @@ const Chatbot = () => {
         //   ]);
         // }
         applyFilters({
-          tags: [...filters.tags, matchingTag.name],
+          // tags: [...filters.tags, matchingTag.name],
+          tags: matchingTag ? [...filters.tags, matchingTag.name] : filters.tags,
+          categories: matchingCategory
+            ? [...filters.categories, matchingCategory.name]
+            : filters.categories,
+          equipment: matchingEquipment
+            ? [...filters.equipment, matchingEquipment.name]
+            : filters.equipment,
+          cookTime: matchingCookTime || filters.cookTime,
         });
   
         await fetchRecipes();
+
+        const appliedFilters = [
+          matchingCategory && `Category: ${matchingCategory.name}`,
+          matchingTag && `Tag: ${matchingTag.name}`,
+          matchingEquipment && `Equipment: ${matchingEquipment.name}`,
+          matchingCookTime && `Cooking Time: Under ${matchingCookTime} minutes`,
+        ]
+          .filter(Boolean)
+          .join(", ");
+
         setChatHistory((prev) => [
           ...prev,
           { type: "user", message: userInput },
-          { type: "bot", message: `Filters applied: Showing recipes with tag '${matchingTag.name}'.` },
+          // { type: "bot", message: `Filters applied: Showing recipes with tag '${matchingTag.name}'.` },
+          { type: "bot", message: `Filters applied: ${appliedFilters}.` },
         ]);
       } else if (normalizedInput.includes("clear")) {
-        applyFilters({ tags: [] });
+        // applyFilters({ tags: [] });
+        applyFilters({
+          categories: [],
+          tags: [],
+          equipment: [],
+          cookTime: null,
+        });
         await fetchRecipes();
         setChatHistory((prev) => [
           ...prev,
@@ -169,8 +213,6 @@ const Chatbot = () => {
     }
   };
   
-
-
   const clearChat = () => {
     setChatHistory([]);
   };

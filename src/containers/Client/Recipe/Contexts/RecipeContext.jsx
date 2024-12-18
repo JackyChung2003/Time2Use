@@ -10,6 +10,10 @@ export const useRecipeContext = () => useContext(RecipeContext);
 export const RecipeProvider = ({ children }) => {
   const [recipes, setRecipes] = useState([]);
   const [tags, setTags] = useState([]); // State to store tags
+  const [categories, setCategories] = useState([]); // Categories
+  const [equipment, setEquipment] = useState([]); // Equipment
+  // ingredient if neeed
+  // cooking time if need
 
   const [filters, setFilters] = useState({
     categories: [],
@@ -75,6 +79,32 @@ const fetchRecipes = async () => {
     }
   };
 
+  const fetchCategories = async () => {
+    try {
+      const { data, error } = await supabase.from("category").select("id, name");
+      if (error) {
+        console.error("Error fetching categories:", error);
+      } else {
+        setCategories(data || []);
+      }
+    } catch (err) {
+      console.error("Unexpected error fetching categories:", err);
+    }
+  };
+
+  const fetchEquipment = async () => {
+    try {
+      const { data, error } = await supabase.from("equipment").select("id, name");
+      if (error) {
+        console.error("Error fetching equipments:", error);
+      } else {
+        setEquipment(data || []);
+      }
+    } catch (err) {
+      console.error("Unexpected error fetching equipment:", err);
+    }
+  };
+
   const applyFilters = (newFilters) => {
     setFilters((prevFilters) => ({
         ...prevFilters,
@@ -86,6 +116,8 @@ const fetchRecipes = async () => {
   useEffect(() => {
     fetchRecipes(); // Fetch recipes on mount
     fetchTags(); // Fetch tags on mount
+    fetchCategories(); // Fetch categories on mount
+    fetchEquipment(); // Fetch equipment on mount
   }, []);
 
   useEffect(() => {
@@ -94,7 +126,22 @@ const fetchRecipes = async () => {
 }, [filters]);
 
   return (
-    <RecipeContext.Provider value={{ recipes, tags, filters, fetchRecipes, fetchTags, applyFilters, loading }}>
+    // <RecipeContext.Provider value={{ recipes, tags, filters, fetchRecipes, fetchTags, applyFilters, loading }}>
+    <RecipeContext.Provider
+      value={{
+        recipes,
+        tags,
+        categories,
+        equipment,
+        filters,
+        fetchRecipes,
+        fetchTags,
+        fetchCategories,
+        fetchEquipment,
+        applyFilters,
+        loading,
+      }}
+    >
       {children}
     </RecipeContext.Provider>
   );
