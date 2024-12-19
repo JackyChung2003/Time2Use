@@ -13,7 +13,8 @@ import BottomNavBar from './containers/Client/Navigation/BottomNavBar';
 import Dashboard from './containers/Client/Dashboard';
 import Inventory from './containers/Client/Inventory';
 import Scan from './containers/Client/Scan';
-import Recipe from './containers/Client/Recipe';
+// import Recipe from './containers/Client/Recipe';
+import RecipeNavigation from './containers/Client/Recipe/RecipeNavigation';
 import Profile from './containers/Client/Profile';
 
 // Admin Components
@@ -27,29 +28,48 @@ const App = () => {
     const [loading, setLoading] = useState(true);
     const [isCollapsed, setIsCollapsed] = useState(false); // Sidebar collapse state
 
-    useEffect(() => {
-        const fetchUser = async () => {
-            const { data, error } = await supabase.auth.getUser();
+    // useEffect(() => {
+    //     const fetchUser = async () => {
+    //         const { data: userData, error: userError } = await supabase.auth.getUser();
+    //         const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
 
-            if (data?.user) {
-                // Check for user role in metadata
+    //         if (userData?.user) {
+    //             // Check for user role in metadata
                 
                 // Hardcoded role for now
-                //const role = "admin";   // Uncomment this line to test admin dashboard
-                const role = "client"; // Uncomment this line to test client dashboard
+                // const role = "admin";   // Uncomment this line to test admin dashboard
+                // const role = "client"; // Uncomment this line to test client dashboard
 
-                // Following comment is for future reference when done with authentication to differentiate between client and admin
-                // const role = data.user.user_metadata?.role || "client"; // Default to "client"
-                setUserRole(role);
-                console.log("User role:", role);
-            } else {
-                setUserRole(null); // Not logged in
-            }
-            setLoading(false);
-        };
+    //             // Following comment is for future reference when done with authentication to differentiate between client and admin
+    //             // const role = data.user.user_metadata?.role || "client"; // Default to "client"
+    //             setUserRole(role);
+    //             console.log("User role:", role);
+    //         } else {
+    //             setUserRole(null); // Not logged in
 
-        fetchUser();
+    //             console.error("No session found:", userError);
+    //         }
+    //         setLoading(false);
+
+    //         if (sessionData?.session) {
+    //             const role = sessionData.session.user.user_metadata?.role || "client"; // Adjust based on your metadata
+    //             setUserRole(role);
+    //             console.log("User role:", role);
+    //         } else {
+    //             setUserRole(null);
+    //             console.error("No session found:", sessionError);
+    //         }
+    //     };
+
+    //     fetchUser();
+    // }, []);
+
+    useEffect(() => {
+         // Temporarily hardcode the userRole for development
+        setUserRole("client"); // or "admin" depending on the role you want to test
+        setLoading(false); // Stop the loading spinner
     }, []);
+    
 
     useEffect(() => {
         const handleResize = () => {
@@ -142,11 +162,19 @@ const App = () => {
                                     </ProtectedRoute>
                                 }
                             />
-                            <Route
+                            {/* <Route
                                 path="/recipe"
                                 element={
                                     <ProtectedRoute>
                                         <Recipe />
+                                    </ProtectedRoute>
+                                }
+                            /> */}
+                            <Route
+                                path="/recipes/*"
+                                element={
+                                    <ProtectedRoute>
+                                        <RecipeNavigation />
                                     </ProtectedRoute>
                                 }
                             />
