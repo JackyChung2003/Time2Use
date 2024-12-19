@@ -24,8 +24,6 @@ const RecipeExplore = () => {
 
     const navigate = useNavigate();
     
-
-
     const fetchFilterOptions = async () => {
         try {
             // Fetch categories, tags, and equipment
@@ -76,16 +74,10 @@ const RecipeExplore = () => {
     }, []);
 
     useEffect(() => {
-        // console.log("Filters changed, re-fetching recipes:", filters);
         fetchRecipes(); // Fetch recipes or re-filter based on filters
       }, [filters]);
 
-      // console.log("Recipes:", recipes);
-      // console.log("Filters:", filters);
-
     const filteredRecipes = recipes.filter((recipe) => {
-        // console.log("Checking Recipe:", recipe);
-        // console.log("Current Filters:", filters);
         const matchesSearch = recipe.name?.toLowerCase().includes(search.toLowerCase());
     
         const matchesCategory = filters.categories?.length
@@ -122,19 +114,8 @@ const RecipeExplore = () => {
                 )
             : true;
 
-
-        // console.log("Selected Ingredients:", selectedIngredients);
-    
         return matchesSearch && matchesCategory && matchesTags && matchesEquipment && matchesCookTime && matchesIngredients;
     });
-    
-    // const handleIngredientAdd = (ingredient) => {
-    //     if (!filters.ingredients.includes(ingredient.name)) {
-    //         applyFilters({
-    //             ingredients: [...filters.ingredients, ingredient.name], // Add the new ingredient to the filter
-    //         });
-    //     }
-    // };
     
     const handleIngredientAdd = (ingredient) => {
         if (!filters.ingredients.includes(ingredient.name)) {
@@ -154,10 +135,6 @@ const RecipeExplore = () => {
             ingredients: filters.ingredients.filter((ing) => ing !== ingredientName), // Remove the ingredient from the filter
         });
     };
-
-    // const handleIngredientRemove = (ingredientName) => {
-    //     setSelectedIngredients((prev) => prev.filter((item) => item.name !== ingredientName));
-    // };
 
     const handleApplyFilters = () => {
         setOverlayOpen(false); // Close overlay on apply
@@ -640,8 +617,6 @@ const RecipeExplore = () => {
                 {/* Search Button */}
                 <button
                     onClick={() => {
-                        // Add logic to filter recipes based on selectedIngredients
-                        // console.log('Selected Ingredients:', selectedIngredients);
                         setIngredientOverlayOpen(false);
                     }}
                     style={{

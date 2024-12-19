@@ -87,148 +87,226 @@ const Chatbot = () => {
   //   }
   // };
 
+  // const sendMessage = async () => {
+  //   if (userInput.trim() === "") return;
+  
+  //   // setIsLoading(true);
+  //   try {
+  //     // Check and log tags availability
+  //     console.log("Available tags:", tags);
+  
+  //     if (!tags || tags.length === 0) {
+  //       console.error("Tags are not available or empty.");
+  //       setChatHistory((prev) => [
+  //         ...prev,
+  //         { type: "user", message: userInput },
+  //         { type: "bot", message: "I cannot process filters right now because no tags are available." },
+  //       ]);
+  //       return;
+  //     }
+  
+  //     const normalizedInput = userInput.toLowerCase();
+  //     // const matchingTag = tagKeywords.find((keyword) => normalizedInput.includes(keyword));
+      
+  //     // Find the matching tag based on user input
+  //     const matchingTag = tags.find((tag) =>
+  //       normalizedInput.includes(tag.name.toLowerCase())
+  //     );
+
+  //      // Match categories
+  //     const matchingCategory = categories.find((cat) =>
+  //       normalizedInput.includes(cat.name.toLowerCase())
+  //     );
+
+  //      // Match equipment
+  //     const matchingEquipment = equipment.find((equip) =>
+  //       normalizedInput.includes(equip.name.toLowerCase())
+  //     );
+
+  //     // Match cooking time (e.g., "under 30 minutes")
+  //     const cookTimeMatch = normalizedInput.match(/under (\d+)\s*minutes/);
+  //     const matchingCookTime = cookTimeMatch ? parseInt(cookTimeMatch[1]) : null;
+
+  //     const matchingIngredients = ingredients.filter((ingredient) =>
+  //       normalizedInput.includes(ingredient.name.toLowerCase())
+  //     );
+  
+  //     // if (matchingTag) {
+  //     // if (matchingCategory || matchingTag || matchingEquipment || matchingCookTime) {
+  //       if (
+  //         matchingCategory ||
+  //         matchingTag ||
+  //         matchingEquipment ||
+  //         matchingCookTime ||
+  //         matchingIngredients.length > 0
+  //       ) {
+  //       // const validTags = tags.filter(
+  //       //   (tag) => tag && tag.name && tag.name.toLowerCase() === matchingTag.toLowerCase()
+  //       // );
+  
+  //       // if (validTags.length > 0) {
+  //       //   applyFilters({
+  //       //     tags: [...filters.tags, ...validTags.map((tag) => tag.name)],
+  //       //   });
+  
+  //       //   await fetchRecipes();
+  //       //   setChatHistory((prev) => [
+  //       //     ...prev,
+  //       //     { type: "user", message: userInput },
+  //       //     { type: "bot", message: `Filters applied: Showing recipes with tags: ${validTags
+  //       //       .map((tag) => tag.name)
+  //       //       .join(", ")}.` },
+  //       //   ]);
+  //       // } else {
+  //       //   console.error("No matching tags found.");
+  //       //   setChatHistory((prev) => [
+  //       //     ...prev,
+  //       //     { type: "user", message: userInput },
+  //       //     { type: "bot", message: `I couldn’t find any recipes matching the tag '${matchingTag}'.` },
+  //       //   ]);
+  //       // }
+  //       applyFilters({
+  //         // tags: [...filters.tags, matchingTag.name],
+  //         tags: matchingTag ? [...filters.tags, matchingTag.name] : filters.tags,
+  //         categories: matchingCategory
+  //           ? [...filters.categories, matchingCategory.name]
+  //           : filters.categories,
+  //         equipment: matchingEquipment
+  //           ? [...filters.equipment, matchingEquipment.name]
+  //           : filters.equipment,
+  //         cookTime: matchingCookTime || filters.cookTime,
+  //         ingredients: matchingIngredients.length > 0
+  //           ? [...filters.ingredients, ...matchingIngredients.map((ing) => ing.name)]
+  //           : filters.ingredients,
+  //       });
+  
+  //       await fetchRecipes();
+
+  //       const appliedFilters = [
+  //         matchingCategory && `Category: ${matchingCategory.name}`,
+  //         matchingTag && `Tag: ${matchingTag.name}`,
+  //         matchingEquipment && `Equipment: ${matchingEquipment.name}`,
+  //         matchingCookTime && `Cooking Time: Under ${matchingCookTime} minutes`,
+  //         matchingIngredients.length > 0 &&
+  //         `Ingredients: ${matchingIngredients.map((ing) => ing.name).join(", ")}`,
+  //       ]
+  //         .filter(Boolean)
+  //         .join(", ");
+
+  //       setChatHistory((prev) => [
+  //         ...prev,
+  //         { type: "user", message: userInput },
+  //         // { type: "bot", message: `Filters applied: Showing recipes with tag '${matchingTag.name}'.` },
+  //         { type: "bot", message: `Filters applied: ${appliedFilters}.` },
+  //       ]);
+  //     } else if (normalizedInput.includes("clear")) {
+  //       // applyFilters({ tags: [] });
+  //       applyFilters({
+  //         categories: [],
+  //         tags: [],
+  //         equipment: [],
+  //         cookTime: null,
+  //         ingredients: [],
+  //       });
+  //       await fetchRecipes();
+  //       setChatHistory((prev) => [
+  //         ...prev,
+  //         { type: "user", message: userInput },
+  //         { type: "bot", message: "Filters cleared. Showing all recipes!" },
+  //       ]);
+  //     } else {
+  //       setChatHistory((prev) => [
+  //         ...prev,
+  //         { type: "user", message: userInput },
+  //         { type: "bot", message: "I didn’t understand that. Try asking for specific recipes, like 'I want spicy food' or 'clear filters'." },
+  //       ]);
+  //     }
+  //   } catch (error) {
+  //     console.error("Error in sendMessage:", error);
+  //     alert("An error occurred. Please try again.");
+  //   } finally {
+  //     setUserInput("");
+  //     setIsLoading(false);
+  //   }
+  // };
+
   const sendMessage = async () => {
     if (userInput.trim() === "") return;
-  
-    // setIsLoading(true);
+
+    setIsLoading(true);
     try {
-      // Check and log tags availability
-      console.log("Available tags:", tags);
-  
-      if (!tags || tags.length === 0) {
-        console.error("Tags are not available or empty.");
-        setChatHistory((prev) => [
-          ...prev,
-          { type: "user", message: userInput },
-          { type: "bot", message: "I cannot process filters right now because no tags are available." },
-        ]);
-        return;
-      }
-  
-      const normalizedInput = userInput.toLowerCase();
-      // const matchingTag = tagKeywords.find((keyword) => normalizedInput.includes(keyword));
-      
-      // Find the matching tag based on user input
-      const matchingTag = tags.find((tag) =>
-        normalizedInput.includes(tag.name.toLowerCase())
-      );
+      // Build the context string to send history messages to the model
+      const context = chatHistory
+        .map((msg) => `${msg.type === "user" ? "User:" : "Bot:"} ${msg.message}`)
+        .join("\n");
 
-       // Match categories
-      const matchingCategory = categories.find((cat) =>
-        normalizedInput.includes(cat.name.toLowerCase())
-      );
+      // Append the system prompt and user input
+      const prompt = `${systemPrompt}\n${context}\nUser: ${userInput}`;
+      console.log("Sending prompt to API:", prompt);
 
-       // Match equipment
-      const matchingEquipment = equipment.find((equip) =>
-        normalizedInput.includes(equip.name.toLowerCase())
-      );
+      // Send the concatenated string to the Gemini model
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
 
-      // Match cooking time (e.g., "under 30 minutes")
-      const cookTimeMatch = normalizedInput.match(/under (\d+)\s*minutes/);
+      const interpretedText = response.text();
+      console.log("Gemini Response:", interpretedText);
+
+      // Parse the interpreted text to extract filtering criteria
+      const intent = interpretedText.toLowerCase();
+      const matchingTag = tags.find((tag) => intent.includes(tag.name.toLowerCase()));
+      const matchingCategory = categories.find((cat) => intent.includes(cat.name.toLowerCase()));
+      const matchingEquipment = equipment.find((equip) => intent.includes(equip.name.toLowerCase()));
+      const cookTimeMatch = intent.match(/under (\d+)\s*minutes/);
       const matchingCookTime = cookTimeMatch ? parseInt(cookTimeMatch[1]) : null;
-
       const matchingIngredients = ingredients.filter((ingredient) =>
-        normalizedInput.includes(ingredient.name.toLowerCase())
+        intent.includes(ingredient.name.toLowerCase())
       );
-  
-      // if (matchingTag) {
-      // if (matchingCategory || matchingTag || matchingEquipment || matchingCookTime) {
-        if (
-          matchingCategory ||
-          matchingTag ||
-          matchingEquipment ||
-          matchingCookTime ||
-          matchingIngredients.length > 0
-        ) {
-        // const validTags = tags.filter(
-        //   (tag) => tag && tag.name && tag.name.toLowerCase() === matchingTag.toLowerCase()
-        // );
-  
-        // if (validTags.length > 0) {
-        //   applyFilters({
-        //     tags: [...filters.tags, ...validTags.map((tag) => tag.name)],
-        //   });
-  
-        //   await fetchRecipes();
-        //   setChatHistory((prev) => [
-        //     ...prev,
-        //     { type: "user", message: userInput },
-        //     { type: "bot", message: `Filters applied: Showing recipes with tags: ${validTags
-        //       .map((tag) => tag.name)
-        //       .join(", ")}.` },
-        //   ]);
-        // } else {
-        //   console.error("No matching tags found.");
-        //   setChatHistory((prev) => [
-        //     ...prev,
-        //     { type: "user", message: userInput },
-        //     { type: "bot", message: `I couldn’t find any recipes matching the tag '${matchingTag}'.` },
-        //   ]);
-        // }
-        applyFilters({
-          // tags: [...filters.tags, matchingTag.name],
-          tags: matchingTag ? [...filters.tags, matchingTag.name] : filters.tags,
-          categories: matchingCategory
-            ? [...filters.categories, matchingCategory.name]
-            : filters.categories,
-          equipment: matchingEquipment
-            ? [...filters.equipment, matchingEquipment.name]
-            : filters.equipment,
-          cookTime: matchingCookTime || filters.cookTime,
-          ingredients: matchingIngredients.length > 0
-            ? [...filters.ingredients, ...matchingIngredients.map((ing) => ing.name)]
-            : filters.ingredients,
-        });
-  
-        await fetchRecipes();
 
-        const appliedFilters = [
-          matchingCategory && `Category: ${matchingCategory.name}`,
-          matchingTag && `Tag: ${matchingTag.name}`,
-          matchingEquipment && `Equipment: ${matchingEquipment.name}`,
-          matchingCookTime && `Cooking Time: Under ${matchingCookTime} minutes`,
-          matchingIngredients.length > 0 &&
+      // Apply filters dynamically
+      applyFilters({
+        tags: matchingTag ? [...filters.tags, matchingTag.name] : filters.tags,
+        categories: matchingCategory ? [...filters.categories, matchingCategory.name] : filters.categories,
+        equipment: matchingEquipment ? [...filters.equipment, matchingEquipment.name] : filters.equipment,
+        cookTime: matchingCookTime || filters.cookTime,
+        ingredients: matchingIngredients.length > 0
+          ? [...filters.ingredients, ...matchingIngredients.map((ing) => ing.name)]
+          : filters.ingredients,
+      });
+
+      await fetchRecipes();
+
+      const appliedFilters = [
+        matchingCategory && `Category: ${matchingCategory.name}`,
+        matchingTag && `Tag: ${matchingTag.name}`,
+        matchingEquipment && `Equipment: ${matchingEquipment.name}`,
+        matchingCookTime && `Cooking Time: Under ${matchingCookTime} minutes`,
+        matchingIngredients.length > 0 &&
           `Ingredients: ${matchingIngredients.map((ing) => ing.name).join(", ")}`,
-        ]
-          .filter(Boolean)
-          .join(", ");
+      ]
+        .filter(Boolean)
+        .join(", ");
 
-        setChatHistory((prev) => [
-          ...prev,
-          { type: "user", message: userInput },
-          // { type: "bot", message: `Filters applied: Showing recipes with tag '${matchingTag.name}'.` },
-          { type: "bot", message: `Filters applied: ${appliedFilters}.` },
-        ]);
-      } else if (normalizedInput.includes("clear")) {
-        // applyFilters({ tags: [] });
-        applyFilters({
-          categories: [],
-          tags: [],
-          equipment: [],
-          cookTime: null,
-          ingredients: [],
-        });
-        await fetchRecipes();
-        setChatHistory((prev) => [
-          ...prev,
-          { type: "user", message: userInput },
-          { type: "bot", message: "Filters cleared. Showing all recipes!" },
-        ]);
-      } else {
-        setChatHistory((prev) => [
-          ...prev,
-          { type: "user", message: userInput },
-          { type: "bot", message: "I didn’t understand that. Try asking for specific recipes, like 'I want spicy food' or 'clear filters'." },
-        ]);
-      }
+      setChatHistory((prev) => [
+        ...prev,
+        { type: "user", message: userInput },
+        { type: "bot", message: appliedFilters ? `Filters applied: ${appliedFilters}.` : response.text() },
+      ]);
     } catch (error) {
-      console.error("Error in sendMessage:", error);
-      alert("An error occurred. Please try again.");
+      console.error("Error sending message:", error);
+      if (error.response) {
+        console.error("Error details:", error.response.data);
+      }
+      setChatHistory((prev) => [
+        ...prev,
+        { type: "user", message: userInput },
+        { type: "bot", message: "An error occurred. Please try again." },
+      ]);
     } finally {
       setUserInput("");
       setIsLoading(false);
     }
   };
+
   
   const clearChat = () => {
     setChatHistory([]);
