@@ -12,14 +12,14 @@ export const RecipeProvider = ({ children }) => {
   const [tags, setTags] = useState([]); // State to store tags
   const [categories, setCategories] = useState([]); // Categories
   const [equipment, setEquipment] = useState([]); // Equipment
-  // ingredient if neeed
-  // cooking time if need
+  const [ingredients, setIngredients] = useState([]); // State for ingredients
 
   const [filters, setFilters] = useState({
     categories: [],
     tags: [],
     equipment: [],
     cookTime: null,
+    ingredients: [], // Add ingredients to filters
   });
   
   const [loading, setLoading] = useState(true); // Add the missing state
@@ -105,6 +105,19 @@ const fetchRecipes = async () => {
     }
   };
 
+  const fetchIngredients = async () => {
+    try {
+      const { data, error } = await supabase.from("ingredients").select("id, name");
+      if (error) {
+        console.error("Error fetching ingredients:", error);
+      } else {
+        setIngredients(data || []);
+      }
+    } catch (err) {
+      console.error("Unexpected error fetching ingredients:", err);
+    }
+  };
+
   const applyFilters = (newFilters) => {
     setFilters((prevFilters) => ({
         ...prevFilters,
@@ -118,6 +131,7 @@ const fetchRecipes = async () => {
     fetchTags(); // Fetch tags on mount
     fetchCategories(); // Fetch categories on mount
     fetchEquipment(); // Fetch equipment on mount
+    fetchIngredients(); // Fetch ingredients on mount
   }, []);
 
   useEffect(() => {
@@ -134,10 +148,12 @@ const fetchRecipes = async () => {
         categories,
         equipment,
         filters,
+        ingredients,
         fetchRecipes,
         fetchTags,
         fetchCategories,
         fetchEquipment,
+        fetchIngredients,
         applyFilters,
         loading,
       }}

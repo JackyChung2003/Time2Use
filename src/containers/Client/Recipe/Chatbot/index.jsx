@@ -19,7 +19,7 @@ const Chatbot = () => {
   // const { applyFilters } = useRecipeContext(); // Access applyFilters from context
   // const { fetchRecipes, applyFilters } = useRecipeContext();
   // const { tags, filters, applyFilters, fetchRecipes } = useRecipeContext();
-  const { tags, categories, equipment, filters, applyFilters, fetchRecipes } = useRecipeContext();
+  const { tags, categories, equipment, ingredients,  filters, applyFilters, fetchRecipes } = useRecipeContext();
 
   console.log("Categories:", categories); // Check if categories are being fetched properly
   console.log("Equipment:", equipment);
@@ -126,9 +126,20 @@ const Chatbot = () => {
       // Match cooking time (e.g., "under 30 minutes")
       const cookTimeMatch = normalizedInput.match(/under (\d+)\s*minutes/);
       const matchingCookTime = cookTimeMatch ? parseInt(cookTimeMatch[1]) : null;
+
+      const matchingIngredients = ingredients.filter((ingredient) =>
+        normalizedInput.includes(ingredient.name.toLowerCase())
+      );
   
       // if (matchingTag) {
-      if (matchingCategory || matchingTag || matchingEquipment || matchingCookTime) {
+      // if (matchingCategory || matchingTag || matchingEquipment || matchingCookTime) {
+        if (
+          matchingCategory ||
+          matchingTag ||
+          matchingEquipment ||
+          matchingCookTime ||
+          matchingIngredients.length > 0
+        ) {
         // const validTags = tags.filter(
         //   (tag) => tag && tag.name && tag.name.toLowerCase() === matchingTag.toLowerCase()
         // );
@@ -164,6 +175,9 @@ const Chatbot = () => {
             ? [...filters.equipment, matchingEquipment.name]
             : filters.equipment,
           cookTime: matchingCookTime || filters.cookTime,
+          ingredients: matchingIngredients.length > 0
+            ? [...filters.ingredients, ...matchingIngredients.map((ing) => ing.name)]
+            : filters.ingredients,
         });
   
         await fetchRecipes();
@@ -173,6 +187,8 @@ const Chatbot = () => {
           matchingTag && `Tag: ${matchingTag.name}`,
           matchingEquipment && `Equipment: ${matchingEquipment.name}`,
           matchingCookTime && `Cooking Time: Under ${matchingCookTime} minutes`,
+          matchingIngredients.length > 0 &&
+          `Ingredients: ${matchingIngredients.map((ing) => ing.name).join(", ")}`,
         ]
           .filter(Boolean)
           .join(", ");
@@ -190,6 +206,7 @@ const Chatbot = () => {
           tags: [],
           equipment: [],
           cookTime: null,
+          ingredients: [],
         });
         await fetchRecipes();
         setChatHistory((prev) => [
