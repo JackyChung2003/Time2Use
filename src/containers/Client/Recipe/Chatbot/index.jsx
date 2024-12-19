@@ -21,9 +21,9 @@ const Chatbot = () => {
   // const { tags, filters, applyFilters, fetchRecipes } = useRecipeContext();
   const { tags, categories, equipment, ingredients,  filters, applyFilters, fetchRecipes } = useRecipeContext();
 
-  console.log("Categories:", categories); // Check if categories are being fetched properly
-  console.log("Equipment:", equipment);
-  console.log("Filters:", filters);
+  // console.log("Categories:", categories); // Check if categories are being fetched properly
+  // console.log("Equipment:", equipment);
+  // console.log("Filters:", filters);
 
   const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
   if (!apiKey) {

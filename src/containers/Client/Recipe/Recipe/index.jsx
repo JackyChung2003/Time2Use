@@ -10,7 +10,7 @@ import { useRecipeContext } from '../Contexts/RecipeContext';
 
 const RecipeExplore = () => {
     // const { recipes, filters, applyFilters, loading } = useRecipeContext();
-    const { recipes, filters, applyFilters, loading, fetchRecipes } = useRecipeContext(); // Get recipes and filters
+    const { recipes, filters,  applyFilters, loading, fetchRecipes } = useRecipeContext(); // Get recipes and filters
     const [categories, setCategories] = useState([]);
     const [tags, setTags] = useState([]);
     const [equipment, setEquipment] = useState([]);
@@ -24,9 +24,7 @@ const RecipeExplore = () => {
 
     const navigate = useNavigate();
     
-    const handleIngredientRemove = (ingredientName) => {
-        setSelectedIngredients((prev) => prev.filter((item) => item.name !== ingredientName));
-    };
+
 
     const fetchFilterOptions = async () => {
         try {
@@ -65,13 +63,12 @@ const RecipeExplore = () => {
                 console.error('Error fetching ingredients:', error);
                 return;
             }
-    
+            console.log("Matching Ingredients:", data); // Debug: Check if icon_path is present
             setMatchingIngredients(data || []);
         } catch (error) {
             console.error('Unexpected error:', error);
         }
     };
-    
 
     useEffect(() => {
         fetchRecipes();
@@ -109,19 +106,59 @@ const RecipeExplore = () => {
             ? recipe.cook_time <= filters.cookTime // Check if cook_time is within the filter
             : true;
 
-        const matchesIngredients = selectedIngredients.length
-        ? selectedIngredients.every((ing) =>
-              (recipe.ingredients || []).some(
-                  (ingredient) => ingredient.toLowerCase() === ing.name.toLowerCase()
-              )
-          )
-        : true;
+        // const matchesIngredients = selectedIngredients.length
+        // ? selectedIngredients.every((ing) =>
+        //       (recipe.ingredients || []).some(
+        //           (ingredient) => ingredient.toLowerCase() === ing.name.toLowerCase()
+        //       )
+        //   )
+        // : true;
+
+        const matchesIngredients = filters.ingredients.length
+            ? filters.ingredients.every((ingredient) =>
+                    (recipe.ingredients || []).some(
+                        (ing) => ing.toLowerCase() === ingredient.toLowerCase()
+                    )
+                )
+            : true;
+
 
         // console.log("Selected Ingredients:", selectedIngredients);
     
         return matchesSearch && matchesCategory && matchesTags && matchesEquipment && matchesCookTime && matchesIngredients;
     });
     
+    // const handleIngredientAdd = (ingredient) => {
+    //     if (!filters.ingredients.includes(ingredient.name)) {
+    //         applyFilters({
+    //             ingredients: [...filters.ingredients, ingredient.name], // Add the new ingredient to the filter
+    //         });
+    //     }
+    // };
+    
+    const handleIngredientAdd = (ingredient) => {
+        if (!filters.ingredients.includes(ingredient.name)) {
+            applyFilters({
+                ingredients: [...filters.ingredients, ingredient.name], // Add the name to filters
+            });
+            setMatchingIngredients((prev) => ({
+                ...prev,
+                [ingredient.name]: ingredient.icon_path, // Add icon_path to lookup
+            }));
+        }
+    };
+    
+    
+    const handleIngredientRemove = (ingredientName) => {
+        applyFilters({
+            ingredients: filters.ingredients.filter((ing) => ing !== ingredientName), // Remove the ingredient from the filter
+        });
+    };
+
+    // const handleIngredientRemove = (ingredientName) => {
+    //     setSelectedIngredients((prev) => prev.filter((item) => item.name !== ingredientName));
+    // };
+
     const handleApplyFilters = () => {
         setOverlayOpen(false); // Close overlay on apply
     };
@@ -302,34 +339,39 @@ const RecipeExplore = () => {
                     <div style={{ padding: '20px' }}>
                         <h3>Selected Ingredients:</h3>
                         <div>
-                            {selectedIngredients.map((ingredient, index) => (
-                                <div
-                                    key={index}
-                                    style={{
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        marginBottom: '10px',
-                                    }}
-                                >
-                                    <span>{ingredient.name}</span>
-                                    <button
-                                        onClick={() => handleIngredientRemove(ingredient.name)}
+                            {filters.ingredients.length > 0 ? (
+                                filters.ingredients.map((ingredientName, index) => (
+                                    <div
+                                        key={index}
                                         style={{
-                                            marginLeft: '10px',
-                                            background: 'red',
-                                            color: 'white',
-                                            border: 'none',
-                                            borderRadius: '5px',
-                                            padding: '5px',
-                                            cursor: 'pointer',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            marginBottom: '10px',
                                         }}
                                     >
-                                        X
-                                    </button>
-                                </div>
-                            ))}
+                                        <span>{ingredientName}</span>
+                                        <button
+                                            onClick={() => handleIngredientRemove(ingredientName)}
+                                            style={{
+                                                marginLeft: '10px',
+                                                background: 'red',
+                                                color: 'white',
+                                                border: 'none',
+                                                borderRadius: '5px',
+                                                padding: '5px',
+                                                cursor: 'pointer',
+                                            }}
+                                        >
+                                            X
+                                        </button>
+                                    </div>
+                                ))
+                            ) : (
+                                <p>No ingredients selected.</p>
+                            )}
                         </div>
                     </div>
+
                         <div style={{ marginBottom: '20px' }}>
                             <h3>Category</h3>
                             {categories.map((category) => (
@@ -489,11 +531,15 @@ const RecipeExplore = () => {
                             <div
                                 key={index}
                                 onClick={() => {
-                                    if (!selectedIngredients.some((item) => item.name === ingredient.name)) {
-                                        setSelectedIngredients((prev) => [...prev, ingredient]);
-                                        setIngredientSearch(''); // Clear the text box
-                                        setMatchingIngredients([]); // Clear the suggestions
-                                    }
+                                    // if (!selectedIngredients.some((item) => item.name === ingredient.name)) {
+                                    //     setSelectedIngredients((prev) => [...prev, ingredient]);
+                                    //     setIngredientSearch(''); // Clear the text box
+                                    //     setMatchingIngredients([]); // Clear the suggestions
+                                    // }
+                                    handleIngredientAdd(ingredient); // Add the ingredient to the global filter
+                                    console.log('Ingredient added:', ingredient.name);
+                                    setIngredientSearch(''); // Clear the text box
+                                    setMatchingIngredients([]); // Clear the suggestions
                                 }}
 
                                 style={{
@@ -532,8 +578,8 @@ const RecipeExplore = () => {
                 {/* Selected Ingredients */}
                 <div style={{ padding: '20px', background: '#333', borderTop: '1px solid #555' }}>
                     <h3>Selected Ingredients:</h3>
-                    {selectedIngredients.length > 0 ? (
-                        selectedIngredients.map((ingredient, index) => (
+                    {filters.ingredients.length > 0 ? (
+                        filters.ingredients.map((ingredient, index) => (
                             <div
                                 key={index}
                                 style={{
@@ -547,27 +593,29 @@ const RecipeExplore = () => {
                                     background: '#555',
                                 }}
                             >
+                                {/* <span>{ingredient}</span> */}
                                 <div style={{ display: 'flex', alignItems: 'center' }}>
-                                    <img
-                                        src={`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/${ingredient.icon_path}`}
-                                        alt={ingredient.name}
-                                        style={{
-                                            width: '30px',
-                                            height: '30px',
-                                            marginRight: '10px',
-                                            borderRadius: '50%',
-                                            objectFit: 'cover',
-                                            background: '#fff',
-                                        }}
-                                    />
-                                    <span>{ingredient.name}</span>
+                                    {ingredient.icon_path && (
+                                        <img
+                                            src={`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/${ingredient.icon_path}`}
+                                            alt={ingredient.name}
+                                            style={{
+                                                width: '30px',
+                                                height: '30px',
+                                                marginRight: '10px',
+                                                borderRadius: '50%',
+                                                objectFit: 'cover',
+                                                background: '#fff',
+                                            }}
+                                        />
+                                    )}
+                                    <span>{ingredient}</span>
+                                    <span>{ingredient.icon_path}</span>
+
+
                                 </div>
                                 <button
-                                    onClick={() =>
-                                        setSelectedIngredients((prev) =>
-                                            prev.filter((item) => item.name !== ingredient.name)
-                                        )
-                                    }
+                                    onClick={() => handleIngredientRemove(ingredient)} 
                                     style={{
                                         background: 'red',
                                         color: '#fff',
@@ -588,6 +636,7 @@ const RecipeExplore = () => {
                 </div>
 
                 
+
                 {/* Search Button */}
                 <button
                     onClick={() => {
