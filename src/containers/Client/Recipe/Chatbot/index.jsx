@@ -230,82 +230,183 @@ const Chatbot = () => {
   //   }
   // };
 
+  // const sendMessage = async () => {
+  //   if (userInput.trim() === "") return;
+
+  //   setIsLoading(true);
+  //   try {
+  //     // Build the context string to send history messages to the model
+  //     const context = chatHistory
+  //       .map((msg) => `${msg.type === "user" ? "User:" : "Bot:"} ${msg.message}`)
+  //       .join("\n");
+
+  //     // Append the system prompt and user input
+  //     const prompt = `${systemPrompt}\n${context}\nUser: ${userInput}`;
+  //     console.log("Sending prompt to API:", prompt);
+
+  //     // Send the concatenated string to the Gemini model
+  //     const result = await model.generateContent(prompt);
+  //     const response = await result.response;
+
+  //     const interpretedText = response.text();
+  //     console.log("Gemini Response:", interpretedText);
+
+  //     // Parse the interpreted text to extract filtering criteria
+  //     const intent = interpretedText.toLowerCase();
+  //     const matchingTag = tags.find((tag) => intent.includes(tag.name.toLowerCase()));
+  //     const matchingCategory = categories.find((cat) => intent.includes(cat.name.toLowerCase()));
+  //     const matchingEquipment = equipment.find((equip) => intent.includes(equip.name.toLowerCase()));
+  //     const cookTimeMatch = intent.match(/under (\d+)\s*minutes/);
+  //     const matchingCookTime = cookTimeMatch ? parseInt(cookTimeMatch[1]) : null;
+  //     const matchingIngredients = ingredients.filter((ingredient) =>
+  //       intent.includes(ingredient.name.toLowerCase())
+  //     );
+
+  //     // Apply filters dynamically
+  //     applyFilters({
+  //       tags: matchingTag ? [...filters.tags, matchingTag.name] : filters.tags,
+  //       categories: matchingCategory ? [...filters.categories, matchingCategory.name] : filters.categories,
+  //       equipment: matchingEquipment ? [...filters.equipment, matchingEquipment.name] : filters.equipment,
+  //       cookTime: matchingCookTime || filters.cookTime,
+  //       ingredients: matchingIngredients.length > 0
+  //         ? [...filters.ingredients, ...matchingIngredients.map((ing) => ing.name)]
+  //         : filters.ingredients,
+  //     });
+
+  //     await fetchRecipes();
+
+  //     const appliedFilters = [
+  //       matchingCategory && `Category: ${matchingCategory.name}`,
+  //       matchingTag && `Tag: ${matchingTag.name}`,
+  //       matchingEquipment && `Equipment: ${matchingEquipment.name}`,
+  //       matchingCookTime && `Cooking Time: Under ${matchingCookTime} minutes`,
+  //       matchingIngredients.length > 0 &&
+  //         `Ingredients: ${matchingIngredients.map((ing) => ing.name).join(", ")}`,
+  //     ]
+  //       .filter(Boolean)
+  //       .join(", ");
+
+  //     setChatHistory((prev) => [
+  //       ...prev,
+  //       { type: "user", message: userInput },
+  //       { type: "bot", message: appliedFilters ? `Filters applied: ${appliedFilters}.` : response.text() },
+  //     ]);
+  //   } catch (error) {
+  //     console.error("Error sending message:", error);
+  //     if (error.response) {
+  //       console.error("Error details:", error.response.data);
+  //     }
+  //     setChatHistory((prev) => [
+  //       ...prev,
+  //       { type: "user", message: userInput },
+  //       { type: "bot", message: "An error occurred. Please try again." },
+  //     ]);
+  //   } finally {
+  //     setUserInput("");
+  //     setIsLoading(false);
+  //   }
+  // };
+
   const sendMessage = async () => {
     if (userInput.trim() === "") return;
 
     setIsLoading(true);
     try {
-      // Build the context string to send history messages to the model
-      const context = chatHistory
-        .map((msg) => `${msg.type === "user" ? "User:" : "Bot:"} ${msg.message}`)
-        .join("\n");
+        // Build the context string to send history messages to the model
+        const context = chatHistory
+            .map((msg) => `${msg.type === "user" ? "User:" : "Bot:"} ${msg.message}`)
+            .join("\n");
 
-      // Append the system prompt and user input
-      const prompt = `${systemPrompt}\n${context}\nUser: ${userInput}`;
-      console.log("Sending prompt to API:", prompt);
+        // Append the system prompt and user input
+        const prompt = `${systemPrompt}\n${context}\nUser: ${userInput}`;
+        console.log("Sending prompt to API:", prompt);
 
-      // Send the concatenated string to the Gemini model
-      const result = await model.generateContent(prompt);
-      const response = await result.response;
+        // Send the concatenated string to the Gemini model
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
 
-      const interpretedText = response.text();
-      console.log("Gemini Response:", interpretedText);
+        const interpretedText = response.text();
+        console.log("Gemini Response:", interpretedText);
 
-      // Parse the interpreted text to extract filtering criteria
-      const intent = interpretedText.toLowerCase();
-      const matchingTag = tags.find((tag) => intent.includes(tag.name.toLowerCase()));
-      const matchingCategory = categories.find((cat) => intent.includes(cat.name.toLowerCase()));
-      const matchingEquipment = equipment.find((equip) => intent.includes(equip.name.toLowerCase()));
-      const cookTimeMatch = intent.match(/under (\d+)\s*minutes/);
-      const matchingCookTime = cookTimeMatch ? parseInt(cookTimeMatch[1]) : null;
-      const matchingIngredients = ingredients.filter((ingredient) =>
-        intent.includes(ingredient.name.toLowerCase())
-      );
+        // Check for "clear filters" intent
+        if (interpretedText.toLowerCase().includes("clear filters") || 
+            interpretedText.toLowerCase().includes("cleared") ||
+            userInput.toLowerCase().includes("clear")) {
+            // Reset all filters
+            applyFilters({
+                categories: [],
+                tags: [],
+                equipment: [],
+                cookTime: null,
+                ingredients: [],
+            });
 
-      // Apply filters dynamically
-      applyFilters({
-        tags: matchingTag ? [...filters.tags, matchingTag.name] : filters.tags,
-        categories: matchingCategory ? [...filters.categories, matchingCategory.name] : filters.categories,
-        equipment: matchingEquipment ? [...filters.equipment, matchingEquipment.name] : filters.equipment,
-        cookTime: matchingCookTime || filters.cookTime,
-        ingredients: matchingIngredients.length > 0
-          ? [...filters.ingredients, ...matchingIngredients.map((ing) => ing.name)]
-          : filters.ingredients,
-      });
+            await fetchRecipes(); // Refresh recipes with no filters
 
-      await fetchRecipes();
+            setChatHistory((prev) => [
+                ...prev,
+                { type: "user", message: userInput },
+                { type: "bot", message: "All filters cleared. Showing all recipes!" },
+            ]);
+            return; // Exit early as filters are cleared
+        }
 
-      const appliedFilters = [
-        matchingCategory && `Category: ${matchingCategory.name}`,
-        matchingTag && `Tag: ${matchingTag.name}`,
-        matchingEquipment && `Equipment: ${matchingEquipment.name}`,
-        matchingCookTime && `Cooking Time: Under ${matchingCookTime} minutes`,
-        matchingIngredients.length > 0 &&
-          `Ingredients: ${matchingIngredients.map((ing) => ing.name).join(", ")}`,
-      ]
-        .filter(Boolean)
-        .join(", ");
+        // Parse the interpreted text to extract filtering criteria
+        const intent = interpretedText.toLowerCase();
+        const matchingTag = tags.find((tag) => intent.includes(tag.name.toLowerCase()));
+        const matchingCategory = categories.find((cat) => intent.includes(cat.name.toLowerCase()));
+        const matchingEquipment = equipment.find((equip) => intent.includes(equip.name.toLowerCase()));
+        const cookTimeMatch = intent.match(/under (\d+)\s*minutes/);
+        const matchingCookTime = cookTimeMatch ? parseInt(cookTimeMatch[1]) : null;
+        const matchingIngredients = ingredients.filter((ingredient) =>
+            intent.includes(ingredient.name.toLowerCase())
+        );
 
-      setChatHistory((prev) => [
-        ...prev,
-        { type: "user", message: userInput },
-        { type: "bot", message: appliedFilters ? `Filters applied: ${appliedFilters}.` : response.text() },
-      ]);
+        // Apply filters dynamically
+        applyFilters({
+            tags: matchingTag ? [...filters.tags, matchingTag.name] : filters.tags,
+            categories: matchingCategory ? [...filters.categories, matchingCategory.name] : filters.categories,
+            equipment: matchingEquipment ? [...filters.equipment, matchingEquipment.name] : filters.equipment,
+            cookTime: matchingCookTime || filters.cookTime,
+            ingredients: matchingIngredients.length > 0
+                ? [...filters.ingredients, ...matchingIngredients.map((ing) => ing.name)]
+                : filters.ingredients,
+        });
+
+        await fetchRecipes(); // Fetch recipes with updated filters
+
+        const appliedFilters = [
+            matchingCategory && `Category: ${matchingCategory.name}`,
+            matchingTag && `Tag: ${matchingTag.name}`,
+            matchingEquipment && `Equipment: ${matchingEquipment.name}`,
+            matchingCookTime && `Cooking Time: Under ${matchingCookTime} minutes`,
+            matchingIngredients.length > 0 &&
+            `Ingredients: ${matchingIngredients.map((ing) => ing.name).join(", ")}`,
+        ]
+            .filter(Boolean)
+            .join(", ");
+
+        setChatHistory((prev) => [
+            ...prev,
+            { type: "user", message: userInput },
+            { type: "bot", message: appliedFilters ? `Filters applied: ${appliedFilters}.` : response.text() },
+        ]);
     } catch (error) {
-      console.error("Error sending message:", error);
-      if (error.response) {
-        console.error("Error details:", error.response.data);
-      }
-      setChatHistory((prev) => [
-        ...prev,
-        { type: "user", message: userInput },
-        { type: "bot", message: "An error occurred. Please try again." },
-      ]);
+        console.error("Error sending message:", error);
+        if (error.response) {
+            console.error("Error details:", error.response.data);
+        }
+        setChatHistory((prev) => [
+            ...prev,
+            { type: "user", message: userInput },
+            { type: "bot", message: "An error occurred. Please try again." },
+        ]);
     } finally {
-      setUserInput("");
-      setIsLoading(false);
+        setUserInput("");
+        setIsLoading(false);
     }
-  };
+};
+
 
   
   const clearChat = () => {
