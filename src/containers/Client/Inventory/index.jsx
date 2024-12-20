@@ -1,10 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './Inventory.css';
-import { items } from './inventory';
+import { fetchItems } from './inventory';
 
 const Inventory = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeDropdown, setActiveDropdown] = useState(null);
+  const [items, setItems] = useState([]); // State to hold fetched items
+
+  useEffect(() => {
+    const loadItems = async () => {
+      const fetchedItems = await fetchItems();
+      setItems(fetchedItems);
+    };
+
+    loadItems();
+  }, []);
 
   const filteredItems = items.filter((item) =>
     item.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -12,6 +22,38 @@ const Inventory = () => {
 
   const toggleDropdown = (id) => {
     setActiveDropdown((prev) => (prev === id ? null : id));
+  };
+
+  const handlePortionClick = (item, portion) => {
+    // Calculate the new quantity based on the selected portion
+    const newQuantity = item.quantity - portion;
+
+    // Update the item's quantity (you will need to update the database here)
+    const updatedItems = items.map((i) =>
+      i.id === item.id ? { ...i, quantity: newQuantity } : i
+    );
+    setItems(updatedItems);
+
+    // Call a function to update the quantity in the database
+    updateQuantityInDatabase(item.id, newQuantity);
+  };
+
+  const updateQuantityInDatabase = async (itemId, newQuantity) => {
+    try {
+      // Call your Supabase function to update the quantity
+      const { data, error } = await supabase
+        .from('inventory')
+        .update({ quantity: newQuantity })
+        .match({ ingredient_id: itemId });
+
+      if (error) {
+        throw error;
+      }
+
+      console.log('Quantity updated:', data);
+    } catch (err) {
+      console.error('Error updating quantity:', err);
+    }
   };
 
   return (
@@ -60,7 +102,52 @@ const Inventory = () => {
             {/* Dropdown Box BELOW the entire rectangle */}
             {activeDropdown === item.id && (
               <div className="dropdown-box">
-                <p>More details or actions here...</p>
+                <div className="quantity-container">
+                  <div className="quantity-box">{item.quantity}</div>
+                  <div className="quantity-unit">{item.quantity_unit}</div>
+                </div>
+
+                {/* If the unit is "unit", show + and - buttons */}
+                {item.quantity_unit === 'unit' && (
+                  <div className="unit-controls">
+                    <button
+                      onClick={() => handlePortionClick(item, 1)}
+                      className="quantity-button"
+                    >
+                      - 
+                    </button>
+                    <button
+                      onClick={() => handlePortionClick(item, -1)}
+                      className="quantity-button"
+                    >
+                      + 
+                    </button>
+                  </div>
+                )}
+
+                {/* If the unit is not "unit", show the portion buttons */}
+                {item.quantity_unit !== 'unit' && (
+                  <div className="portion-section">
+                    <p>Used portion</p>
+                    <div className="portion-buttons">
+                      <button
+                        onClick={() => handlePortionClick(item, item.quantity * 0.25)}
+                      >
+                        1/4
+                      </button>
+                      <button
+                        onClick={() => handlePortionClick(item, item.quantity * 0.5)}
+                      >
+                        1/2
+                      </button>
+                      <button
+                        onClick={() => handlePortionClick(item, item.quantity * 0.75)}
+                      >
+                        3/4
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>

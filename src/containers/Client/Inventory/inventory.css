@@ -119,3 +119,64 @@
     width: calc(100% - 30px); 
     
   }
+
+  /* Container for quantity and unit */
+.quantity-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.quantity-box {
+  font-size: 20px;
+  font-weight: bold;
+  padding: 5px 15px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+}
+
+.quantity-unit {
+  margin-left: 10px;
+  font-size: 16px;
+}
+
+/* Portion section style */
+.portion-section {
+  margin-top: 10px;
+  text-align: center;
+}
+
+.portion-buttons button {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 10px;
+  margin: 5px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.portion-buttons button:hover {
+  background-color: #45a049;
+}
+
+.unit-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.quantity-button {
+  margin: 0 5px;
+  padding: 5px 10px;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+.quantity-value {
+  margin: 0 10px;
+  font-size: 16px;
+}
+
