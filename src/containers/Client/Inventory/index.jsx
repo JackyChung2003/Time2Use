@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import './Inventory.css';
 import { fetchItems, updateQuantityInDatabase } from './inventory';
+import supabase from "C:/Users/HUAWEI PC/CAT304-G30/src/config/supabaseClient.js";
+
 
 const Inventory = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -26,17 +28,21 @@ const Inventory = () => {
 
   const handlePortionClick = (item, portion) => {
     // Calculate the new quantity based on the selected portion
-    const newQuantity = item.quantity - portion;
-
+    let newQuantity = item.quantity - portion;
+  
+    // Round newQuantity to 2 decimal places
+    newQuantity = parseFloat(newQuantity.toFixed(2));
+  
     // Update the item's quantity (you will need to update the database here)
     const updatedItems = items.map((i) =>
       i.id === item.id ? { ...i, quantity: newQuantity } : i
     );
     setItems(updatedItems);
-
+  
     // Call a function to update the quantity in the database
     updateQuantityInDatabase(item.id, newQuantity);
   };
+  
 
   const updateQuantityInDatabase = async (itemId, newQuantity) => {
     try {
@@ -77,19 +83,19 @@ const Inventory = () => {
             {/* Main Item Rectangle */}
             <div className="item">
               <div className="left-section">
-                <div className="green-dot"></div>
+              <div className="green-dot"></div>
+                <div className="circle-image">
+                  <img src={item.imageUrl} alt={item.name} />
+                </div>
                 <div className="text-section">
                   <div className="item-name">{item.name}</div>
                   <div className="item-days">{item.daysLeft} left</div>
-                </div>
-                <div className="circle-image">
-                  <img src={item.imageUrl} alt={item.name} />
                 </div>
               </div>
 
               <div className="right-section">
                 <span className="tag">{item.category}</span>
-                <span className="item-quantity">{item.quantity}</span>
+                <span className="item-quantity">{item.quantity} {item.quantity_unit}</span>
                 <span
                   className="dropdown-icon"
                   onClick={() => toggleDropdown(item.id)}
@@ -102,10 +108,6 @@ const Inventory = () => {
             {/* Dropdown Box BELOW the entire rectangle */}
             {activeDropdown === item.id && (
               <div className="dropdown-box">
-                <div className="quantity-container">
-                  <div className="quantity-box">{item.quantity}</div>
-                  <div className="quantity-unit">{item.quantity_unit}</div>
-                </div>
 
                 {/* If the unit is "unit", show + and - buttons */}
                 {item.quantity_unit === 'unit' && (
@@ -116,6 +118,9 @@ const Inventory = () => {
                     >
                       - 
                     </button>
+                    <div className="quantity-container">
+                    <div className="quantity-box">{item.quantity}</div>
+                    </div>
                     <button
                       onClick={() => handlePortionClick(item, -1)}
                       className="quantity-button"
@@ -128,6 +133,10 @@ const Inventory = () => {
                 {/* If the unit is not "unit", show the portion buttons */}
                 {item.quantity_unit !== 'unit' && (
                   <div className="portion-section">
+                    <div className="quantity-container">
+                    <div className="quantity-box">{item.quantity}</div>
+                    <div className="quantity-unit">{item.quantity_unit}</div>
+                    </div>
                     <p>Used portion</p>
                     <div className="portion-buttons">
                       <button

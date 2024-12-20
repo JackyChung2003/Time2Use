@@ -48,7 +48,15 @@
   .left-section {
     display: flex;
     align-items: center;
-    gap: 10px;
+    justify-content: space-between; /* Adjust spacing between children */
+    gap: 15px;
+  }
+
+  .right-section {
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* Adjust spacing between children */
+    gap: 5px;
   }
   
   .green-dot {
@@ -80,6 +88,9 @@
     border-radius: 50%;
     background-color: #ddd; /* Placeholder background for image */
     overflow: hidden;
+    display: flex;          /* Center image inside circle */
+    justify-content: center;
+    align-items: center;  
   }
   
   .circle-image img {
@@ -99,11 +110,11 @@
   
   .item-quantity {
     font-size: 14px;
-    color: #555;
+    color: #000000;
   }
   
   .dropdown-icon {
-    font-size: 20px;
+    font-size: 15px;
     color: #888;
     cursor: pointer;
   }
@@ -177,6 +188,6 @@
 
 .quantity-value {
   margin: 0 10px;
-  font-size: 16px;
+  font-size: 12px;
 }
 

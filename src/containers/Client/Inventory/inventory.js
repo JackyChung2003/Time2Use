@@ -36,7 +36,7 @@ export const fetchItems = async () => {
         daysLeft: `${item.daysLeft}d`,
         imageUrl: imageUrl, // Full image URL
         category: categoryTag,
-        quantity: `${item.quantity}${item.quantity_unit}`,
+        quantity: `${item.quantity}`,
         quantity_unit: item.quantity_unit, // Adding quantity_unit to make use of it in portion selection
       };
     });
