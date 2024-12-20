@@ -18,7 +18,7 @@ const navBarItems = [
   },
   {
     title: "Recipe",
-    link: "/recipe",
+    link: "/recipes",
     icon: <FaBookOpen />, // Open book icon
   },
   {
