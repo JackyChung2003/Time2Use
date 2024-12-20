@@ -38,11 +38,7 @@ const App = () => {
                 
                 // Hardcoded role for now
                 // const role = "admin";   // Uncomment this line to test admin dashboard
-<<<<<<< HEAD
-                 const role = "client"; // Uncomment this line to test client dashboard
-=======
-                // const role = "client"; // Uncomment this line to test client dashboard
->>>>>>> 43cad09e3408c539d6a08c02d2a36f01ac5617f0
+                   const role = "client"; // Uncomment this line to test client dashboard
 
     //             // Following comment is for future reference when done with authentication to differentiate between client and admin
     //             // const role = data.user.user_metadata?.role || "client"; // Default to "client"

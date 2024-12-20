@@ -3,18 +3,19 @@ import supabase from "C:/Users/HUAWEI PC/CAT304-G30/src/config/supabaseClient.js
 export const fetchItems = async () => {
   try {
     const { data, error } = await supabase
-      .from('inventory')
-      .select(`
-        id:ingredient_id,
-        daysLeft:days_left,
-        quantity,
-        quantity_unit,
-        ingredients(
-          name,
-          icon_path,
-          ingredients_category(category_tag)
-        )
-      `);
+    .from('inventory')
+    .select(`
+      id:ingredient_id,
+      daysLeft:days_left,
+      quantity,
+      quantity_unit,
+      ingredients(
+        name,
+        icon_path,
+        ingredients_category(category_tag)
+      )
+    `);
+
 
     if (error) {
       throw error;
@@ -22,13 +23,12 @@ export const fetchItems = async () => {
 
     console.log('Fetched Data:', data);
 
-    const SUPABASE_STORAGE_URL = 'https://wryzdgcrrejrwfqsdaog.supabase.co/storage/buckets/ingredient-icons/'; 
-
+    const SUPABASE_STORAGE_URL = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/`;
     const items = data.map(item => {
-      const categoryTag = item.ingredients?.ingredients_category?.category_tag || 'Unknown';
+      const categoryTag = item.ingredients?.ingredients_category?.category_tag;
 
       // Construct the full image URL
-      const imageUrl = SUPABASE_STORAGE_URL + item.ingredients?.icon_path;
+      const imageUrl = item.ingredients?.icon_path ? `${SUPABASE_STORAGE_URL}${item.ingredients.icon_path}` : '';
 
       return {
         id: item.id,

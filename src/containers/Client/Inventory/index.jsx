@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './Inventory.css';
-import { fetchItems } from './inventory';
+import { fetchItems, updateQuantityInDatabase } from './inventory';
 
 const Inventory = () => {
   const [searchTerm, setSearchTerm] = useState('');
