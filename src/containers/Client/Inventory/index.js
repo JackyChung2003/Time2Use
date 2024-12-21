@@ -1,4 +1,4 @@
-import supabase from "C:/Users/HUAWEI PC/CAT304-G30/src/config/supabaseClient.js";
+import supabase from '../../../config/supabaseClient';
 
 export const fetchItems = async () => {
   try {
@@ -51,6 +51,7 @@ export const fetchItems = async () => {
 // Function to update the quantity in the database
 export const updateQuantityInDatabase = async (itemId, newQuantity) => {
   try {
+    // Call your Supabase function to update the quantity
     const { data, error } = await supabase
       .from('inventory')
       .update({ quantity: newQuantity })
@@ -84,3 +85,5 @@ export const handlePortionClick = async (item, portion) => {
     console.error('Error handling portion click:', err);
   }
 };
+
+export { fetchItems, handlePortionClick, updateQuantityInDatabase };

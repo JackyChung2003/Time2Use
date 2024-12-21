@@ -1,4 +1,4 @@
-/* Inventory.css */
+/* index.css */
 
 .inventory-container {
     display: flex;
@@ -102,10 +102,11 @@
   .tag {
     background-color: #f0ad4e;
     color: #fff;
-    font-size: 12px;
+    font-size: 10px;
     border-radius: 5px;
-    padding: 2px 8px;
-    margin-right: 10px;
+    padding: 2px 6px;
+    margin-right: 5px;
+    margin-left: 2px;
   }
   
   .item-quantity {
@@ -114,7 +115,7 @@
   }
   
   .dropdown-icon {
-    font-size: 15px;
+    font-size: 10px;
     color: #888;
     cursor: pointer;
   }
@@ -127,8 +128,7 @@
     margin-top: 0;
     margin-left: 4%;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    width: calc(100% - 30px); 
-    
+    width: calc(100% - 30px);
   }
 
   /* Container for quantity and unit */

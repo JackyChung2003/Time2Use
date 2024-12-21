@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import './Inventory.css';
-import { fetchItems, updateQuantityInDatabase } from './inventory';
-import supabase from "C:/Users/HUAWEI PC/CAT304-G30/src/config/supabaseClient.js";
+import './index.css';
+import { fetchItems, updateQuantityInDatabase } from './index.js';
 
 
 const Inventory = () => {
@@ -42,25 +41,6 @@ const Inventory = () => {
     // Call a function to update the quantity in the database
     updateQuantityInDatabase(item.id, newQuantity);
   };
-  
-
-  const updateQuantityInDatabase = async (itemId, newQuantity) => {
-    try {
-      // Call your Supabase function to update the quantity
-      const { data, error } = await supabase
-        .from('inventory')
-        .update({ quantity: newQuantity })
-        .match({ ingredient_id: itemId });
-
-      if (error) {
-        throw error;
-      }
-
-      console.log('Quantity updated:', data);
-    } catch (err) {
-      console.error('Error updating quantity:', err);
-    }
-  };
 
   return (
     <div className="inventory-container">
@@ -94,8 +74,8 @@ const Inventory = () => {
               </div>
 
               <div className="right-section">
+                <span className="item-quantity">{item.quantity}{item.quantity_unit}</span>
                 <span className="tag">{item.category}</span>
-                <span className="item-quantity">{item.quantity} {item.quantity_unit}</span>
                 <span
                   className="dropdown-icon"
                   onClick={() => toggleDropdown(item.id)}
