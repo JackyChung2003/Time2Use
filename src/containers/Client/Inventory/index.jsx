@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './Inventory.css';
 import { fetchItems, updateQuantityInDatabase } from './inventory';
-import supabase from "C:/Users/HUAWEI PC/CAT304-G30/src/config/supabaseClient.js";
+import supabase from '../../../config/supabaseClient';
 
 
 const Inventory = () => {

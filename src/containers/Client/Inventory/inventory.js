@@ -1,4 +1,4 @@
-import supabase from "C:/Users/HUAWEI PC/CAT304-G30/src/config/supabaseClient.js";
+import supabase from "../../../config/supabaseClient";
 
 export const fetchItems = async () => {
   try {
