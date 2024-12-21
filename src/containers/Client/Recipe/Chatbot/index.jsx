@@ -328,6 +328,30 @@ const Chatbot = () => {
         const interpretedText = response.text();
         console.log("Gemini Response:", interpretedText);
 
+        // Check for "Apply All Filters" intent
+        if (
+          interpretedText.toLowerCase().includes("apply all filters") ||
+          interpretedText.toLowerCase().includes("apply all filters") ||
+          userInput.toLowerCase().includes("apply all filters")
+      ) {
+          // Apply all available filters
+          applyFilters({
+              tags: tags.map((tag) => tag.name),
+              categories: categories.map((cat) => cat.name),
+              equipment: equipment.map((equip) => equip.name),
+              cookTime: null, // Leave cookTime unset for "apply all"
+          });
+
+          await fetchRecipes(); // Fetch recipes with all filters applied
+
+          setChatHistory((prev) => [
+              ...prev,
+              { type: "user", message: userInput },
+              { type: "bot", message: "All available filters have been applied. Showing recipes!" },
+          ]);
+          return; // Exit early after applying all filters
+      }
+
         // Check for "clear filters" intent
         if (interpretedText.toLowerCase().includes("clear filters") || 
             interpretedText.toLowerCase().includes("cleared") ||
