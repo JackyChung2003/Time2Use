@@ -41,6 +41,8 @@ const fetchRecipes = async () => {
           recipe_category ( category (name) ),
           recipe_ingredients ( ingredients (name) )
         `);
+
+
       
         // console.log("Raw data fetched from Supabase:", data); // Log the raw data here
 

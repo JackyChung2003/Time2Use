@@ -32,7 +32,7 @@ const App = () => {
     //     const fetchUser = async () => {
     //         const { data: userData, error: userError } = await supabase.auth.getUser();
     //         const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-
+            
     //         if (userData?.user) {
     //             // Check for user role in metadata
                 
