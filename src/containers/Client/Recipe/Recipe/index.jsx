@@ -155,6 +155,36 @@ const RecipeExplore = () => {
         setOverlayOpen(false); // Close overlay on apply
     };
 
+    // const isAllSelected = () => {
+    //     return (
+    //         filters.categories.length === categories.length &&
+    //         filters.tags.length === tags.length &&
+    //         filters.equipment.length === equipment.length
+    //     );
+    // };
+
+    // const toggleSelectAll = () => {
+    //     if (isAllSelected()) {
+    //         // Deselect all
+    //         applyFilters({
+    //             categories: [],
+    //             tags: [],
+    //             equipment: [],
+    //             cookTime: null,
+    //             ingredients: [],
+    //         });
+    //     } else {
+    //         // Select all
+    //         applyFilters({
+    //             categories: categories.map((category) => category.name),
+    //             tags: tags.map((tag) => tag.name),
+    //             equipment: equipment.map((equip) => equip.name),
+    //             cookTime: null,
+    //             ingredients: [],
+    //         });
+    //     }
+    // };
+
     const isAllSelected = () => {
         return (
             filters.categories.length === categories.length &&
@@ -163,27 +193,30 @@ const RecipeExplore = () => {
         );
     };
 
-    const toggleSelectAll = () => {
-        if (isAllSelected()) {
-            // Deselect all
-            applyFilters({
-                categories: [],
-                tags: [],
-                equipment: [],
-                cookTime: null,
-                ingredients: [],
-            });
-        } else {
-            // Select all
-            applyFilters({
-                categories: categories.map((category) => category.name),
-                tags: tags.map((tag) => tag.name),
-                equipment: equipment.map((equip) => equip.name),
-                cookTime: null,
-                ingredients: [],
-            });
-        }
+    const isAnySelected = () => {
+        return (
+            filters.categories.length > 0 ||
+            filters.tags.length > 0 ||
+            filters.equipment.length > 0
+        );
     };
+
+    const handleSelectAll = () => {
+        applyFilters({
+            categories: categories.map((category) => category.name),
+            tags: tags.map((tag) => tag.name),
+            equipment: equipment.map((equip) => equip.name),
+        });
+    };
+
+    const handleClear = () => {
+        applyFilters({
+            categories: [],
+            tags: [],
+            equipment: [],
+        });
+    };
+
 
     return (
         <div style={{ padding: '20px' }}>
@@ -336,7 +369,7 @@ const RecipeExplore = () => {
 
                     <h2 style={{ padding: '20px' }}>Filter Options</h2>
 
-                    <button
+                    {/* <button
                             onClick={toggleSelectAll}
                             style={{
                                 padding: '10px 20px',
@@ -349,7 +382,79 @@ const RecipeExplore = () => {
                             }}
                         >
                             {isAllSelected() ? 'Deselect All' : 'Select All'}
-                        </button>
+                        </button> */}
+
+                    <div style={{ marginBottom: "20px" }}>
+                        {/* No filters selected */}
+                        {!isAnySelected() && (
+                            <button
+                                onClick={handleSelectAll}
+                                style={{
+                                    width: "100%",
+                                    padding: "10px",
+                                    background: "#007BFF",
+                                    color: "#fff",
+                                    border: "none",
+                                    borderRadius: "5px",
+                                    cursor: "pointer",
+                                }}
+                            >
+                                Select All
+                            </button>
+                        )}
+
+                        {/* Some filters selected */}
+                        {isAnySelected() && !isAllSelected() && (
+                            <div style={{ display: "flex", gap: "10px" }}>
+                                <button
+                                    onClick={handleClear}
+                                    style={{
+                                        flex: 1,
+                                        padding: "10px",
+                                        background: "#FF4136",
+                                        color: "#fff",
+                                        border: "none",
+                                        borderRadius: "5px",
+                                        cursor: "pointer",
+                                    }}
+                                >
+                                    Clear
+                                </button>
+                                <button
+                                    onClick={handleSelectAll}
+                                    style={{
+                                        flex: 1,
+                                        padding: "10px",
+                                        background: "#007BFF",
+                                        color: "#fff",
+                                        border: "none",
+                                        borderRadius: "5px",
+                                        cursor: "pointer",
+                                    }}
+                                >
+                                    Select All
+                                </button>
+                            </div>
+                        )}
+
+                        {/* All filters selected */}
+                        {isAllSelected() && (
+                            <button
+                                onClick={handleClear}
+                                style={{
+                                    width: "100%",
+                                    padding: "10px",
+                                    background: "#FF4136",
+                                    color: "#fff",
+                                    border: "none",
+                                    borderRadius: "5px",
+                                    cursor: "pointer",
+                                }}
+                            >
+                                Deselect All
+                            </button>
+                        )}
+                    </div>
                     
                     {/* Scrollable Content */}
                     <div
