@@ -331,7 +331,7 @@ const Chatbot = () => {
         // Check for "Apply All Filters" intent
         if (
           interpretedText.toLowerCase().includes("apply all filters") ||
-          interpretedText.toLowerCase().includes("apply all filters") ||
+          interpretedText.toLowerCase().includes("All filters have been applied") ||
           userInput.toLowerCase().includes("apply all filters")
       ) {
           // Apply all available filters
