@@ -80,32 +80,47 @@ const RecipeExplore = () => {
     const filteredRecipes = recipes.filter((recipe) => {
         const matchesSearch = recipe.name?.toLowerCase().includes(search.toLowerCase());
     
-        const matchesCategory = filters.categories?.length
-            ? filters.categories.every((category) =>
-                  (recipe.categories || []).includes(category)
-              )
-            : true;
-    
-        const matchesTags = filters.tags?.length
-            ? filters.tags.every((tag) => (recipe.tags || []).includes(tag))
-            : true;
-    
-        const matchesEquipment = filters.equipment?.length
-            ? filters.equipment.every((equip) => (recipe.equipment || []).includes(equip))
-            : true;
-
-        const matchesCookTime = filters.cookTime
-            ? recipe.cook_time <= filters.cookTime // Check if cook_time is within the filter
-            : true;
-
-        // const matchesIngredients = selectedIngredients.length
-        // ? selectedIngredients.every((ing) =>
-        //       (recipe.ingredients || []).some(
-        //           (ingredient) => ingredient.toLowerCase() === ing.name.toLowerCase()
+        // const matchesCategory = filters.categories?.length
+        //     ? filters.categories.every((category) =>
+        //           (recipe.categories || []).includes(category)
         //       )
-        //   )
-        // : true;
+        //     : true;
+    
+        // const matchesTags = filters.tags?.length
+        //     ? filters.tags.every((tag) => (recipe.tags || []).includes(tag))
+        //     : true;
+    
+        // const matchesEquipment = filters.equipment?.length
+        //     ? filters.equipment.every((equip) => (recipe.equipment || []).includes(equip))
+        //     : true;
 
+        // const matchesCookTime = filters.cookTime
+        //     ? recipe.cook_time <= filters.cookTime // Check if cook_time is within the filter
+        //     : true;
+
+        // Handle union logic (OR) for categories
+        const matchesCategory = filters.categories.length
+            ? filters.categories.some((category) =>
+                (recipe.categories || []).includes(category)
+            )
+            : true;
+
+        // Handle union logic (OR) for tags
+        const matchesTags = filters.tags.length
+            ? filters.tags.some((tag) => (recipe.tags || []).includes(tag))
+            : true;
+
+        // Handle union logic (OR) for equipment
+        const matchesEquipment = filters.equipment.length
+            ? filters.equipment.some((equip) => (recipe.equipment || []).includes(equip))
+            : true;
+
+        // Handle cooking time (single condition, no union needed)
+        const matchesCookTime = filters.cookTime
+            ? recipe.cook_time <= filters.cookTime
+            : true;
+        
+        // Handle intersection logic (AND) for ingredients
         const matchesIngredients = filters.ingredients.length
             ? filters.ingredients.every((ingredient) =>
                     (recipe.ingredients || []).some(
@@ -138,6 +153,36 @@ const RecipeExplore = () => {
 
     const handleApplyFilters = () => {
         setOverlayOpen(false); // Close overlay on apply
+    };
+
+    const isAllSelected = () => {
+        return (
+            filters.categories.length === categories.length &&
+            filters.tags.length === tags.length &&
+            filters.equipment.length === equipment.length
+        );
+    };
+
+    const toggleSelectAll = () => {
+        if (isAllSelected()) {
+            // Deselect all
+            applyFilters({
+                categories: [],
+                tags: [],
+                equipment: [],
+                cookTime: null,
+                ingredients: [],
+            });
+        } else {
+            // Select all
+            applyFilters({
+                categories: categories.map((category) => category.name),
+                tags: tags.map((tag) => tag.name),
+                equipment: equipment.map((equip) => equip.name),
+                cookTime: null,
+                ingredients: [],
+            });
+        }
     };
 
     return (
@@ -290,6 +335,21 @@ const RecipeExplore = () => {
                     
 
                     <h2 style={{ padding: '20px' }}>Filter Options</h2>
+
+                    <button
+                            onClick={toggleSelectAll}
+                            style={{
+                                padding: '10px 20px',
+                                background: isAllSelected() ? '#ff0000' : '#00aaff',
+                                color: '#fff',
+                                border: 'none',
+                                borderRadius: '5px',
+                                cursor: 'pointer',
+                                marginBottom: '20px',
+                            }}
+                        >
+                            {isAllSelected() ? 'Deselect All' : 'Select All'}
+                        </button>
                     
                     {/* Scrollable Content */}
                     <div
