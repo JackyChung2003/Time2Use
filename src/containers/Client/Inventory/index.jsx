@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './index.css';
-import { fetchItems, updateQuantityInDatabase } from './index.js';
+import inventoryUtils from '/src/containers/Client/Inventory/index.js';
 
 
 const Inventory = () => {
@@ -10,7 +10,7 @@ const Inventory = () => {
 
   useEffect(() => {
     const loadItems = async () => {
-      const fetchedItems = await fetchItems();
+      const fetchedItems = await inventoryUtils.fetchItems();
       setItems(fetchedItems);
     };
 
@@ -23,23 +23,6 @@ const Inventory = () => {
 
   const toggleDropdown = (id) => {
     setActiveDropdown((prev) => (prev === id ? null : id));
-  };
-
-  const handlePortionClick = (item, portion) => {
-    // Calculate the new quantity based on the selected portion
-    let newQuantity = item.quantity - portion;
-  
-    // Round newQuantity to 2 decimal places
-    newQuantity = parseFloat(newQuantity.toFixed(2));
-  
-    // Update the item's quantity (you will need to update the database here)
-    const updatedItems = items.map((i) =>
-      i.id === item.id ? { ...i, quantity: newQuantity } : i
-    );
-    setItems(updatedItems);
-  
-    // Call a function to update the quantity in the database
-    updateQuantityInDatabase(item.id, newQuantity);
   };
 
   return (
@@ -93,7 +76,7 @@ const Inventory = () => {
                 {item.quantity_unit === 'unit' && (
                   <div className="unit-controls">
                     <button
-                      onClick={() => handlePortionClick(item, 1)}
+                      onClick={() => inventoryUtils.handlePortionClick(item, 1)}
                       className="quantity-button"
                     >
                       - 
@@ -102,7 +85,7 @@ const Inventory = () => {
                     <div className="quantity-box">{item.quantity}</div>
                     </div>
                     <button
-                      onClick={() => handlePortionClick(item, -1)}
+                      onClick={() => inventoryUtils.handlePortionClick(item, -1)}
                       className="quantity-button"
                     >
                       + 
@@ -120,17 +103,17 @@ const Inventory = () => {
                     <p>Used portion</p>
                     <div className="portion-buttons">
                       <button
-                        onClick={() => handlePortionClick(item, item.quantity * 0.25)}
+                        onClick={() => inventoryUtils.handlePortionClick(item, item.quantity * 0.25)}
                       >
                         1/4
                       </button>
                       <button
-                        onClick={() => handlePortionClick(item, item.quantity * 0.5)}
+                        onClick={() => inventoryUtils.handlePortionClick(item, item.quantity * 0.5)}
                       >
                         1/2
                       </button>
                       <button
-                        onClick={() => handlePortionClick(item, item.quantity * 0.75)}
+                        onClick={() => inventoryUtils.handlePortionClick(item, item.quantity * 0.75)}
                       >
                         3/4
                       </button>

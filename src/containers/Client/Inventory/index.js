@@ -3,41 +3,42 @@ import supabase from '../../../config/supabaseClient';
 export const fetchItems = async () => {
   try {
     const { data, error } = await supabase
-    .from('inventory')
-    .select(`
-      id:ingredient_id,
-      daysLeft:days_left,
-      quantity,
-      quantity_unit,
-      ingredients(
-        name,
-        icon_path,
-        ingredients_category(category_tag)
-      )
-    `);
-
+      .from('inventory')
+      .select(`
+        id:ingredient_id,
+        daysLeft:days_left,
+        quantity,
+        quantity_unit,
+        ingredients(
+          name,
+          icon_path,
+          ingredients_category(category_tag)
+        )
+      `);
 
     if (error) {
       throw error;
     }
 
-    console.log('Fetched Data:', data);
+    console.log('Fetched raw data from Supabase:', data);
 
     const SUPABASE_STORAGE_URL = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/`;
-    const items = data.map(item => {
+    const items = data.map((item) => {
       const categoryTag = item.ingredients?.ingredients_category?.category_tag;
 
       // Construct the full image URL
-      const imageUrl = item.ingredients?.icon_path ? `${SUPABASE_STORAGE_URL}${item.ingredients.icon_path}` : '';
+      const imageUrl = item.ingredients?.icon_path
+        ? `${SUPABASE_STORAGE_URL}${item.ingredients.icon_path}`
+        : '';
 
       return {
         id: item.id,
         name: item.ingredients?.name || 'Unknown',
         daysLeft: `${item.daysLeft}d`,
-        imageUrl: imageUrl, // Full image URL
+        imageUrl: imageUrl,
         category: categoryTag,
-        quantity: `${item.quantity}`,
-        quantity_unit: item.quantity_unit, // Adding quantity_unit to make use of it in portion selection
+        quantity: item.quantity, // Keep as number
+        quantity_unit: item.quantity_unit,
       };
     });
 
@@ -48,10 +49,9 @@ export const fetchItems = async () => {
   }
 };
 
-// Function to update the quantity in the database
+// Update quantity in the database
 export const updateQuantityInDatabase = async (itemId, newQuantity) => {
   try {
-    // Call your Supabase function to update the quantity
     const { data, error } = await supabase
       .from('inventory')
       .update({ quantity: newQuantity })
@@ -67,23 +67,34 @@ export const updateQuantityInDatabase = async (itemId, newQuantity) => {
   }
 };
 
-// Function to reduce the quantity based on the portion selected
+// Handle portion click
 export const handlePortionClick = async (item, portion) => {
   try {
-    // Calculate the new quantity based on the selected portion
-    const newQuantity = item.quantity - portion;
+    console.log('Item before update:', item);
+    console.log('Portion to deduct:', portion);
 
-    // Update the UI state with the new quantity (in case you're updating items in a state)
-    const updatedItems = items.map((i) =>
-      i.id === item.id ? { ...i, quantity: newQuantity } : i
-    );
-    setItems(updatedItems); // Assuming `setItems` is available in your component
+    // Calculate the new quantity
+    let newQuantity = item.quantity - portion;
 
-    // Call the function to update the quantity in the database
+    // Round to 2 decimal places
+    newQuantity = parseFloat(newQuantity.toFixed(2));
+
+    console.log('New quantity:', newQuantity);
+
+    // Update in database
     await updateQuantityInDatabase(item.id, newQuantity);
+
+    return newQuantity; // Return for UI updates
   } catch (err) {
     console.error('Error handling portion click:', err);
+    throw err;
   }
 };
 
-export { fetchItems, handlePortionClick, updateQuantityInDatabase };
+const inventoryUtils = {
+  fetchItems,
+  updateQuantityInDatabase,
+  handlePortionClick,
+};
+
+export default inventoryUtils;
