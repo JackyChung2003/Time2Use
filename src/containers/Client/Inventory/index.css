@@ -49,7 +49,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between; /* Adjust spacing between children */
-    gap: 15px;
+    gap: 10px;
   }
 
   .right-section {
@@ -62,9 +62,25 @@
   .green-dot {
     width: 10px;
     height: 10px;
-    background-color: #28a745;
     border-radius: 50%;
   }
+  
+  .green-dot.green {
+    background-color: #28a745; /* Green color */
+  }
+  
+  .green-dot.yellow {
+    background-color: #ffc107; /* Yellow color */
+  }
+  
+  .green-dot.red {
+    background-color: #dc3545; /* Red color */
+  }
+  
+  .green-dot.brown {
+    background-color: #b4ab82; /* Brown color */
+  }
+  
   
   .text-section {
     display: flex;

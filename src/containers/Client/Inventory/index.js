@@ -1,4 +1,5 @@
 import supabase from '../../../config/supabaseClient';
+import React, { useState } from 'react';
 
 export const fetchItems = async () => {
   try {
@@ -9,10 +10,16 @@ export const fetchItems = async () => {
         daysLeft:days_left,
         quantity,
         quantity_unit,
-        ingredients(
+        freshness_status_id,
+        ingredients (
           name,
           icon_path,
-          ingredients_category(category_tag)
+          ingredients_category (
+            category_tag
+          )
+        ),
+        freshness_status (
+          status_color
         )
       `);
 
@@ -25,6 +32,7 @@ export const fetchItems = async () => {
     const SUPABASE_STORAGE_URL = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/`;
     const items = data.map((item) => {
       const categoryTag = item.ingredients?.ingredients_category?.category_tag;
+      const statusColor = item.freshness_status?.status_color || 'green'; // Default to 'green' if no status_color
 
       // Construct the full image URL
       const imageUrl = item.ingredients?.icon_path
@@ -39,6 +47,7 @@ export const fetchItems = async () => {
         category: categoryTag,
         quantity: item.quantity, // Keep as number
         quantity_unit: item.quantity_unit,
+        statusColor: statusColor, // Add statusColor to the returned object
       };
     });
 
@@ -49,26 +58,31 @@ export const fetchItems = async () => {
   }
 };
 
+
 // Update quantity in the database
 export const updateQuantityInDatabase = async (itemId, newQuantity) => {
   try {
     const { data, error } = await supabase
       .from('inventory')
-      .update({ quantity: newQuantity })
+      .update({
+        quantity: newQuantity,
+        updated_at: supabase.raw('now()'), // Use PostgreSQL's now() function
+      })
       .match({ ingredient_id: itemId });
 
     if (error) {
       throw error;
     }
 
-    console.log('Quantity updated:', data);
+    console.log('Quantity and updated_at timestamp updated:', data);
   } catch (err) {
     console.error('Error updating quantity:', err);
   }
 };
 
+
 // Handle portion click
-export const handlePortionClick = async (item, portion) => {
+export const handlePortionClick = async (item, portion, setItems) => {
   try {
     console.log('Item before update:', item);
     console.log('Portion to deduct:', portion);
@@ -81,9 +95,16 @@ export const handlePortionClick = async (item, portion) => {
 
     console.log('New quantity:', newQuantity);
 
-    // Update in database
+    // Update the quantity in the database
     await updateQuantityInDatabase(item.id, newQuantity);
 
+    // Update the state in the parent component to trigger re-render
+    setItems((prevItems) =>
+      prevItems.map((i) =>
+        i.id === item.id ? { ...i, quantity: newQuantity } : i
+      )
+    );
+    
     return newQuantity; // Return for UI updates
   } catch (err) {
     console.error('Error handling portion click:', err);
@@ -91,10 +112,29 @@ export const handlePortionClick = async (item, portion) => {
   }
 };
 
+export const ParentComponent = () => {
+  const [items, setItems] = useState([]);
+
+  // Handle portion click and update the UI state
+  const handlePortionClickWithState = async (item, portion) => {
+    try {
+      const newQuantity = await handlePortionClick(item, portion, setItems);
+      console.log('Portion click handled and state updated:', newQuantity);
+    } catch (err) {
+      console.error('Error handling portion click:', err);
+    }
+  };
+
+  return (
+    <ItemList items={items} handlePortionClick={handlePortionClickWithState} />
+  );
+};
+
 const inventoryUtils = {
   fetchItems,
   updateQuantityInDatabase,
   handlePortionClick,
+  ParentComponent,
 };
 
 export default inventoryUtils;
