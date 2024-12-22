@@ -157,10 +157,24 @@
 .quantity-box {
   font-size: 20px;
   font-weight: bold;
-  padding: 5px 15px;
+  padding: 5px 10px; 
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  min-width: 30px; 
+  text-align: center;
+  display: inline-block;
+}
+
+/* To prevent the input from overflowing */
+input[type="number"] {
+  text-align: center;
+  font-size: 20px;
+  font-weight: bold;
+  padding: 5px;
   border: 1px solid #ddd;
   border-radius: 5px;
 }
+
 
 .quantity-unit {
   margin-left: 10px;

@@ -107,10 +107,30 @@ export const handlePortionClick = async (item, portion) => {
   }
 };
 
+export const handleQuantityChange = async (item, newQuantity, setItems) => {
+  const parsedQuantity = parseFloat(newQuantity);
+  if (!isNaN(parsedQuantity) && parsedQuantity >= 0) {
+    try {
+      // Update the database with the new quantity
+      await updateQuantityInDatabase(item.id, parsedQuantity);
+
+      // After database update, update the UI state
+      setItems((prevItems) =>
+        prevItems.map((i) =>
+          i.id === item.id ? { ...i, quantity: parsedQuantity } : i
+        )
+      );
+    } catch (err) {
+      console.error('Error handling quantity change:', err);
+    }
+  }
+};
+
 const inventoryUtils = {
   fetchItems,
   updateQuantityInDatabase,
   handlePortionClick,
+  handleQuantityChange,
 };
 
 export default inventoryUtils;

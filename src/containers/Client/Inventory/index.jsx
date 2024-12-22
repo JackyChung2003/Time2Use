@@ -41,6 +41,15 @@ const Inventory = () => {
     }
   };
   
+    // Handle direct quantity change in the input field
+    const handleQuantityChange = async (item, newQuantity) => {
+      try {
+        // Call the handleQuantityChange from index.js and pass setItems
+        await inventoryUtils.handleQuantityChange(item, newQuantity, setItems);
+      } catch (err) {
+        console.error('Error handling quantity change:', err);
+      }
+    };
 
   return (
     <div className="inventory-container">
@@ -113,7 +122,13 @@ const Inventory = () => {
                 {item.quantity_unit !== 'unit' && (
                   <div className="portion-section">
                     <div className="quantity-container">
-                      <div className="quantity-box">{item.quantity}</div>
+                      <input
+                        type="number"
+                        value={item.quantity === 0 ? '' : item.quantity} // Keep it bound to the state
+                        onChange={(e) => handleQuantityChange(item, e.target.value)} // Call handler on change
+                        className="quantity-box"
+                        min="0"
+                      />
                       <div className="quantity-unit">{item.quantity_unit}</div>
                     </div>
                     <p>Used portion</p>
