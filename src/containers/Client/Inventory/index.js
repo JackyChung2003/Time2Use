@@ -11,7 +11,7 @@ export const fetchItems = async () => {
         id:ingredient_id,
         daysLeft:days_left,
         quantity,
-        quantity_unit,
+        quantity_unit_id,
         freshness_status_id,
         ingredients (
           name,
@@ -22,7 +22,8 @@ export const fetchItems = async () => {
         ),
         freshness_status (
           status_color
-        )
+        ),
+        unit:unit (unit_tag)
       `);
 
     if (error) {
@@ -41,17 +42,20 @@ export const fetchItems = async () => {
         ? `${SUPABASE_STORAGE_URL}${item.ingredients.icon_path}`
         : '';
 
+      const quantityUnit = item.unit?.unit_tag || 'unit';
+
       return {
         id: item.id,
         name: item.ingredients?.name || 'Unknown',
         daysLeft: `${item.daysLeft}d`,
         imageUrl: imageUrl,
         category: categoryTag,
-        quantity: item.quantity, // Keep as number
-        quantity_unit: item.quantity_unit,
-        statusColor: statusColor, // Add statusColor to the returned object
+        quantity: item.quantity,
+        quantity_unit: quantityUnit,
+        statusColor: statusColor, 
       };
-    });
+      });
+      
 
     return items;
   } catch (err) {
