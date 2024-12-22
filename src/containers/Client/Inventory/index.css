@@ -221,3 +221,54 @@ input[type="number"] {
   font-size: 12px;
 }
 
+/* Nutritional Facts Section */
+.nutritional-facts {
+  margin-top: 10px;
+  padding: 10px;
+  background-color: #eef7e8; /* Light green background */
+  border-radius: 5px;
+  font-size: 14px;
+  color: #333; /* Dark text for readability */
+}
+
+.nutritional-facts h4 {
+  display: flex;
+  align-items: center;
+  margin: 0 0 5px 0; /* Small spacing below the title */
+  font-size: 16px;
+  font-weight: bold;
+  color: #2c5f2d; /* Dark green text for the title */
+}
+
+/* Nutrition Icon */
+.nutrition-icon {
+  width: 30px;
+  height: 30px;
+  margin-left: 5px; /* Space between icon and text */
+}
+
+/* Storage Tips Section */
+.storage-tips {
+  margin-top: 10px;
+  padding: 10px;
+  background-color: #fff4d4; 
+  border-radius: 5px;
+  font-size: 14px;
+  color: #333; 
+}
+
+.storage-tips h4 {
+  display: flex;
+  align-items: center; /* Align the text with the icon */
+  margin: 0 0 5px 0; /* Small spacing below the title */
+  font-size: 16px;
+  font-weight: bold;
+  color: #d4a517; /* Golden text for the title */
+}
+
+/* Bulb Icon */
+.bulb-icon {
+  width: 30px;
+  height: 30px;
+  margin-left: 5px; /* Space between icon and text */
+}

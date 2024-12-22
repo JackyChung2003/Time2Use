@@ -1,8 +1,6 @@
 import supabase from '../../../config/supabaseClient';
 import React, { useState } from 'react';
 
-
-
 export const fetchItems = async () => {
   try {
     const { data, error } = await supabase
@@ -16,6 +14,8 @@ export const fetchItems = async () => {
         ingredients (
           name,
           icon_path,
+          nutritional_info,
+          storage_tips,
           ingredients_category (
             category_tag
           )
@@ -53,6 +53,8 @@ export const fetchItems = async () => {
         quantity: item.quantity,
         quantity_unit: quantityUnit,
         statusColor: statusColor, 
+        nutritionalInfo: item.ingredients?.nutritional_info || 'No information available',
+        storageTips: item.ingredients?.storage_tips || 'No tips available',
       };
       });
       

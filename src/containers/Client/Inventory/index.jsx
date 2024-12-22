@@ -151,6 +151,37 @@ const Inventory = () => {
                       </div>
                     </div>
                   )}
+
+                  {/* Nutritional Facts */}
+                  <div className="nutritional-facts">
+                    <h4>
+                      Nutritional Facts
+                      <img
+                        src="/image/nutrition-facts-icon.png"
+                        alt="Nutrition Icon"
+                        className="nutrition-icon"
+                      />
+                      </h4>
+                    <p>
+                      Fat: {item.nutritionalInfo.fat}, 
+                      Protein: {item.nutritionalInfo.protein}, 
+                      Calories: {item.nutritionalInfo.calories}kcal, 
+                      Carbohydrates: {item.nutritionalInfo.carbohydrate}
+                    </p>
+                  </div>
+
+                  {/* Storage Tips */}
+                  <div className="storage-tips">
+                    <h4>
+                      Storage Tips
+                      <img
+                        src="/image/yellow-bulb-icon.png"
+                        alt="Bulb Icon"
+                        className="bulb-icon"
+                      />
+                    </h4>
+                    <p>{item.storageTips}</p>
+                  </div>
                 </div>
               )}
             </div>
@@ -158,7 +189,6 @@ const Inventory = () => {
         </div>
       </div>
     );
-    
 };
 
 export default Inventory;
