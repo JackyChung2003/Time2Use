@@ -84,3 +84,4 @@ export const handlePortionClick = async (item, portion) => {
     console.error('Error handling portion click:', err);
   }
 };
+

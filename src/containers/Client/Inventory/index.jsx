@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import './Inventory.css';
-import { fetchItems, updateQuantityInDatabase } from './inventory';
-import supabase from '../../../config/supabaseClient';
-
+import './index.css';
+import inventoryUtils from './index.js';
 
 const Inventory = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -11,7 +9,7 @@ const Inventory = () => {
 
   useEffect(() => {
     const loadItems = async () => {
-      const fetchedItems = await fetchItems();
+      const fetchedItems = await inventoryUtils.fetchItems();
       setItems(fetchedItems);
     };
 
@@ -26,41 +24,32 @@ const Inventory = () => {
     setActiveDropdown((prev) => (prev === id ? null : id));
   };
 
-  const handlePortionClick = (item, portion) => {
-    // Calculate the new quantity based on the selected portion
-    let newQuantity = item.quantity - portion;
-  
-    // Round newQuantity to 2 decimal places
-    newQuantity = parseFloat(newQuantity.toFixed(2));
-  
-    // Update the item's quantity (you will need to update the database here)
-    const updatedItems = items.map((i) =>
-      i.id === item.id ? { ...i, quantity: newQuantity } : i
-    );
-    setItems(updatedItems);
-  
-    // Call a function to update the quantity in the database
-    updateQuantityInDatabase(item.id, newQuantity);
-  };
-  
-
-  const updateQuantityInDatabase = async (itemId, newQuantity) => {
+  // Handle the portion click and update the item quantity in state after database update
+  const handlePortionClickWithState = async (item, portion) => {
     try {
-      // Call your Supabase function to update the quantity
-      const { data, error } = await supabase
-        .from('inventory')
-        .update({ quantity: newQuantity })
-        .match({ ingredient_id: itemId });
-
-      if (error) {
-        throw error;
-      }
-
-      console.log('Quantity updated:', data);
+      // Call handlePortionClick without passing setItems
+      const newQuantity = await inventoryUtils.handlePortionClick(item, portion);
+      
+      // Update the item quantity in state
+      setItems((prevItems) =>
+        prevItems.map((i) =>
+          i.id === item.id ? { ...i, quantity: newQuantity } : i
+        )
+      );
     } catch (err) {
-      console.error('Error updating quantity:', err);
+      console.error('Error handling portion click:', err);
     }
   };
+  
+    // Handle direct quantity change in the input field
+    const handleQuantityChange = async (item, newQuantity) => {
+      try {
+        // Call the handleQuantityChange from index.js and pass setItems
+        await inventoryUtils.handleQuantityChange(item, newQuantity, setItems);
+      } catch (err) {
+        console.error('Error handling quantity change:', err);
+      }
+    };
 
   return (
     <div className="inventory-container">
@@ -83,7 +72,7 @@ const Inventory = () => {
             {/* Main Item Rectangle */}
             <div className="item">
               <div className="left-section">
-              <div className="green-dot"></div>
+                <div className={`green-dot ${item.statusColor}`}></div>
                 <div className="circle-image">
                   <img src={item.imageUrl} alt={item.name} />
                 </div>
@@ -94,8 +83,8 @@ const Inventory = () => {
               </div>
 
               <div className="right-section">
+                <span className="item-quantity">{item.quantity}{item.quantity_unit}</span>
                 <span className="tag">{item.category}</span>
-                <span className="item-quantity">{item.quantity} {item.quantity_unit}</span>
                 <span
                   className="dropdown-icon"
                   onClick={() => toggleDropdown(item.id)}
@@ -108,21 +97,20 @@ const Inventory = () => {
             {/* Dropdown Box BELOW the entire rectangle */}
             {activeDropdown === item.id && (
               <div className="dropdown-box">
-
                 {/* If the unit is "unit", show + and - buttons */}
                 {item.quantity_unit === 'unit' && (
                   <div className="unit-controls">
                     <button
-                      onClick={() => handlePortionClick(item, 1)}
+                      onClick={() => handlePortionClickWithState(item, 1)}
                       className="quantity-button"
                     >
                       - 
                     </button>
                     <div className="quantity-container">
-                    <div className="quantity-box">{item.quantity}</div>
+                      <div className="quantity-box">{item.quantity}</div>
                     </div>
                     <button
-                      onClick={() => handlePortionClick(item, -1)}
+                      onClick={() => handlePortionClickWithState(item, -1)}
                       className="quantity-button"
                     >
                       + 
@@ -134,23 +122,29 @@ const Inventory = () => {
                 {item.quantity_unit !== 'unit' && (
                   <div className="portion-section">
                     <div className="quantity-container">
-                    <div className="quantity-box">{item.quantity}</div>
-                    <div className="quantity-unit">{item.quantity_unit}</div>
+                      <input
+                        type="number"
+                        value={item.quantity === 0 ? '' : item.quantity} // Keep it bound to the state
+                        onChange={(e) => handleQuantityChange(item, e.target.value)} // Call handler on change
+                        className="quantity-box"
+                        min="0"
+                      />
+                      <div className="quantity-unit">{item.quantity_unit}</div>
                     </div>
                     <p>Used portion</p>
                     <div className="portion-buttons">
                       <button
-                        onClick={() => handlePortionClick(item, item.quantity * 0.25)}
+                        onClick={() => handlePortionClickWithState(item, item.quantity * 0.25)}
                       >
                         1/4
                       </button>
                       <button
-                        onClick={() => handlePortionClick(item, item.quantity * 0.5)}
+                        onClick={() => handlePortionClickWithState(item, item.quantity * 0.5)}
                       >
                         1/2
                       </button>
                       <button
-                        onClick={() => handlePortionClick(item, item.quantity * 0.75)}
+                        onClick={() => handlePortionClickWithState(item, item.quantity * 0.75)}
                       >
                         3/4
                       </button>

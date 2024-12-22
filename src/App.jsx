@@ -11,7 +11,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import HorizontalNavbar from './containers/Client/Navigation/HorizontalNavBar';
 import BottomNavBar from './containers/Client/Navigation/BottomNavBar';
 import Dashboard from './containers/Client/Dashboard';
-import Inventory from './containers/Client/Inventory';
+import Inventory from './containers/Client/Inventory/index.jsx';
 import Scan from './containers/Client/Scan';
 // import Recipe from './containers/Client/Recipe';
 import RecipeNavigation from './containers/Client/Recipe/RecipeNavigation';
