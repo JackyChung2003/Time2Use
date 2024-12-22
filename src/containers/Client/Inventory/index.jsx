@@ -27,7 +27,7 @@ const Inventory = () => {
   // Handle the portion click and update the item quantity in state after database update
   const handlePortionClickWithState = async (item, portion) => {
     try {
-      // Call the method to update the database
+      // Call handlePortionClick without passing setItems
       const newQuantity = await inventoryUtils.handlePortionClick(item, portion);
       
       // Update the item quantity in state
@@ -40,6 +40,7 @@ const Inventory = () => {
       console.error('Error handling portion click:', err);
     }
   };
+  
 
   return (
     <div className="inventory-container">

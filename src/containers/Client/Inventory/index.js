@@ -1,6 +1,8 @@
 import supabase from '../../../config/supabaseClient';
 import React, { useState } from 'react';
 
+
+
 export const fetchItems = async () => {
   try {
     const { data, error } = await supabase
@@ -66,7 +68,7 @@ export const updateQuantityInDatabase = async (itemId, newQuantity) => {
       .from('inventory')
       .update({
         quantity: newQuantity,
-        updated_at: supabase.raw('now()'), // Use PostgreSQL's now() function
+        updated_at: new Date().toISOString(), 
       })
       .match({ ingredient_id: itemId });
 
@@ -82,7 +84,7 @@ export const updateQuantityInDatabase = async (itemId, newQuantity) => {
 
 
 // Handle portion click
-export const handlePortionClick = async (item, portion, setItems) => {
+export const handlePortionClick = async (item, portion) => {
   try {
     console.log('Item before update:', item);
     console.log('Portion to deduct:', portion);
@@ -98,13 +100,6 @@ export const handlePortionClick = async (item, portion, setItems) => {
     // Update the quantity in the database
     await updateQuantityInDatabase(item.id, newQuantity);
 
-    // Update the state in the parent component to trigger re-render
-    setItems((prevItems) =>
-      prevItems.map((i) =>
-        i.id === item.id ? { ...i, quantity: newQuantity } : i
-      )
-    );
-    
     return newQuantity; // Return for UI updates
   } catch (err) {
     console.error('Error handling portion click:', err);
@@ -112,29 +107,10 @@ export const handlePortionClick = async (item, portion, setItems) => {
   }
 };
 
-export const ParentComponent = () => {
-  const [items, setItems] = useState([]);
-
-  // Handle portion click and update the UI state
-  const handlePortionClickWithState = async (item, portion) => {
-    try {
-      const newQuantity = await handlePortionClick(item, portion, setItems);
-      console.log('Portion click handled and state updated:', newQuantity);
-    } catch (err) {
-      console.error('Error handling portion click:', err);
-    }
-  };
-
-  return (
-    <ItemList items={items} handlePortionClick={handlePortionClickWithState} />
-  );
-};
-
 const inventoryUtils = {
   fetchItems,
   updateQuantityInDatabase,
   handlePortionClick,
-  ParentComponent,
 };
 
 export default inventoryUtils;
