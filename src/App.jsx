@@ -21,9 +21,6 @@ import Profile from './containers/Client/Profile';
 import AdminLayout from './components/AdminLayout';
 import SideNavBar from './containers/Admin/Admin_Navigation/SideNavBar';
 import AdminDashboard from './containers/Admin/Admin_Dashboard';
-import AdminRecipeNavigation from './containers/Admin/Admin_Recipe/AdminRecipeNavigation';
-
-
 
 
 const App = () => {
@@ -31,22 +28,23 @@ const App = () => {
     const [loading, setLoading] = useState(true);
     const [isCollapsed, setIsCollapsed] = useState(false); // Sidebar collapse state
 
+    
     // useEffect(() => {
     //     const fetchUser = async () => {
     //         const { data: userData, error: userError } = await supabase.auth.getUser();
     //         const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-            
+
     //         if (userData?.user) {
     //             // Check for user role in metadata
                 
                 // Hardcoded role for now
-                const role = "admin";   // Uncomment this line to test admin dashboard
-                //    const role = "client"; // Uncomment this line to test client dashboard
+                // const role = "admin";   // Uncomment this line to test admin dashboard
+                   const role = "client"; // Uncomment this line to test client dashboard
 
     //             // Following comment is for future reference when done with authentication to differentiate between client and admin
     //             // const role = data.user.user_metadata?.role || "client"; // Default to "client"
     //             setUserRole(role);
-    //             // console.log("User role:", role);
+    //             console.log("User role:", role);
     //         } else {
     //             setUserRole(null); // Not logged in
 
@@ -57,7 +55,7 @@ const App = () => {
     //         if (sessionData?.session) {
     //             const role = sessionData.session.user.user_metadata?.role || "client"; // Adjust based on your metadata
     //             setUserRole(role);
-    //             // console.log("User role:", role);
+    //             console.log("User role:", role);
     //         } else {
     //             setUserRole(null);
     //             console.error("No session found:", sessionError);
@@ -69,8 +67,7 @@ const App = () => {
 
     useEffect(() => {
          // Temporarily hardcode the userRole for development
-        // setUserRole("client"); // or "admin" depending on the role you want to test
-        setUserRole("admin"); // or "admin" depending on the role you want to test
+        setUserRole("client"); // or "admin" depending on the role you want to test
         setLoading(false); // Stop the loading spinner
     }, []);
     
@@ -204,14 +201,6 @@ const App = () => {
                                     // </ProtectedRoute>
                                     <AdminLayout isCollapsed={isCollapsed} toggleSidebar={toggleSidebar}>
                                         <AdminDashboard />
-                                    </AdminLayout>
-                                }
-                            />
-                            <Route
-                                path="/admin/recipe-management/*"
-                                element={
-                                    <AdminLayout isCollapsed={isCollapsed} toggleSidebar={toggleSidebar}>
-                                        <AdminRecipeNavigation />
                                     </AdminLayout>
                                 }
                             />

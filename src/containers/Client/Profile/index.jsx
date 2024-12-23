@@ -1,9 +1,13 @@
 import React, { useState } from "react";
+import Login from '../../Authentication/Login';
+import { useNavigate } from "react-router-dom"; // Import useNavigate
 import defaultProfilePic from "../../../assets/images/default _propic.png";
 import { FaUser, FaBirthdayCake, FaEnvelope, FaLock, FaBell, FaPen } from "react-icons/fa";
 import "./index.css"; // Import your CSS file
+import supabase from '../../../config/supabaseClient';
 
 const Profile = () => {
+  const navigate = useNavigate(); // Initialize navigate
   const [isTouched, setIsTouched] = useState(false);
   const [profileImage, setProfileImage] = useState(null);
   const [notificationDays, setNotificationDays] = useState(7);
@@ -48,6 +52,19 @@ const Profile = () => {
       console.log("Changes saved");
     }
   };
+
+  const handleSignOut = async () => {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+          console.error('Sign-out error:', error.message);
+      } else {
+          // Simply navigate to the login page, no need to call setUser
+          navigate('/login');
+      }
+  };
+
+
+  
 
   return (
     <div className="profile-container">
@@ -191,6 +208,19 @@ const Profile = () => {
           {isEditingMode ? "Done" : "Edit Profile"}
         </button>
       </div>
+
+      {/* Sign-Out Button */}
+      <div className="edit-profile">
+        <button
+          className={`profile-button ${isTouched ? "hover-effect" : ""}`}
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+          onClick={handleSignOut} // Attach handleSignOut
+        >
+          Sign Out
+        </button>
+      </div>
+      
     </div>
   );
 };
