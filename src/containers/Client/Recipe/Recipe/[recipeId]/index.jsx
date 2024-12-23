@@ -4,7 +4,12 @@ import supabase from '../../../../../config/supabaseClient';
 
 import BackButton from '../../../../../components/Button/BackButton';
 
+import { useRecipeContext } from '../../Contexts/RecipeContext';
+
 const RecipeDetail = () => {
+
+    const { fetchRecipeIngredients } = useRecipeContext();
+
     const { id } = useParams();
     const navigate = useNavigate();
     const [recipe, setRecipe] = useState(null);
@@ -22,6 +27,9 @@ const RecipeDetail = () => {
     const [isCookingMode, setIsCookingMode] = useState(false);
     const [currentStepIndex, setCurrentStepIndex] = useState(0);
     const [relatedRecipes, setRelatedRecipes] = useState([]);
+
+    const [servingPacks, setServingPacks] = useState(2); // Default servings (e.g., 2 servings)
+    const [defaultServings, setDefaultServings] = useState(2); // Original serving size from the recipe
 
 
     const nutritionFacts = {
@@ -135,7 +143,7 @@ const RecipeDetail = () => {
                 .in('tag_id', tagIds)
                 .neq('recipes.id', id); // Explicitly use 'recipes.id'
     
-            console.log('Supabase Response:', data);
+            // console.log('Supabase Response:', data);
     
             if (error) {
                 console.error('Error fetching related recipes:', error);
@@ -145,7 +153,7 @@ const RecipeDetail = () => {
             const uniqueRecipes = [
                 ...new Map(data.map((item) => [item.recipes.id, item.recipes])).values(),
             ];
-            console.log('Unique Related Recipes:', uniqueRecipes);
+            // console.log('Unique Related Recipes:', uniqueRecipes);
             setRelatedRecipes(uniqueRecipes);
         } catch (error) {
             console.error('Unexpected error fetching related recipes:', error);
@@ -181,7 +189,7 @@ const RecipeDetail = () => {
             }
     
             const tagIds = data.map((tag) => tag.tag_id);
-            console.log('Tags for current recipe:', tagIds); // Log the fetched tag IDs
+            // console.log('Tags for current recipe:', tagIds); // Log the fetched tag IDs
             fetchRelatedRecipes(tagIds); // Fetch related recipes using tag IDs
         } catch (error) {
             console.error('Unexpected error fetching tags:', error);
@@ -219,7 +227,7 @@ const RecipeDetail = () => {
     };
 
     const startCooking = () => {
-        console.log('Selected Substitutions:', selectedSubstitutions);
+        // console.log('Selected Substitutions:', selectedSubstitutions);
         navigate(`/recipes/start-cooking/${id}`);
     };
 
@@ -298,7 +306,7 @@ const RecipeDetail = () => {
                 }
     
                 const tagIds = tagsData.map((tag) => tag.tag_id);
-                console.log('Tags for current recipe:', tagIds);
+                // console.log('Tags for current recipe:', tagIds);
                 setTags(tagIds);
     
                 // 3. Fetch Related Recipes Based on Tags
@@ -319,7 +327,7 @@ const RecipeDetail = () => {
                     const uniqueRecipes = [
                         ...new Map(relatedData.map((item) => [item.recipes.id, item.recipes])).values(),
                     ];
-                    console.log('Related Recipes:', uniqueRecipes);
+                    // console.log('Related Recipes:', uniqueRecipes);
                     setRelatedRecipes(uniqueRecipes);
                 }
             } catch (error) {
@@ -332,9 +340,27 @@ const RecipeDetail = () => {
         fetchAllData();
     }, [id]);
     
+    useEffect(() => {
+        const fetchIngredients = async () => {
+            const data = await fetchRecipeIngredients(id);
+            setIngredients(data);
+        };
 
+        fetchIngredients();
+    }, [id, fetchRecipeIngredients]);
     
-    
+    const handleIncreaseServing = () => setServingPacks((prev) => prev + 1);
+    const handleDecreaseServing = () => {
+        if (servingPacks > 1) setServingPacks((prev) => prev - 1);
+    };
+
+    const getAdjustedIngredients = () => {
+        const ratio = servingPacks / defaultServings;
+        return ingredients.map((ingredient) => ({
+            ...ingredient,
+            quantity: (ingredient.quantity * ratio).toFixed(2), // Adjust the quantity based on servings
+        }));
+    };
 
     if (loading) {
         return <div>Loading recipe details...</div>;
@@ -372,6 +398,33 @@ const RecipeDetail = () => {
             </ul>
             <p>Note: Future versions will link to the database and calculate these values dynamically.</p>
 
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <button
+                    onClick={handleDecreaseServing}
+                    style={{
+                        padding: '5px 10px',
+                        border: '1px solid #ccc',
+                        background: '#f5f5f5',
+                        cursor: 'pointer',
+                    }}
+                >
+                    -
+                </button>
+                <span style={{ fontSize: '18px', fontWeight: 'bold' }}>{servingPacks}</span>
+                <button
+                    onClick={handleIncreaseServing}
+                    style={{
+                        padding: '5px 10px',
+                        border: '1px solid #ccc',
+                        background: '#f5f5f5',
+                        cursor: 'pointer',
+                    }}
+                >
+                    +
+                </button>
+            </div>
+
             <h3>Ingredients</h3>
             <ul>
                 {ingredients.map((ingredient, index) => (
@@ -386,6 +439,11 @@ const RecipeDetail = () => {
                                 (Substituted with {selectedSubstitutions[ingredient.ingredients.id].substitute_ingredient.name})
                             </span>
                         )}
+                    </li>
+                ))}
+                {getAdjustedIngredients().map((ingredient) => (
+                    <li key={ingredient.ingredients.id}>
+                        {ingredient.ingredients.name} - {ingredient.quantity} {ingredient.unit}
                     </li>
                 ))}
             </ul>

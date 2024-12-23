@@ -19,7 +19,7 @@ const AdminDashboard = () => {
                 const userRole = "admin";
 
                 // const userRole = user?.user_metadata?.role;
-                // console.log("User role:", userRole);    // Undefined for now since we haven't set the role yet
+                // // console.log("User role:", userRole);    // Undefined for now since we haven't set the role yet
 
                 if (userRole !== "admin") {
                     console.warn("Access denied: User is not an admin.");

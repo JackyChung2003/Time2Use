@@ -6,6 +6,6 @@ export const loginWithEmail = async (email, password) => {
         console.error("Email login failed:", error.message);
         throw error;
     }
-    console.log("Login successful:", data);
+    // console.log("Login successful:", data);
     return data;
 };
