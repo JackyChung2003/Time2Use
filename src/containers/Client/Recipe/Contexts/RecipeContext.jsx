@@ -141,6 +141,28 @@ const fetchRecipes = async () => {
     fetchRecipes(); // Re-fetch recipes based on new filters
 }, [filters]);
 
+  const fetchRecipeIngredients = async (recipeId) => {
+    try {
+        const { data, error } = await supabase
+            .from("recipe_ingredients")
+            .select(`
+                ingredients (id, name),
+                quantity,
+                unit
+            `)
+            .eq("recipe_id", recipeId);
+
+        if (error) {
+            console.error("Error fetching recipe ingredients:", error);
+        } else {
+            return data || [];
+        }
+    } catch (err) {
+        console.error("Unexpected error fetching recipe ingredients:", err);
+        return [];
+    }
+  };
+
   return (
     // <RecipeContext.Provider value={{ recipes, tags, filters, fetchRecipes, fetchTags, applyFilters, loading }}>
     <RecipeContext.Provider
@@ -156,6 +178,7 @@ const fetchRecipes = async () => {
         fetchCategories,
         fetchEquipment,
         fetchIngredients,
+        fetchRecipeIngredients,
         applyFilters,
         loading,
       }}
