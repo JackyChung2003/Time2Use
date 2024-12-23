@@ -43,6 +43,7 @@
     padding: 10px 15px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     position: relative;
+    gap: 5px;
   }
   
   .left-section {
@@ -50,19 +51,22 @@
     align-items: center;
     justify-content: space-between; /* Adjust spacing between children */
     gap: 10px;
+    flex-grow: 0; 
   }
 
   .right-section {
     display: flex;
     align-items: center;
     justify-content: space-between; /* Adjust spacing between children */
-    gap: 5px;
+    gap: 0px;
+    flex-grow: 0; 
   }
   
   .green-dot {
     width: 10px;
     height: 10px;
     border-radius: 50%;
+    flex-shrink: 0; 
   }
   
   .green-dot.green {
@@ -85,7 +89,7 @@
   .text-section {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 0px;
   }
   
   .item-name {
@@ -97,6 +101,21 @@
     font-size: 12px;
     color: grey;
   }
+
+  .item-days.shelf-life.full-text {
+    white-space: normal;           /* Allow text to wrap when expanded */
+    text-overflow: unset;          /* Remove ellipsis when full text is shown */
+  }
+
+  .item-days.shelf-life {
+    color: grey; 
+    font-style: italic; 
+    white-space: nowrap; /* Prevent text from wrapping */
+    overflow: hidden; /* Hide text overflow */
+    text-overflow: ellipsis; /* Add ellipsis (...) when text overflows */
+    cursor: pointer; /* Show a pointer cursor to indicate clickability */
+    max-width: 120px;  
+  }
   
   .circle-image {
     width: 50px;
@@ -106,7 +125,8 @@
     overflow: hidden;
     display: flex;          /* Center image inside circle */
     justify-content: center;
-    align-items: center;  
+    align-items: center; 
+    flex-shrink: 0;  
   }
   
   .circle-image img {
@@ -116,7 +136,7 @@
   }
   
   .tag {
-    background-color: #f0ad4e;
+    background-color: #1f2b8f;
     color: #fff;
     font-size: 10px;
     border-radius: 5px;
@@ -128,6 +148,7 @@
   .item-quantity {
     font-size: 14px;
     color: #000000;
+    white-space: nowrap;
   }
   
   .dropdown-icon {
@@ -185,13 +206,14 @@ input[type="number"] {
 .portion-section {
   margin-top: 10px;
   text-align: center;
+  font-size: 15px;
 }
 
 .portion-buttons button {
-  background-color: #4CAF50;
+  background-color: #45a049;
   color: white;
   border: none;
-  padding: 10px;
+  padding: 6px;
   margin: 5px;
   border-radius: 5px;
   cursor: pointer;

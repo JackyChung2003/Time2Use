@@ -16,6 +16,7 @@ export const fetchItems = async () => {
           icon_path,
           nutritional_info,
           storage_tips,
+          pred_shelf_life,
           ingredients_category (
             category_tag
           )
@@ -47,9 +48,10 @@ export const fetchItems = async () => {
       return {
         id: item.id,
         name: item.ingredients?.name || 'Unknown',
-        daysLeft: `${item.daysLeft}d`,
+        daysLeft: item.daysLeft,
         imageUrl: imageUrl,
         category: categoryTag,
+        pred_shelf_life: item.ingredients?.pred_shelf_life || 'No prediction available',
         quantity: item.quantity,
         quantity_unit: quantityUnit,
         statusColor: statusColor, 
