@@ -168,6 +168,21 @@
     width: calc(100% - 30px);
   }
 
+  .date-purchased {
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+    margin-bottom: 10px; /* Space before the next section */
+    color: #333;
+  }
+  
+  .date-icon {
+    width: 16px;
+    height: 16px;
+    margin-right: 5px; /* Space between the icon and text */
+    margin-left: 5px;
+  }
+
   /* Container for quantity and unit */
 .quantity-container {
   display: flex;

@@ -11,6 +11,7 @@ export const fetchItems = async () => {
         quantity,
         quantity_unit_id,
         freshness_status_id,
+        created_at,
         ingredients (
           name,
           icon_path,
@@ -57,6 +58,7 @@ export const fetchItems = async () => {
         statusColor: statusColor, 
         nutritionalInfo: item.ingredients?.nutritional_info || 'No information available',
         storageTips: item.ingredients?.storage_tips || 'No tips available',
+        created_at: item.created_at,
       };
       });
       

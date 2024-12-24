@@ -106,6 +106,15 @@ const Inventory = () => {
 
             {activeDropdown === item.id && (
               <div className="dropdown-box">
+                <div className="date-purchased">
+                  <img 
+                    src="/image/date-icon.png" 
+                    alt="Calendar Icon" 
+                    className="date-icon"
+                  />
+                  Date Purchased: {new Date(item.created_at).toISOString().split('T')[0]}
+                </div>
+
                 {item.quantity_unit === 'unit(s)' && (
                   <div className="unit-controls">
                     <button
