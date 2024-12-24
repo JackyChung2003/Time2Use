@@ -127,34 +127,47 @@ const SortableIngredient = ({ id, ingredient, onUpdate, onRemove }) => {
     const [loading, setLoading] = useState(false);
   
     const handleSearchIngredients = async (query) => {
-      setLoading(true);
-      try {
-        const { data, error } = await supabase
-          .from("ingredients")
-          .select("*")
-          .ilike("name", `%${query}%`)
-          .limit(10); // Increase the limit for more visible results
-  
-        if (error) {
-          console.error("Error fetching ingredients:", error);
+        setLoading(true);
+        try {
+          const { data, error } = await supabase
+            .from("ingredients")
+            .select(`
+              *,
+              unit:unit!ingredients_quantity_unit_id_fkey (
+                unit_tag
+              )
+            `)
+            .ilike("name", `%${query}%`)
+            .limit(5);
+      
+          if (error) {
+            console.error("Error fetching ingredients:", error);
+            setSuggestions([]);
+          } else {
+            setSuggestions(
+              data.map((ingredient) => ({
+                ...ingredient,
+                unit: ingredient.unit.unit_tag, // Map the unit_tag from the join result
+                image: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/${ingredient.icon_path}`, // Construct the full URL for the image
+              }))
+            );
+          }
+        } catch (err) {
+          console.error("Error:", err);
           setSuggestions([]);
-        } else {
-          setSuggestions(data);
+        } finally {
+          setLoading(false);
         }
-      } catch (err) {
-        console.error("Error:", err);
-        setSuggestions([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-  
+      };
+      
+
     const handleSelectSuggestion = (selectedIngredient) => {
       onUpdate({
         ...ingredient,
         name: selectedIngredient.name,
         ingredient_id: selectedIngredient.id,
         unit: selectedIngredient.unit || "",
+        image: selectedIngredient.image, 
       });
       setSuggestions([]);
     };
@@ -175,6 +188,21 @@ const SortableIngredient = ({ id, ingredient, onUpdate, onRemove }) => {
         >
           ☰
         </span>
+
+        {/* Ingredient Image */}
+        {ingredient.image && (
+            <img
+            src={ingredient.image}
+            alt={ingredient.name}
+            style={{
+                width: "30px",
+                height: "30px",
+                borderRadius: "50%",
+                marginRight: "10px",
+                objectFit: "cover",
+            }}
+            />
+        )}
   
         {/* Ingredient Name Input */}
         <div style={{ flex: 1, position: "relative" }}>
@@ -232,7 +260,18 @@ const SortableIngredient = ({ id, ingredient, onUpdate, onRemove }) => {
                     alignItems: "center",
                   }}
                 >
-                  <span>
+                    <img
+                        src={suggestion.image}
+                        alt={suggestion.name}
+                        style={{
+                            width: "30px",
+                            height: "30px",
+                            borderRadius: "50%",
+                            marginRight: "10px",
+                            objectFit: "cover",
+                        }}
+                    />
+                  <span style={{ flex: 1, overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis" }}>
                     <strong>{suggestion.name}</strong>
                     {suggestion.unit && ` (${suggestion.unit})`}
                   </span>
@@ -264,7 +303,7 @@ const SortableIngredient = ({ id, ingredient, onUpdate, onRemove }) => {
           value={ingredient.unit}
           placeholder="Unit"
           readOnly
-          style={{ width: "80px", marginRight: "10px", backgroundColor: "#eee" }}
+          style={{ width: "80px", marginRight: "10px", backgroundColor: "#000" }}
         />
   
         {/* Remove Button */}
