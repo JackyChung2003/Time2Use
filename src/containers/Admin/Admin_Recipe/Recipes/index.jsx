@@ -1,7 +1,10 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import supabase from "../../../../config/supabaseClient";
 
 const Recipes = () => {
+    const navigate = useNavigate();
+    
     const [recipes, setRecipes] = useState([]);
     const [filteredRecipes, setFilteredRecipes] = useState([]); // For filtered data
     const [loading, setLoading] = useState(true);
@@ -217,8 +220,24 @@ const Recipes = () => {
                                             textAlign: "center",
                                         }}
                                     >
+
                                         <button
-                                            onClick={() => console.log(`Edit ${recipe.id}`)}
+                                            onClick={() => navigate(`view/${recipe.id}`)} // Navigate to the detail page
+                                            style={{
+                                                marginRight: "10px",
+                                                padding: "8px 12px",
+                                                cursor: "pointer",
+                                                backgroundColor: "#FFA500",
+                                                color: "white",
+                                                border: "none",
+                                                borderRadius: "4px",
+                                            }}
+                                        >
+                                            View
+                                        </button>
+
+                                        <button
+                                            onClick={() => console.log(`Edit/${recipe.id}`)}
                                             style={{
                                                 marginRight: "10px",
                                                 padding: "8px 12px",
