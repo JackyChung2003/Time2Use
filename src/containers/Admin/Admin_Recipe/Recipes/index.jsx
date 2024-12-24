@@ -237,7 +237,7 @@ const Recipes = () => {
                                         </button>
 
                                         <button
-                                            onClick={() => console.log(`Edit/${recipe.id}`)}
+                                            onClick={() => navigate(`edit/${recipe.id}`)} // Navigate to the edit page
                                             style={{
                                                 marginRight: "10px",
                                                 padding: "8px 12px",

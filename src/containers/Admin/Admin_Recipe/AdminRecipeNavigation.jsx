@@ -61,6 +61,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import AdminRecipeDashboard from ".";
 import Recipes from "../Admin_Recipe/Recipes";
 import CreateRecipe from "../Admin_Recipe/Recipes/Create";
+import EditRecipe from "../Admin_Recipe/Recipes/Edit";
 import RecipeDetail from "./Recipes/View";
 import Categories from "../Admin_Recipe/Categories";
 import CreateCategory from "../Admin_Recipe/Categories/Create";
@@ -86,7 +87,8 @@ const AdminRecipeNavigation = () => {
                 {/* Recipes */}
                 <Route path="recipes" element={<Recipes />} />
                 <Route path="recipes/create" element={<CreateRecipe />} />
-                <Route path="recipes/view/:id" element={<RecipeDetail />} /> {/* Add this */}
+                <Route path="recipes/view/:id" element={<RecipeDetail />} /> 
+                <Route path="recipes/edit/:id" element={<EditRecipe  />} />
 
                 {/* Categories */}
                 <Route path="categories" element={<Categories />} />
