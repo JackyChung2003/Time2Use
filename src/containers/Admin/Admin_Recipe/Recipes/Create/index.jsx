@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import supabase from "../../../../../config/supabaseClient";
 import SortableIngredientList from "../../../../../components/SortableDragAndDrop/Ingredient_List";
+// import DragAndDropSteps from "../../../../../components/NormalDragAndDrop/Drag_Little_Ingredient_Step";
+// import DynamicTextWithDroppable from "../../../../../components/NormalDragAndDrop/Dropable_Section";
 
 const CreateRecipe = () => {
     const [categories, setCategories] = useState([]);
@@ -16,7 +18,7 @@ const CreateRecipe = () => {
         prep_time: "",
         cook_time: "",
         total_time: 0,
-        category_id: "",
+        category_ids: [], // Now an array
         tag_ids: [],
         equipment_ids: [],
         ingredients: [{ name: "", quantity: "", unit: "" }],
@@ -26,6 +28,7 @@ const CreateRecipe = () => {
     const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
     const [newCategory, setNewCategory] = useState("");
     const [ingredients, setIngredients] = useState([]);
+    const [selectedCategories, setSelectedCategories] = useState([]); // Selected categories
 
     // Fetch data for dropdowns
     useEffect(() => {
@@ -42,6 +45,19 @@ const CreateRecipe = () => {
         fetchData();
     }, []);
 
+    useEffect(() => {
+        const fetchIngredients = async () => {
+            const { data: fetchedIngredients, error } = await supabase.from("ingredients").select("*");
+            if (error) {
+                console.error("Error fetching ingredients:", error.message);
+            } else {
+                console.log("Fetched ingredients:", fetchedIngredients);
+                setIngredients(fetchedIngredients); // Ensure this stores the correct data
+            }
+        };
+        fetchIngredients();
+    }, []);
+
     // Auto-calculate total time
     useEffect(() => {
         setFormData((prev) => ({
@@ -49,6 +65,277 @@ const CreateRecipe = () => {
             total_time: Number(prev.prep_time || 0) + Number(prev.cook_time || 0),
         }));
     }, [formData.prep_time, formData.cook_time]);
+
+    // const handleSaveRecipe = async () => {
+    //     try {
+    //         // Insert into recipes table
+    //         const { data: recipe, error: recipeError } = await supabase
+    //             .from("recipes")
+    //             .insert({
+    //                 name: formData.name,
+    //                 description: formData.description,
+    //                 prep_time: formData.prep_time,
+    //                 cook_time: formData.cook_time,
+    //                 image_path: formData.image?.name || null,
+    //             })
+    //             .select()
+    //             .single();
+
+    //         if (recipeError) throw recipeError;
+
+    //         const recipeId = recipe.id;
+
+    //         // Insert into recipe_tags table
+    //         if (selectedTags.length > 0) {
+    //             const recipeTags = selectedTags.map((tag) => ({
+    //                 recipe_id: recipeId,
+    //                 tag_id: tag.id,
+    //             }));
+    //             const { error: tagError } = await supabase.from("recipe_tags").insert(recipeTags);
+    //             if (tagError) throw tagError;
+    //         }
+
+    //         // Insert into recipe_ingredients table
+    //         if (ingredients.length > 0) {
+    //             const recipeIngredients = ingredients.map((ingredient) => ({
+    //                 recipe_id: recipeId,
+    //                 ingredient_id: ingredient.id,
+    //                 quantity: ingredient.quantity,
+    //             }));
+    //             const { error: ingredientError } = await supabase
+    //                 .from("recipe_ingredients")
+    //                 .insert(recipeIngredients);
+    //             if (ingredientError) throw ingredientError;
+    //         }
+
+    //         // Insert into recipe_equipment table
+    //         if (selectedEquipment.length > 0) {
+    //             const recipeEquipment = selectedEquipment.map((equipment) => ({
+    //                 recipe_id: recipeId,
+    //                 equipment_id: equipment.id,
+    //                 quantity: 1, // Assuming quantity is 1 for now
+    //             }));
+    //             const { error: equipmentError } = await supabase
+    //                 .from("recipe_equipment")
+    //                 .insert(recipeEquipment);
+    //             if (equipmentError) throw equipmentError;
+    //         }
+
+    //         // Insert into steps table
+    //         if (formData.steps.length > 0) {
+    //             const steps = formData.steps.map((step, index) => ({
+    //                 recipe_id: recipeId,
+    //                 step_number: index + 1,
+    //                 instruction: step.description,
+    //             }));
+    //             const { error: stepsError } = await supabase.from("steps").insert(steps);
+    //             if (stepsError) throw stepsError;
+    //         }
+
+    //         alert("Recipe saved successfully!");
+    //     } catch (error) {
+    //         console.error("Error saving recipe:", error.message);
+    //         alert("Failed to save recipe. Please try again.");
+    //     }
+    // };
+
+    const handleSaveRecipe = async () => {
+        try {
+          const imageFile = formData.image; // Assuming `formData.image` contains the file
+          let imagePath = null;
+      
+          if (imageFile) {
+            imagePath = await handleImageUpload(imageFile, formData.name); // Pass the recipe name
+          }
+      
+          // Save the recipe, including the imagePath
+          const { data: recipe, error } = await supabase
+            .from('recipes')
+            .insert({
+              name: formData.name,
+              description: formData.description,
+              prep_time: formData.prep_time,
+              cook_time: formData.cook_time,
+              image_path: imagePath, // Save the uploaded image path
+            })
+            .select()
+            .single();
+      
+          if (error) throw error;
+
+          const recipeId = recipe.id;
+
+          console.log('Recipe id:', recipeId);
+          // Save related data
+          await handleSaveRecipeTags(recipeId, selectedTags);
+          await handleSaveRecipeIngredients(recipeId, ingredients);
+          await handleSaveRecipeEquipment(recipeId, selectedEquipment);
+          await handleSaveRecipeSteps(recipeId, formData.steps);
+          await handleSaveRecipeCategories(recipeId, selectedCategories);
+
+      
+          console.log('Recipe saved successfully:', recipe);
+        } catch (error) {
+          console.error('Error saving recipe:', error.message);
+        }
+      };
+
+      
+
+    const slugify = (name) => {
+        return name
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-') // Replace non-alphanumeric characters with hyphens
+          .replace(/(^-|-$)+/g, '');   // Remove leading and trailing hyphens
+      };
+      
+      const handleImageUpload = async (file, recipeName) => {
+        try {
+          const slugifiedName = slugify(recipeName); // Convert the recipe name to a slug
+          const fileExtension = file.name.split('.').pop(); // Get file extension
+          const fileName = `${slugifiedName}.${fileExtension}`; // Create the file name with slug
+      
+          const { data, error } = await supabase.storage
+            .from('recipe-pictures') // Name of your bucket
+            .upload(fileName, file, {
+              cacheControl: '3600', // Optional: Cache control
+              upsert: false, // Avoid overwriting
+            });
+      
+          if (error) throw error;
+      
+          const imagePath = `recipe-pictures/${data.path}`; // Save this path to your database
+          console.log('File uploaded successfully:', imagePath);
+          return imagePath; // Return the path for further use
+        } catch (error) {
+          console.error('Error uploading file:', error.message);
+          return null;
+        }
+      };
+
+      const handleSaveRecipeTags = async (recipeId, selectedTags) => {
+        try {
+            if (selectedTags.length > 0) {
+                const recipeTags = selectedTags.map((tag) => ({
+                    recipe_id: recipeId,
+                    tag_id: tag.id,
+                }));
+    
+                const { error } = await supabase.from("recipe_tags").insert(recipeTags);
+                if (error) throw error;
+    
+                console.log("Recipe tags saved successfully!");
+            }
+        } catch (error) {
+            console.error("Error saving recipe tags:", error.message);
+        }
+    };
+    
+    // const handleSaveRecipeIngredients = async (recipeId, ingredients) => {
+    //     try {
+    //         if (ingredients.length > 0) {
+    //             const recipeIngredients = ingredients.map((ingredient) => ({
+    //                 recipe_id: recipeId,
+    //                 ingredient_id: ingredient.id,
+    //                 quantity: parseFloat(ingredient.quantity), // Ensure quantity is a number
+    //             }));
+    
+    //             const { error } = await supabase.from("recipe_ingredients").insert(recipeIngredients);
+    //             if (error) throw error;
+    
+    //             console.log("Recipe ingredients saved successfully!");
+    //         }
+    //     } catch (error) {
+    //         console.error("Error saving recipe ingredients:", error.message);
+    //     }
+    // };
+
+    const handleSaveRecipeIngredients = async (recipeId, ingredients) => {
+        try {
+            if (ingredients.length > 0) {
+                const recipeIngredients = ingredients
+                    .filter((ingredient) => ingredient.ingredient_id) // Use `ingredient_id` to filter out invalid entries
+                    .map((ingredient) => ({
+                        recipe_id: recipeId,
+                        ingredient_id: ingredient.ingredient_id, // Correctly map the `ingredient_id`
+                        quantity: parseFloat(ingredient.quantity), // Ensure quantity is numeric
+                    }));
+    
+                console.log("Recipe Ingredients to save:", recipeIngredients);
+    
+                if (recipeIngredients.length === 0) {
+                    console.error("No valid ingredients to save");
+                    return;
+                }
+    
+                const { error } = await supabase.from("recipe_ingredients").insert(recipeIngredients);
+                if (error) throw error;
+    
+                console.log("Recipe ingredients saved successfully!");
+            }
+        } catch (error) {
+            console.error("Error saving recipe ingredients:", error.message);
+        }
+    };
+    
+    
+    const handleSaveRecipeEquipment = async (recipeId, selectedEquipment) => {
+        try {
+            if (selectedEquipment.length > 0) {
+                const recipeEquipment = selectedEquipment.map((equipment) => ({
+                    recipe_id: recipeId,
+                    equipment_id: equipment.id,
+                    quantity: 1, // Assuming quantity is 1 for all equipment
+                }));
+    
+                const { error } = await supabase.from("recipe_equipment").insert(recipeEquipment);
+                if (error) throw error;
+    
+                console.log("Recipe equipment saved successfully!");
+            }
+        } catch (error) {
+            console.error("Error saving recipe equipment:", error.message);
+        }
+    };
+    
+    const handleSaveRecipeSteps = async (recipeId, steps) => {
+        try {
+            if (steps.length > 0) {
+                const recipeSteps = steps.map((step, index) => ({
+                    recipe_id: recipeId,
+                    step_number: index + 1,
+                    instruction: step.description,
+                }));
+    
+                const { error } = await supabase.from("steps").insert(recipeSteps);
+                if (error) throw error;
+    
+                console.log("Recipe steps saved successfully!");
+            }
+        } catch (error) {
+            console.error("Error saving recipe steps:", error.message);
+        }
+    };
+
+    const handleSaveRecipeCategories = async (recipeId, selectedCategories) => {
+        try {
+            if (selectedCategories.length > 0) {
+                const recipeCategories = selectedCategories.map((category) => ({
+                    recipe_id: recipeId,
+                    category_id: category.id,
+                }));
+    
+                const { error } = await supabase.from("recipe_category").insert(recipeCategories);
+                if (error) throw error;
+    
+                console.log("Recipe categories saved successfully!");
+            }
+        } catch (error) {
+            console.error("Error saving recipe categories:", error.message);
+        }
+    };
+    
+    
 
     // Add new category
     const handleAddCategory = async () => {
@@ -91,7 +378,49 @@ const CreateRecipe = () => {
 
     const handleIngredientUpdate = (updatedIngredients) => {
         setIngredients(updatedIngredients);
+        console.log("Updated Ingredients:", updatedIngredients); // Log the updated list for debugging
+
       };
+
+    // const handleIngredientUpdate = (updatedIngredients) => {
+    //     setIngredients((prevIngredients) =>
+    //         updatedIngredients.map((ingredient) => {
+    //             const matchedIngredient = prevIngredients.find(
+    //                 (prevIngredient) => prevIngredient.name === ingredient.name
+    //             );
+    
+    //             if (!matchedIngredient) {
+    //                 console.error(`Ingredient ${ingredient.name} not found in fetched data`);
+    //                 return { ...ingredient, id: null }; // Handle unmatched ingredients gracefully
+    //             }
+    
+    //             return { ...ingredient, id: matchedIngredient.id }; // Add correct `ingredient_id`
+    //         })
+    //     );
+    // };
+
+    const handleStepChange = (index, value) => {
+        setFormData((prev) => ({
+            ...prev,
+            steps: prev.steps.map((step, i) =>
+                i === index ? { ...step, description: value } : step
+            ),
+        }));
+    };
+
+    const addStep = () => {
+        setFormData((prev) => ({
+            ...prev,
+            steps: [...prev.steps, { description: "" }],
+        }));
+    };
+
+    const removeStep = (index) => {
+        setFormData((prev) => ({
+            ...prev,
+            steps: prev.steps.filter((_, i) => i !== index),
+        }));
+    };
 
     return (
         <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
@@ -115,7 +444,7 @@ const CreateRecipe = () => {
                     style={{ width: "100%", margin: "5px 0", padding: "10px" }}
                 />
 
-                <label>Image:</label>
+                <label>Image: (only file with &lt;1mb allowed)</label>
                 <input
                     type="file"
                     onChange={(e) => setFormData({ ...formData, image: e.target.files[0] })}
@@ -143,7 +472,7 @@ const CreateRecipe = () => {
             </div>
 
             {/* Category Selection */}
-            <h2>Category</h2>
+            {/* <h2>Category</h2>
             <div>
                 <select
                     value={formData.category_id}
@@ -157,6 +486,38 @@ const CreateRecipe = () => {
                     ))}
                 </select>
                 <button onClick={() => setIsCategoryModalOpen(true)}>+ Add New Category</button>
+            </div> */}
+
+            {/* Categories */}
+            <h2>Categories</h2>
+            <select
+                onChange={(e) => {
+                    const categoryId = Number(e.target.value);
+                    const category = categories.find((c) => c.id === categoryId);
+                    if (category) handleAddSelection(selectedCategories, setSelectedCategories, category);
+                    e.target.value = ""; // Reset dropdown
+                }}
+            >
+                <option value="">Select a category...</option>
+                {categories.map((category) => (
+                    <option key={category.id} value={category.id}>
+                        {category.name}
+                    </option>
+                ))}
+            </select>
+
+            <div>
+                <h3>Selected Categories:</h3>
+                {selectedCategories.map((category) => (
+                    <div key={category.id}>
+                        {category.name}{" "}
+                        <button
+                            onClick={() => handleRemoveSelection(selectedCategories, setSelectedCategories, category.id)}
+                        >
+                            Remove
+                        </button>
+                    </div>
+                ))}
             </div>
 
             {/* Tags */}
@@ -240,33 +601,99 @@ const CreateRecipe = () => {
             )}
 
             {/* Submit and Cancel Buttons */}
-            <div>
+            {/* <div>
                 <button type="submit">Submit</button>
                 <button type="button" onClick={() => console.log("Cancel")}>
                     Cancel
                 </button>
-            </div>
+            </div> */}
 
+            {/* Ingredients Section */}
             <div style={{ padding: "20px" }}>
                 <h1>Create Recipe</h1>
                 <SortableIngredientList
                     initialIngredients={ingredients}
                     onIngredientUpdate={handleIngredientUpdate}
                 />
+            </div>
+
+            {/* Cooking Steps Section */}
+            {/* <div style={{ marginTop: "20px" }}>
+                <h2>Cooking Steps</h2>
+                <DragAndDropSteps
+                    ingredients={ingredients}
+                    steps={formData.steps}
+                    onStepUpdate={handleStepUpdate}
+                />
+            </div> */}
+
+            {/* Dynamic Sentence Section */}
+            {/* <div style={{ marginTop: "20px" }}>
+                <h2>Dynamic Sentence</h2>
+                <DynamicTextWithDroppable />
+            </div> */}
+
+            {/* Steps Section */}
+            <div style={{ marginTop: "20px" }}>
+                <h2>Steps</h2>
+                {formData.steps.map((step, index) => (
+                    <div key={index} style={{ display: "flex", alignItems: "center", marginBottom: "10px" }}>
+                        <textarea
+                            value={step.description}
+                            onChange={(e) => handleStepChange(index, e.target.value)}
+                            placeholder={`Step ${index + 1}`}
+                            style={{
+                                width: "90%",
+                                padding: "10px",
+                                borderRadius: "5px",
+                                border: "1px solid #ccc",
+                                marginRight: "10px",
+                            }}
+                        />
+                        <button
+                            onClick={() => removeStep(index)}
+                            style={{
+                                background: "#f44336",
+                                color: "white",
+                                border: "none",
+                                borderRadius: "4px",
+                                padding: "5px 10px",
+                                cursor: "pointer",
+                            }}
+                        >
+                            Remove
+                        </button>
+                    </div>
+                ))}
                 <button
+                    onClick={addStep}
                     style={{
+                        marginTop: "10px",
+                        padding: "10px 20px",
+                        backgroundColor: "#4CAF50",
+                        color: "white",
+                        border: "none",
+                        borderRadius: "4px",
+                        cursor: "pointer",
+                    }}
+                >
+                    + Add Step
+                </button>
+            </div>
+
+            <button
+                onClick={handleSaveRecipe}
+                style={{
                     marginTop: "20px",
                     padding: "10px 20px",
                     backgroundColor: "#4CAF50",
                     color: "white",
                     border: "none",
                     borderRadius: "4px",
-                    }}
-                    onClick={() => console.log("Ingredients:", ingredients)}
-                >
-                    Save Recipe
-                </button>
-            </div>
+                }}
+            >
+                Save Recipe
+            </button>
         </div>
     );
 };

@@ -16,7 +16,10 @@ import { CSS } from "@dnd-kit/utilities";
 import supabase from "../../../config/supabaseClient";
 
 const SortableIngredientList = ({ initialIngredients, onIngredientUpdate }) => {
-  const [ingredients, setIngredients] = useState(initialIngredients);
+//   const [ingredients, setIngredients] = useState(initialIngredients);
+  const [ingredients, setIngredients] = useState(
+    initialIngredients.map((ingredient, index) => ({ ...ingredient, position: index + 1 }))
+  );
   const sensors = useSensors(useSensor(PointerSensor));
 
   const handleDragEnd = (event) => {
@@ -28,8 +31,21 @@ const SortableIngredientList = ({ initialIngredients, onIngredientUpdate }) => {
         ingredients.findIndex((ingredient) => ingredient.id === active.id),
         ingredients.findIndex((ingredient) => ingredient.id === over.id)
       );
-      setIngredients(updatedIngredients);
-      onIngredientUpdate(updatedIngredients); // Notify parent component
+
+      // Update positions after reordering
+      const ingredientsWithUpdatedPositions = updatedIngredients.map((ingredient, index) => ({
+        ...ingredient,
+        position: index + 1,
+      }));
+
+    //   setIngredients(updatedIngredients);
+    //   onIngredientUpdate(updatedIngredients); // Notify parent component
+
+      setIngredients(ingredientsWithUpdatedPositions);
+      onIngredientUpdate(ingredientsWithUpdatedPositions);
+
+      // Log changes
+      console.log("Updated order:", ingredientsWithUpdatedPositions);
     }
   };
 
@@ -71,11 +87,15 @@ const SortableIngredientList = ({ initialIngredients, onIngredientUpdate }) => {
                   onIngredientUpdate(updatedIngredients); // Notify parent component
                 }}
                 onRemove={(id) => {
-                  const updatedIngredients = ingredients.filter(
-                    (item) => item.id !== id
-                  );
+                //   const updatedIngredients = ingredients.filter(
+                //     (item) => item.id !== id
+                //   );
+                  const updatedIngredients = ingredients
+                    .filter((item) => item.id !== id)
+                    .map((item, index) => ({ ...item, position: index + 1 })); // Update positions
                   setIngredients(updatedIngredients);
                   onIngredientUpdate(updatedIngredients); // Notify parent component
+                  
                 }}
               />
             ))}
