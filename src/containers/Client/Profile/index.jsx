@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import Login from '../../Authentication/Login';
 import { useNavigate } from "react-router-dom"; // Import useNavigate
 import defaultProfilePic from "../../../assets/images/default _propic.png";
 import { FaUser, FaBirthdayCake, FaEnvelope, FaLock, FaBell, FaPen } from "react-icons/fa";

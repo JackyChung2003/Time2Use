@@ -32,6 +32,39 @@
     border-radius: 8px;
   }
   
+  .table-card {
+    margin-top: 20px;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .expiring-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    font-size: 12px;
+    margin-bottom: 10px;
+  }
+  
+  .expiring-table th,
+  .expiring-table td {
+    padding: 10px;
+    text-align: left;
+    border: 1px solid #ddd; /* Add border for table cells */
+  }
+  
+  .expiring-table th {
+    background-color: #ffdddd;
+    font-weight: bold;
+  }
+  
+  .expiring-table tr:hover {
+    background-color: #f1f1f1; /* Highlight row on hover */
+  }
+
+  
   @media (max-width: 768px) {
     .dashboard-container {
       padding: 10px;
