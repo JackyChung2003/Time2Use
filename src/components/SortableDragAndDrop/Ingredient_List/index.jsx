@@ -20,6 +20,17 @@ const SortableIngredientList = ({ initialIngredients, onIngredientUpdate }) => {
   const [ingredients, setIngredients] = useState(
     initialIngredients.map((ingredient, index) => ({ ...ingredient, position: index + 1 }))
   );
+
+  // useEffect(() => {
+  //   setIngredients(
+  //     initialIngredients.map((ingredient, index) => ({ ...ingredient, position: index + 1 }))
+  //   );
+  // }, [initialIngredients]);
+  
+//   useEffect(() => {
+//     setIngredients(initialIngredients); // Update state when props change
+// }, [initialIngredients]);
+
   const sensors = useSensors(useSensor(PointerSensor));
 
   const handleDragEnd = (event) => {
