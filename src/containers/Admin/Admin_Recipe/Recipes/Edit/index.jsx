@@ -101,6 +101,7 @@ const EditRecipe = () => {
                         id: ingredient.ingredient_id,
                         name: ingredient.ingredients.name,
                         quantity: ingredient.quantity,
+                        ingredient_id: ingredient.ingredient_id,
                         // unit: ingredient.ingredients.quantity_unit_id,
                         unit: ingredient.ingredients.unit ? ingredient.ingredients.unit.unit_tag : null,
                         image: ingredient.ingredients.icon_path
@@ -301,35 +302,59 @@ const EditRecipe = () => {
             await updateAssociations("recipe_tags", "tag_id", selectedTags);
             await updateAssociations("recipe_equipment", "equipment_id", selectedEquipment);
 
+            // for (const ingredient of ingredients) {
+                //     if (ingredient.ingredient_id) {
+                    //         // Update existing ingredient
+                    //         const { error: updateError } = await supabase
+                    //             .from("recipe_ingredients")
+                    //             .upsert({
+                        //                 recipe_id: id,
+                        //                 ingredient_id: ingredient.ingredient_id,
+                        //                 quantity: ingredient.quantity,
+                        //             }, { onConflict: ['recipe_id', 'ingredient_id'] }); // Avoid duplicates
+                        //         if (updateError) throw updateError;
+                        //     } else {
+                            //         // Add new ingredient
+                            //         const { error: insertError } = await supabase
+                            //             .from("recipe_ingredients")
+                            //             .insert({
+                                //                 recipe_id: id,
+                                //                 ingredient_id: ingredient.ingredient_id,
+                                //                 quantity: ingredient.quantity,
+                                //             });
+                                //         if (insertError) throw insertError;
+                                //     }
+                                // }
+                                
             // Handle ingredients: add new, update existing, and delete removed
             for (const ingredient of ingredients) {
-                if (ingredient.id) {
-                    // Update existing ingredient
-                    const { error: updateError } = await supabase
+                if (ingredient.ingredient_id) {
+                    // Upsert ingredient
+                    const { error: upsertError } = await supabase
                         .from("recipe_ingredients")
-                        .update({
-                            quantity: ingredient.quantity,
-                            ingredient_id: ingredient.id,
-                        })
-                        .eq("recipe_id", id)
-                        .eq("ingredient_id", ingredient.id);
-                    if (updateError) throw updateError;
-                } else {
-                    // Add new ingredient
-                    const { error: insertError } = await supabase
-                        .from("recipe_ingredients")
-                        .insert({
+                        .upsert({
                             recipe_id: id,
-                            ingredient_id: ingredient.id,
+                            ingredient_id: ingredient.ingredient_id,
                             quantity: ingredient.quantity,
-                        });
-                    if (insertError) throw insertError;
+                        }, { onConflict: ['recipe_id', 'ingredient_id'] }); // Specify conflict resolution
+                    if (upsertError) throw upsertError;
+                } else {
+                    console.error("Ingredient missing ingredient_id:", ingredient);
                 }
             }
 
+            // const originalIngredientIds = originalFormData.ingredients.map(
+                //     (ingredient) => ingredient.ingredient_id
+                // );
+                
             // Remove deleted ingredients
-            const originalIngredientIds = originalFormData.ingredients.map((ingredient) => ingredient.id);
-            const currentIngredientIds = ingredients.map((ingredient) => ingredient.id);
+            const originalIngredientIds = originalFormData?.ingredients?.map(
+                (ingredient) => ingredient.ingredient_id
+            ) || [];
+
+            const currentIngredientIds = ingredients.map(
+                (ingredient) => ingredient.ingredient_id
+            );
             const deletedIngredientIds = originalIngredientIds.filter(
                 (id) => id && !currentIngredientIds.includes(id)
             );
