@@ -72,8 +72,6 @@ import CreateEquipment from "../Admin_Recipe/Equipment/Create";
 import MealTypes from "../Admin_Recipe/MealTypes";
 import CreateMealType from "../Admin_Recipe/MealTypes/Create";
 
-import CreateRecipeTest from "./Recipes/Edit/createtest";
-
 const AdminRecipeNavigation = () => {
     return (
         <div style={{ position: "relative" }}>
@@ -88,8 +86,7 @@ const AdminRecipeNavigation = () => {
 
                 {/* Recipes */}
                 <Route path="recipes" element={<Recipes />} />
-                <Route path="recipes/create" element={<CreateRecipeTest/>} />
-                {/* <Route path="recipes/create" element={<CreateRecipe />} /> */}
+                <Route path="recipes/create" element={<CreateRecipe />} />
                 <Route path="recipes/view/:id" element={<RecipeDetail />} /> 
                 <Route path="recipes/edit/:id" element={<EditRecipe  />} />
 

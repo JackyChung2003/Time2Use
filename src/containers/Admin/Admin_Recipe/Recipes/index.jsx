@@ -84,6 +84,47 @@ const Recipes = () => {
         fetchRecipes(page);
     }, [page]);
 
+    const deleteRecipe = async (id, imagePath) => {
+        const confirmDelete = window.confirm("Are you sure you want to delete this recipe?");
+        if (!confirmDelete) return;
+    
+        try {
+            setLoading(true);
+    
+            // Step 1: Delete the image from Supabase Storage
+            const { error: storageError } = await supabase.storage
+                .from("recipe-pictures") // Replace with your actual bucket name
+                .remove([imagePath]); // Pass the path to the file
+    
+            if (storageError) {
+                console.error("Failed to delete image:", storageError);
+                setError("Failed to delete recipe image.");
+                return;
+            }
+    
+            // Step 2: Delete the recipe from the database
+            const { error } = await supabase
+                .from("recipes") // Ensure this matches your Supabase table name
+                .delete()
+                .eq("id", id); // Delete the recipe with the specific ID
+    
+            if (error) throw error;
+    
+            // Update the recipes state to remove the deleted recipe
+            setRecipes((prevRecipes) => prevRecipes.filter((recipe) => recipe.id !== id));
+            setFilteredRecipes((prevFilteredRecipes) =>
+                prevFilteredRecipes.filter((recipe) => recipe.id !== id)
+            );
+    
+            alert("Recipe and image deleted successfully.");
+        } catch (err) {
+            setError("Failed to delete recipe.");
+            console.error(err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
             <h1 style={{ color: "#333" }}>Manage Recipes</h1>
@@ -251,7 +292,8 @@ const Recipes = () => {
                                             Edit
                                         </button>
                                         <button
-                                            onClick={() => console.log(`Delete ${recipe.id}`)}
+                                            // onClick={() => console.log(`Delete ${recipe.id}`)}
+                                            onClick={() => deleteRecipe(recipe.id, recipe.image_path)}
                                             style={{
                                                 padding: "8px 12px",
                                                 cursor: "pointer",
