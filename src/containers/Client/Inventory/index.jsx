@@ -7,6 +7,8 @@ const Inventory = () => {
   const [activeDropdown, setActiveDropdown] = useState(null);
   const [items, setItems] = useState([]); // State to hold fetched items
   const [expandedItems, setExpandedItems] = useState({});  // State to manage expanded text per item
+  const [sortOption, setSortOption] = useState(null); // State for sorting option
+  const [showFilterMenu, setShowFilterMenu] = useState(false); // State to toggle filter menu
 
   useEffect(() => {
     const loadItems = async () => {
@@ -17,17 +19,35 @@ const Inventory = () => {
     loadItems();
   }, []);
 
-  const filteredItems = items.filter((item) =>
-    item.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const sortedItems = items
+    .filter((item) =>
+      item.name.toLowerCase().includes(searchTerm.toLowerCase())
+    ) // Search filtering
+    .sort((a, b) => {
+      if (sortOption === 'days_left') {
+        return (a.daysLeft || Infinity) - (b.daysLeft || Infinity); // Sort by days_left (smallest to greatest)
+      } else if (sortOption === 'category') {
+        return a.category.localeCompare(b.category); // Sort alphabetically by category
+      }
+      return 0; // Default order
+    });
 
+  const handleFilterClick = () => {
+    setShowFilterMenu((prev) => !prev); // Toggle filter menu visibility
+    };
+  
+  const handleSortOptionChange = (option) => {
+    setSortOption(option); // Update sort option
+    setShowFilterMenu(false); // Close the filter menu
+  };
+  
   const handleClick = (id) => {
     setExpandedItems((prevState) => ({
       ...prevState,
       [id]: !prevState[id],
-    }));  // Toggle full text for clicked item
+    })); // Toggle full text for clicked item
   };
-
+    
   const toggleDropdown = (id) => {
     setActiveDropdown((prev) => (prev === id ? null : id));
   };
@@ -62,9 +82,32 @@ const Inventory = () => {
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
       />
-      <div className="tracker-title">Tracker</div>
+
+      {/* Title */}
+      <div className="tracker-header">
+        <img
+          src="/image/filter-icon.png" 
+          alt="Filter Icon" 
+          className="filter-icon"
+          onClick={handleFilterClick}
+        />
+        <div className="tracker-title">Tracker</div>
+      </div>
+
+      {/* Filter Menu */}
+      {showFilterMenu && (
+        <div className="filter-menu">
+          <button onClick={() => handleSortOptionChange('days_left')}>
+            Sort by Days Left
+          </button>
+          <button onClick={() => handleSortOptionChange('category')}>
+            Sort by Food Category
+          </button>
+        </div>
+      )}
+
       <div className="item-list">
-        {filteredItems.map((item) => (
+        {sortedItems.map((item) => (
           <div key={item.id} className="item-container">
             <div className="item">
               <div className="left-section">

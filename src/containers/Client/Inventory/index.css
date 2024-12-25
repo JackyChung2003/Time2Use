@@ -19,11 +19,57 @@
     border-radius: 5px;
   }
   
+  .tracker-header {
+    display: flex;
+    align-items: center;
+    justify-content: center; /* Centers the title horizontally */
+    position: relative; /* Set relative positioning for containing the filter icon */
+    padding: 10px;
+  }
+
+  
+  .filter-icon {
+    width: 20px;
+    height: 20px;
+    cursor: pointer; 
+    position: absolute; 
+    transform: translateX(-750%);
+    top: 40px;
+  }
+  
+  .filter-menu {
+    position: absolute;
+    top: 130px;
+    left: 20px;
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    padding: 1px;
+    z-index: 100;
+    font-size: 10px;
+  }
+
+  .filter-menu button {
+    display: block;
+    width: 100%;
+    background: none;
+    border: none;
+    padding: 8px 10px;
+    text-align: left;
+    cursor: pointer;
+  }
+  
+  .filter-menu button:hover {
+    background: #f0f0f0;
+  }  
+
   .tracker-title {
     font-size: 24px;
     font-weight: bold;
     margin-bottom: 15px;
   }
+  
   
   .item-list {
     display: flex;
