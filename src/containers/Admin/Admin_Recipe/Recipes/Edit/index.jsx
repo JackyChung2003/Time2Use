@@ -300,6 +300,48 @@ const EditRecipe = () => {
             await updateAssociations("recipe_category", "category_id", selectedCategories);
             await updateAssociations("recipe_tags", "tag_id", selectedTags);
             await updateAssociations("recipe_equipment", "equipment_id", selectedEquipment);
+
+            // Handle ingredients: add new, update existing, and delete removed
+            for (const ingredient of ingredients) {
+                if (ingredient.id) {
+                    // Update existing ingredient
+                    const { error: updateError } = await supabase
+                        .from("recipe_ingredients")
+                        .update({
+                            quantity: ingredient.quantity,
+                            ingredient_id: ingredient.id,
+                        })
+                        .eq("recipe_id", id)
+                        .eq("ingredient_id", ingredient.id);
+                    if (updateError) throw updateError;
+                } else {
+                    // Add new ingredient
+                    const { error: insertError } = await supabase
+                        .from("recipe_ingredients")
+                        .insert({
+                            recipe_id: id,
+                            ingredient_id: ingredient.id,
+                            quantity: ingredient.quantity,
+                        });
+                    if (insertError) throw insertError;
+                }
+            }
+
+            // Remove deleted ingredients
+            const originalIngredientIds = originalFormData.ingredients.map((ingredient) => ingredient.id);
+            const currentIngredientIds = ingredients.map((ingredient) => ingredient.id);
+            const deletedIngredientIds = originalIngredientIds.filter(
+                (id) => id && !currentIngredientIds.includes(id)
+            );
+
+            for (const ingredientId of deletedIngredientIds) {
+                const { error: deleteError } = await supabase
+                    .from("recipe_ingredients")
+                    .delete()
+                    .eq("recipe_id", id)
+                    .eq("ingredient_id", ingredientId);
+                if (deleteError) throw deleteError;
+            }
     
             alert("Recipe updated successfully!");
             // Navigate to recipe view page
