@@ -50,8 +50,22 @@ const EditRecipe = () => {
                 const { data: equipment } = await supabase.from("equipment").select("*");
                 const { data: recipeIngredients } = await supabase
                     .from("recipe_ingredients")
-                    .select("ingredient_id, quantity, ingredients (name, quantity_unit_id)")
+                    // .select("ingredient_id, quantity, ingredients (name, quantity_unit_id)")
+                    .select(`
+                        ingredient_id,
+                        quantity,
+                        ingredients (
+                            name,
+                            quantity_unit_id,
+                            icon_path,
+                            unit:unit!ingredients_quantity_unit_id_fkey (
+                                unit_tag
+                            )
+                        )
+                    `)
                     .eq("recipe_id", id);
+
+                console.log("Recipe Ingredients:", recipeIngredients);
                 const { data: steps } = await supabase
                     .from("steps")
                     .select("*")
@@ -87,7 +101,11 @@ const EditRecipe = () => {
                         id: ingredient.ingredient_id,
                         name: ingredient.ingredients.name,
                         quantity: ingredient.quantity,
-                        unit: ingredient.ingredients.quantity_unit_id,
+                        // unit: ingredient.ingredients.quantity_unit_id,
+                        unit: ingredient.ingredients.unit ? ingredient.ingredients.unit.unit_tag : null,
+                        image: ingredient.ingredients.icon_path
+                        ? `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/${ingredient.ingredients.icon_path}`
+                        : null,
                         position: index + 1, // Assign a position for drag-and-drop
                     }))
                 );
