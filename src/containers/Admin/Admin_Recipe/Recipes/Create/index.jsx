@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import supabase from "../../../../../config/supabaseClient";
 import SortableIngredientList from "../../../../../components/SortableDragAndDrop/Ingredient_List";
 
 const CreateRecipe = () => {
+    const navigate = useNavigate();
     const [categories, setCategories] = useState([]);
     const [tags, setTags] = useState([]); // All tags from Supabase
     const [selectedTags, setSelectedTags] = useState([]); // Selected tags
@@ -98,6 +100,9 @@ const CreateRecipe = () => {
 
       
           console.log('Recipe saved successfully:', recipe);
+
+          
+          navigate("/admin/category-management/recipes"); // Navigate back to the recipe list
         } catch (error) {
           console.error('Error saving recipe:', error.message);
         }

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import supabase from "../../../../config/supabaseClient";
 
 const Equipment = () => {
@@ -8,6 +9,7 @@ const Equipment = () => {
     const [error, setError] = useState(null);
     const [searchTerm, setSearchTerm] = useState(""); // For search functionality
     const [sortConfig, setSortConfig] = useState({ key: "id", direction: "asc" }); // For sorting
+    const navigate = useNavigate(); // Navigation function for Create and Edit
 
     // Fetch equipment from Supabase
     const fetchEquipment = async () => {
@@ -66,6 +68,32 @@ const Equipment = () => {
         setFilteredEquipment(sortedEquipment);
     };
 
+    // Handle delete functionality
+    const deleteEquipment = async (id) => {
+        const confirmDelete = window.confirm("Are you sure you want to delete this equipment?");
+        if (!confirmDelete) return;
+
+        try {
+            setLoading(true);
+            const { error } = await supabase
+                .from("equipment")
+                .delete()
+                .eq("id", id);
+
+            if (error) throw error;
+
+            // Update the state to remove the deleted equipment
+            setEquipment((prev) => prev.filter((item) => item.id !== id));
+            setFilteredEquipment((prev) => prev.filter((item) => item.id !== id));
+            alert("Equipment deleted successfully.");
+        } catch (err) {
+            setError("Failed to delete equipment.");
+            console.error(err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     // Fetch data on component mount
     useEffect(() => {
         fetchEquipment();
@@ -103,6 +131,19 @@ const Equipment = () => {
                     }}
                 >
                     Refresh
+                </button>
+                <button
+                    onClick={() => navigate("create")} // Navigate to the Create Equipment page
+                    style={{
+                        padding: "10px 20px",
+                        borderRadius: "4px",
+                        border: "none",
+                        backgroundColor: "#007BFF",
+                        color: "white",
+                        cursor: "pointer",
+                    }}
+                >
+                    Create Equipment
                 </button>
             </div>
 
@@ -163,7 +204,7 @@ const Equipment = () => {
                                     }}
                                 >
                                     <button
-                                        onClick={() => console.log(`Edit ${item.id}`)}
+                                        onClick={() => navigate(`edit/${item.id}`)} // Navigate to the Edit Equipment page
                                         style={{
                                             marginRight: "10px",
                                             padding: "8px 12px",
@@ -177,7 +218,7 @@ const Equipment = () => {
                                         Edit
                                     </button>
                                     <button
-                                        onClick={() => console.log(`Delete ${item.id}`)}
+                                        onClick={() => deleteEquipment(item.id)} // Delete equipment
                                         style={{
                                             padding: "8px 12px",
                                             cursor: "pointer",

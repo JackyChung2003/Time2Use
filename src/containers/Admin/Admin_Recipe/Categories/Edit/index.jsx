@@ -1,15 +1,43 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import supabase from "../../../../../config/supabaseClient";
-import { useNavigate } from "react-router-dom";
 
-const CreateCategory = () => {
+const EditCategory = () => {
+    const { id } = useParams(); // Get the category ID from the URL
     const [name, setName] = useState("");
     const [description, setDescription] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const navigate = useNavigate();
 
-    const handleCreate = async (e) => {
+    useEffect(() => {
+        const fetchCategory = async () => {
+            setLoading(true);
+            setError(null);
+
+            try {
+                const { data, error } = await supabase
+                    .from("category") // Replace with your actual table name
+                    .select("*")
+                    .eq("id", id)
+                    .single();
+
+                if (error) throw error;
+
+                setName(data.name);
+                setDescription(data.description);
+            } catch (err) {
+                setError("Failed to fetch category details.");
+                console.error(err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchCategory();
+    }, [id]);
+
+    const handleEdit = async (e) => {
         e.preventDefault();
         setLoading(true);
         setError(null);
@@ -17,14 +45,15 @@ const CreateCategory = () => {
         try {
             const { error } = await supabase
                 .from("category") // Replace with your actual table name
-                .insert([{ name, description }]);
+                .update({ name, description })
+                .eq("id", id);
 
             if (error) throw error;
 
-            alert("Category created successfully!");
-            navigate("/admin/category-management/categories"); // Navigate back to the category list
+            alert("Category updated successfully!");
+            navigate(`/admin/recipe-management/categories`);
         } catch (err) {
-            setError("Failed to create category.");
+            setError("Failed to update category.");
             console.error(err);
         } finally {
             setLoading(false);
@@ -33,8 +62,8 @@ const CreateCategory = () => {
 
     return (
         <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
-            <h1 style={{ color: "#333" }}>Create Category</h1>
-            <form onSubmit={handleCreate} style={{ maxWidth: "400px" }}>
+            <h1 style={{ color: "#333" }}>Edit Category</h1>
+            <form onSubmit={handleEdit} style={{ maxWidth: "400px" }}>
                 {error && <p style={{ color: "red" }}>{error}</p>}
                 <div style={{ marginBottom: "20px" }}>
                     <label htmlFor="name" style={{ display: "block", marginBottom: "5px" }}>
@@ -78,16 +107,16 @@ const CreateCategory = () => {
                         padding: "10px 20px",
                         border: "none",
                         borderRadius: "4px",
-                        backgroundColor: "#4CAF50",
+                        backgroundColor: "#FFA500",
                         color: "white",
                         cursor: loading ? "not-allowed" : "pointer",
                     }}
                 >
-                    {loading ? "Creating..." : "Create Category"}
+                    {loading ? "Updating..." : "Update Category"}
                 </button>
             </form>
         </div>
     );
 };
 
-export default CreateCategory;
+export default EditCategory;
