@@ -158,6 +158,19 @@ const Recipes = () => {
                 >
                     Refresh
                 </button>
+                <button
+                    onClick={() => navigate("create")} // Navigate to the create page
+                    style={{
+                        padding: "10px 20px",
+                        borderRadius: "4px",
+                        border: "none",
+                        backgroundColor: "#4CAF50",
+                        color: "white",
+                        cursor: "pointer",
+                    }}
+                >
+                    Create Recipe
+                </button>
             </div>
 
             {/* Show loading state */}

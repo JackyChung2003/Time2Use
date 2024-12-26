@@ -3,6 +3,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import supabase from "../../../../../config/supabaseClient";
 import SortableIngredientList from "../../../../../components/SortableDragAndDrop/Ingredient_List";
 
+import BackButton from "../../../../../components/Button/BackButton";
+
 const EditRecipe = () => {
     const { id } = useParams();
     const navigate = useNavigate();
@@ -12,9 +14,6 @@ const EditRecipe = () => {
     const [equipment, setEquipment] = useState([]);
     const [selectedEquipment, setSelectedEquipment] = useState([]);
     const [selectedCategories, setSelectedCategories] = useState([]);
-    const [newCategory, setNewCategory] = useState("");
-    const [newTag, setNewTag] = useState("");
-    const [newEquipment, setNewEquipment] = useState("");
     const [originalFormData, setOriginalFormData] = useState(null);
     const [formData, setFormData] = useState({
         name: "",
@@ -50,7 +49,6 @@ const EditRecipe = () => {
                 const { data: equipment } = await supabase.from("equipment").select("*");
                 const { data: recipeIngredients } = await supabase
                     .from("recipe_ingredients")
-                    // .select("ingredient_id, quantity, ingredients (name, quantity_unit_id)")
                     .select(`
                         ingredient_id,
                         quantity,
@@ -91,18 +89,11 @@ const EditRecipe = () => {
                 setOriginalFormData(populatedFormData);
 
                 setIngredients(
-                    // recipeIngredients.map((ingredient) => ({
-                    //     ingredient_id: ingredient.ingredient_id,
-                    //     name: ingredient.ingredients.name,
-                    //     quantity: ingredient.quantity,
-                    //     unit: ingredient.ingredients.quantity_unit_id,
-                    // }))
                     recipeIngredients.map((ingredient, index) => ({
                         id: ingredient.ingredient_id,
                         name: ingredient.ingredients.name,
                         quantity: ingredient.quantity,
                         ingredient_id: ingredient.ingredient_id,
-                        // unit: ingredient.ingredients.quantity_unit_id,
                         unit: ingredient.ingredients.unit ? ingredient.ingredients.unit.unit_tag : null,
                         image: ingredient.ingredients.icon_path
                         ? `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/${ingredient.ingredients.icon_path}`
@@ -166,18 +157,6 @@ const EditRecipe = () => {
         }));
     };
 
-    const handleAddDynamicItem = async (table, name, setter) => {
-        if (!name.trim()) return;
-        const { data, error } = await supabase.from(table).insert({ name }).select();
-        if (error) {
-            console.error(`Error adding ${table}:`, error);
-        } else {
-            setter((prev) => [...prev, ...data]);
-            if (table === "tags") setNewTag("");
-            if (table === "equipment") setNewEquipment("");
-        }
-    };
-
     const handleAddSelection = (selected, setter, item) => {
         if (!selected.includes(item.id)) {
             setter([...selected, item.id]);
@@ -187,48 +166,6 @@ const EditRecipe = () => {
     const handleRemoveSelection = (selected, setter, itemId) => {
         setter(selected.filter((id) => id !== itemId));
     };
-
-    // const handleSave = async () => {
-    //     setLoading(true);
-    //     try {
-    //         const { error } = await supabase
-    //             .from("recipes")
-    //             .update({
-    //                 name: formData.name,
-    //                 description: formData.description,
-    //                 prep_time: formData.prep_time,
-    //                 cook_time: formData.cook_time,
-    //                 image_path: formData.image_path,
-    //             })
-    //             .eq("id", id);
-
-    //         if (error) throw error;
-
-    //         const updateAssociations = async (table, field, values) => {
-    //             await supabase.from(table).delete().eq("recipe_id", id);
-
-    //             if (values.length > 0) {
-    //                 const entries = values.map((value) => ({ recipe_id: id, [field]: value }));
-    //                 const { error: insertError } = await supabase.from(table).insert(entries);
-    //                 if (insertError) throw insertError;
-    //             }
-    //         };
-
-    //         await updateAssociations("recipe_category", "category_id", selectedCategories);
-    //         await updateAssociations("recipe_tags", "tag_id", selectedTags);
-    //         await updateAssociations("recipe_equipment", "equipment_id", selectedEquipment);
-
-    //         alert("Recipe updated successfully!");
-    //         // navigate(`/recipes/${id}`);
-            
-    //         navigate(`/admin/recipe-management/recipes/view/${id}`);
-    //     } catch (err) {
-    //         console.error("Error saving recipe:", err);
-    //         alert("Failed to save recipe.");
-    //     } finally {
-    //         setLoading(false);
-    //     }
-    // };
 
     const handleSave = async () => {
         setLoading(true);
@@ -301,30 +238,6 @@ const EditRecipe = () => {
             await updateAssociations("recipe_category", "category_id", selectedCategories);
             await updateAssociations("recipe_tags", "tag_id", selectedTags);
             await updateAssociations("recipe_equipment", "equipment_id", selectedEquipment);
-
-            // for (const ingredient of ingredients) {
-                //     if (ingredient.ingredient_id) {
-                    //         // Update existing ingredient
-                    //         const { error: updateError } = await supabase
-                    //             .from("recipe_ingredients")
-                    //             .upsert({
-                        //                 recipe_id: id,
-                        //                 ingredient_id: ingredient.ingredient_id,
-                        //                 quantity: ingredient.quantity,
-                        //             }, { onConflict: ['recipe_id', 'ingredient_id'] }); // Avoid duplicates
-                        //         if (updateError) throw updateError;
-                        //     } else {
-                            //         // Add new ingredient
-                            //         const { error: insertError } = await supabase
-                            //             .from("recipe_ingredients")
-                            //             .insert({
-                                //                 recipe_id: id,
-                                //                 ingredient_id: ingredient.ingredient_id,
-                                //                 quantity: ingredient.quantity,
-                                //             });
-                                //         if (insertError) throw insertError;
-                                //     }
-                                // }
                                 
             // Handle ingredients: add new, update existing, and delete removed
             for (const ingredient of ingredients) {
@@ -342,10 +255,6 @@ const EditRecipe = () => {
                     console.error("Ingredient missing ingredient_id:", ingredient);
                 }
             }
-
-            // const originalIngredientIds = originalFormData.ingredients.map(
-                //     (ingredient) => ingredient.ingredient_id
-                // );
                 
             // Remove deleted ingredients
             const originalIngredientIds = originalFormData?.ingredients?.map(
@@ -381,7 +290,6 @@ const EditRecipe = () => {
     
     const handleCancel = () => {
         setFormData(originalFormData);
-        // navigate(`/admin/recipe-management/recipes`);
         navigate(-1);
     };
 
@@ -389,6 +297,8 @@ const EditRecipe = () => {
 
     return (
         <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
+            {/* Back Button */}
+            <BackButton />
             <h1>Edit Recipe</h1>
 
             {/* Recipe Information */}

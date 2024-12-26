@@ -1,17 +1,13 @@
 import { useState, useEffect } from "react";
 import supabase from "../../../../../config/supabaseClient";
 import SortableIngredientList from "../../../../../components/SortableDragAndDrop/Ingredient_List";
-// import DragAndDropSteps from "../../../../../components/NormalDragAndDrop/Drag_Little_Ingredient_Step";
-// import DynamicTextWithDroppable from "../../../../../components/NormalDragAndDrop/Dropable_Section";
 
 const CreateRecipe = () => {
     const [categories, setCategories] = useState([]);
     const [tags, setTags] = useState([]); // All tags from Supabase
     const [selectedTags, setSelectedTags] = useState([]); // Selected tags
-    const [newTag, setNewTag] = useState(""); // For adding new tags dynamically
     const [equipment, setEquipment] = useState([]);
     const [selectedEquipment, setSelectedEquipment] = useState([]); // Selected equipment
-    const [newEquipment, setNewEquipment] = useState(""); // For adding new equipment dynamically
     const [formData, setFormData] = useState({
         name: "",
         description: "",
@@ -66,79 +62,6 @@ const CreateRecipe = () => {
         }));
     }, [formData.prep_time, formData.cook_time]);
 
-    // const handleSaveRecipe = async () => {
-    //     try {
-    //         // Insert into recipes table
-    //         const { data: recipe, error: recipeError } = await supabase
-    //             .from("recipes")
-    //             .insert({
-    //                 name: formData.name,
-    //                 description: formData.description,
-    //                 prep_time: formData.prep_time,
-    //                 cook_time: formData.cook_time,
-    //                 image_path: formData.image?.name || null,
-    //             })
-    //             .select()
-    //             .single();
-
-    //         if (recipeError) throw recipeError;
-
-    //         const recipeId = recipe.id;
-
-    //         // Insert into recipe_tags table
-    //         if (selectedTags.length > 0) {
-    //             const recipeTags = selectedTags.map((tag) => ({
-    //                 recipe_id: recipeId,
-    //                 tag_id: tag.id,
-    //             }));
-    //             const { error: tagError } = await supabase.from("recipe_tags").insert(recipeTags);
-    //             if (tagError) throw tagError;
-    //         }
-
-    //         // Insert into recipe_ingredients table
-    //         if (ingredients.length > 0) {
-    //             const recipeIngredients = ingredients.map((ingredient) => ({
-    //                 recipe_id: recipeId,
-    //                 ingredient_id: ingredient.id,
-    //                 quantity: ingredient.quantity,
-    //             }));
-    //             const { error: ingredientError } = await supabase
-    //                 .from("recipe_ingredients")
-    //                 .insert(recipeIngredients);
-    //             if (ingredientError) throw ingredientError;
-    //         }
-
-    //         // Insert into recipe_equipment table
-    //         if (selectedEquipment.length > 0) {
-    //             const recipeEquipment = selectedEquipment.map((equipment) => ({
-    //                 recipe_id: recipeId,
-    //                 equipment_id: equipment.id,
-    //                 quantity: 1, // Assuming quantity is 1 for now
-    //             }));
-    //             const { error: equipmentError } = await supabase
-    //                 .from("recipe_equipment")
-    //                 .insert(recipeEquipment);
-    //             if (equipmentError) throw equipmentError;
-    //         }
-
-    //         // Insert into steps table
-    //         if (formData.steps.length > 0) {
-    //             const steps = formData.steps.map((step, index) => ({
-    //                 recipe_id: recipeId,
-    //                 step_number: index + 1,
-    //                 instruction: step.description,
-    //             }));
-    //             const { error: stepsError } = await supabase.from("steps").insert(steps);
-    //             if (stepsError) throw stepsError;
-    //         }
-
-    //         alert("Recipe saved successfully!");
-    //     } catch (error) {
-    //         console.error("Error saving recipe:", error.message);
-    //         alert("Failed to save recipe. Please try again.");
-    //     }
-    // };
-
     const handleSaveRecipe = async () => {
         try {
           const imageFile = formData.image; // Assuming `formData.image` contains the file
@@ -179,8 +102,6 @@ const CreateRecipe = () => {
           console.error('Error saving recipe:', error.message);
         }
       };
-
-      
 
     const slugify = (name) => {
         return name
@@ -230,25 +151,6 @@ const CreateRecipe = () => {
             console.error("Error saving recipe tags:", error.message);
         }
     };
-    
-    // const handleSaveRecipeIngredients = async (recipeId, ingredients) => {
-    //     try {
-    //         if (ingredients.length > 0) {
-    //             const recipeIngredients = ingredients.map((ingredient) => ({
-    //                 recipe_id: recipeId,
-    //                 ingredient_id: ingredient.id,
-    //                 quantity: parseFloat(ingredient.quantity), // Ensure quantity is a number
-    //             }));
-    
-    //             const { error } = await supabase.from("recipe_ingredients").insert(recipeIngredients);
-    //             if (error) throw error;
-    
-    //             console.log("Recipe ingredients saved successfully!");
-    //         }
-    //     } catch (error) {
-    //         console.error("Error saving recipe ingredients:", error.message);
-    //     }
-    // };
 
     const handleSaveRecipeIngredients = async (recipeId, ingredients) => {
         try {
@@ -277,7 +179,6 @@ const CreateRecipe = () => {
             console.error("Error saving recipe ingredients:", error.message);
         }
     };
-    
     
     const handleSaveRecipeEquipment = async (recipeId, selectedEquipment) => {
         try {
@@ -335,8 +236,6 @@ const CreateRecipe = () => {
         }
     };
     
-    
-
     // Add new category
     const handleAddCategory = async () => {
         if (newCategory.trim() === "") return;
@@ -348,19 +247,6 @@ const CreateRecipe = () => {
             setCategories((prev) => [...prev, data[0]]);
             setIsCategoryModalOpen(false);
             setNewCategory("");
-        }
-    };
-
-    // Add new tag/equipment dynamically
-    const handleAddDynamicItem = async (table, name, setter) => {
-        if (!name.trim()) return;
-        const { data, error } = await supabase.from(table).insert({ name }).select();
-        if (error) {
-            console.error(`Error adding ${table}:`, error);
-        } else {
-            setter((prev) => [...prev, ...data]);
-            if (table === "tags") setNewTag("");
-            if (table === "equipment") setNewEquipment("");
         }
     };
 
@@ -381,23 +267,6 @@ const CreateRecipe = () => {
         console.log("Updated Ingredients:", updatedIngredients); // Log the updated list for debugging
 
       };
-
-    // const handleIngredientUpdate = (updatedIngredients) => {
-    //     setIngredients((prevIngredients) =>
-    //         updatedIngredients.map((ingredient) => {
-    //             const matchedIngredient = prevIngredients.find(
-    //                 (prevIngredient) => prevIngredient.name === ingredient.name
-    //             );
-    
-    //             if (!matchedIngredient) {
-    //                 console.error(`Ingredient ${ingredient.name} not found in fetched data`);
-    //                 return { ...ingredient, id: null }; // Handle unmatched ingredients gracefully
-    //             }
-    
-    //             return { ...ingredient, id: matchedIngredient.id }; // Add correct `ingredient_id`
-    //         })
-    //     );
-    // };
 
     const handleStepChange = (index, value) => {
         setFormData((prev) => ({
@@ -470,23 +339,6 @@ const CreateRecipe = () => {
                 <label>Total Time (mins):</label>
                 <input type="number" value={formData.total_time} readOnly />
             </div>
-
-            {/* Category Selection */}
-            {/* <h2>Category</h2>
-            <div>
-                <select
-                    value={formData.category_id}
-                    onChange={(e) => setFormData({ ...formData, category_id: e.target.value })}
-                >
-                    <option value="">Select a category</option>
-                    {categories.map((category) => (
-                        <option key={category.id} value={category.id}>
-                            {category.name}
-                        </option>
-                    ))}
-                </select>
-                <button onClick={() => setIsCategoryModalOpen(true)}>+ Add New Category</button>
-            </div> */}
 
             {/* Categories */}
             <h2>Categories</h2>
@@ -600,14 +452,6 @@ const CreateRecipe = () => {
                 </div>
             )}
 
-            {/* Submit and Cancel Buttons */}
-            {/* <div>
-                <button type="submit">Submit</button>
-                <button type="button" onClick={() => console.log("Cancel")}>
-                    Cancel
-                </button>
-            </div> */}
-
             {/* Ingredients Section */}
             <div style={{ padding: "20px" }}>
                 <h1>Create Recipe</h1>
@@ -616,22 +460,6 @@ const CreateRecipe = () => {
                     onIngredientUpdate={handleIngredientUpdate}
                 />
             </div>
-
-            {/* Cooking Steps Section */}
-            {/* <div style={{ marginTop: "20px" }}>
-                <h2>Cooking Steps</h2>
-                <DragAndDropSteps
-                    ingredients={ingredients}
-                    steps={formData.steps}
-                    onStepUpdate={handleStepUpdate}
-                />
-            </div> */}
-
-            {/* Dynamic Sentence Section */}
-            {/* <div style={{ marginTop: "20px" }}>
-                <h2>Dynamic Sentence</h2>
-                <DynamicTextWithDroppable />
-            </div> */}
 
             {/* Steps Section */}
             <div style={{ marginTop: "20px" }}>
