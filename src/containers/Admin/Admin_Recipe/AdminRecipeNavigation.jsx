@@ -59,16 +59,26 @@ import { Routes, Route, Navigate } from "react-router-dom";
 // Import all components based on your folder structure
 // import AdminRecipeDashboard from "../Admin_Recipe/Dashboard";
 import AdminRecipeDashboard from ".";
+
 import Recipes from "../Admin_Recipe/Recipes";
 import CreateRecipe from "../Admin_Recipe/Recipes/Create";
+import EditRecipe from "../Admin_Recipe/Recipes/Edit";
+import RecipeDetail from "./Recipes/View";
+
 import Categories from "../Admin_Recipe/Categories";
 import CreateCategory from "../Admin_Recipe/Categories/Create";
+import EditCategory from "../Admin_Recipe/Categories/Edit";
+
 import Tags from "../Admin_Recipe/Tags";
 import CreateTag from "../Admin_Recipe/Tags/Create";
+import EditTag from "../Admin_Recipe/Tags/Edit";
+
 import Equipment from "../Admin_Recipe/Equipment";
 import CreateEquipment from "../Admin_Recipe/Equipment/Create";
-import MealTypes from "../Admin_Recipe/MealTypes";
-import CreateMealType from "../Admin_Recipe/MealTypes/Create";
+import EditEquipment from "../Admin_Recipe/Equipment/Edit";
+
+// import MealTypes from "../Admin_Recipe/MealTypes";
+// import CreateMealType from "../Admin_Recipe/MealTypes/Create";
 
 const AdminRecipeNavigation = () => {
     return (
@@ -85,22 +95,27 @@ const AdminRecipeNavigation = () => {
                 {/* Recipes */}
                 <Route path="recipes" element={<Recipes />} />
                 <Route path="recipes/create" element={<CreateRecipe />} />
+                <Route path="recipes/view/:id" element={<RecipeDetail />} /> 
+                <Route path="recipes/edit/:id" element={<EditRecipe  />} />
 
                 {/* Categories */}
                 <Route path="categories" element={<Categories />} />
                 <Route path="categories/create" element={<CreateCategory />} />
+                <Route path="categories/edit/:id" element={<EditCategory />} />
 
                 {/* Tags */}
                 <Route path="tags" element={<Tags />} />
                 <Route path="tags/create" element={<CreateTag />} />
+                <Route path="tags/edit/:id" element={<EditTag />} />
 
                 {/* Equipment */}
                 <Route path="equipment" element={<Equipment />} />
                 <Route path="equipment/create" element={<CreateEquipment />} />
+                <Route path="equipment/edit/:id" element={<EditEquipment />} />
 
                 {/* Meal Types */}
-                <Route path="meal-types" element={<MealTypes />} />
-                <Route path="meal-types/create" element={<CreateMealType />} />
+                {/* <Route path="meal-types" element={<MealTypes />} />
+                <Route path="meal-types/create" element={<CreateMealType />} /> */}
 
                 {/* Fallback */}
                 <Route path="*" element={<Navigate to="dashboard" />} />

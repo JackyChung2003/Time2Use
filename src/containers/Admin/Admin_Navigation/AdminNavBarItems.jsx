@@ -121,22 +121,22 @@ const adminNavBarItems = [
                 ],
             },
             // Meal Types Section
-            {
-                title: "Meal Types",
-                dropdown: true,
-                items: [
-                    {
-                        title: "View Meal Types",
-                        link: "/admin/recipe-management/meal-types",
-                        icon: <FaThList />,
-                    },
-                    {
-                        title: "Add New Meal Type",
-                        link: "/admin/recipe-management/meal-types/create",
-                        icon: <FaPlusCircle />,
-                    },
-                ],
-            },
+            // {
+            //     title: "Meal Types",
+            //     dropdown: true,
+            //     items: [
+            //         {
+            //             title: "View Meal Types",
+            //             link: "/admin/recipe-management/meal-types",
+            //             icon: <FaThList />,
+            //         },
+            //         {
+            //             title: "Add New Meal Type",
+            //             link: "/admin/recipe-management/meal-types/create",
+            //             icon: <FaPlusCircle />,
+            //         },
+            //     ],
+            // },
         ],
     },
 ];
