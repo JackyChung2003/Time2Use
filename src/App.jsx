@@ -28,6 +28,7 @@ const App = () => {
     const [loading, setLoading] = useState(true);
     const [isCollapsed, setIsCollapsed] = useState(false); // Sidebar collapse state
 
+    
     // useEffect(() => {
     //     const fetchUser = async () => {
     //         const { data: userData, error: userError } = await supabase.auth.getUser();
