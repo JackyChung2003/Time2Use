@@ -70,6 +70,15 @@
     margin-bottom: 15px;
   }
   
+  .empty-inventory-message {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 40vh; 
+    font-size: 18px;
+    color: #555;
+    text-align: center;
+  }  
   
   .item-list {
     display: flex;
