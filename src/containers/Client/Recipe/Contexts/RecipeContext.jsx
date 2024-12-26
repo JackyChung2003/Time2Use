@@ -36,12 +36,13 @@ const fetchRecipes = async () => {
           prep_time,
           cook_time,
           image_path,
-          recipe_tags ( tags (name) ),
+          recipe_tags:recipe_tags_recipe_id_fkey ( tags (name) ),
           recipe_equipment ( equipment (name) ),
           recipe_category ( category (name) ),
           recipe_ingredients ( ingredients (name) )
         `);
           
+        // recipe_tags ( tags (name) ),
         // recipe_tags:recipe_tags_recipe_id_fkey ( tags (name) ),
       if (error) {
         console.error("Error fetching recipes:", error);
@@ -142,16 +143,31 @@ const fetchRecipes = async () => {
     try {
         const { data, error } = await supabase
             .from("recipe_ingredients")
+            // .select(`
+            //     ingredients (id, name),
+            //     quantity,
+            //     unit
+            // `)
             .select(`
-                ingredients (id, name),
-                quantity,
-                unit
+              ingredients (
+                id,
+                name,
+                unit:quantity_unit_id (
+                  unit_tag,
+                  unit_description
+                )
+              ),
+              quantity
             `)
             .eq("recipe_id", recipeId);
+            
+            
+            // quantity_unit_id:ingredients_quantity_unit_id_fkey (
 
         if (error) {
             console.error("Error fetching recipe ingredients:", error);
         } else {
+            console.log("Recipe ingredients:", data);
             return data || [];
         }
     } catch (err) {

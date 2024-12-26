@@ -29,7 +29,7 @@ const RecipeDetail = () => {
     const [relatedRecipes, setRelatedRecipes] = useState([]);
 
     const [servingPacks, setServingPacks] = useState(2); // Default servings (e.g., 2 servings)
-    const [defaultServings, setDefaultServings] = useState(2); // Original serving size from the recipe
+    const [defaultServings, setDefaultServings] = useState(1); // Original serving size from the recipe
 
 
     const nutritionFacts = {
@@ -286,7 +286,7 @@ const RecipeDetail = () => {
                     .eq('id', id)
                     .single();
     
-                if (recipeError) {
+                if (recipeError || !recipeData) {
                     console.error('Error fetching recipe detail:', recipeError);
                     setLoading(false);
                     return;
@@ -299,7 +299,7 @@ const RecipeDetail = () => {
                     .select('tag_id')
                     .eq('recipe_id', id);
     
-                if (tagsError) {
+                if (tagsError || !tagsData) {
                     console.error('Error fetching tags:', tagsError);
                     setLoading(false);
                     return;
@@ -356,6 +356,7 @@ const RecipeDetail = () => {
 
     const getAdjustedIngredients = () => {
         const ratio = servingPacks / defaultServings;
+        console.log("Test ingredients:", ingredients);
         return ingredients.map((ingredient) => ({
             ...ingredient,
             quantity: (ingredient.quantity * ratio).toFixed(2), // Adjust the quantity based on servings
@@ -443,7 +444,7 @@ const RecipeDetail = () => {
                 ))}
                 {getAdjustedIngredients().map((ingredient) => (
                     <li key={ingredient.ingredients.id}>
-                        {ingredient.ingredients.name} - {ingredient.quantity} {ingredient.unit}
+                        {ingredient.ingredients.name} - {ingredient.quantity} {ingredient.ingredients.unit?.unit_tag  || ''}
                     </li>
                 ))}
             </ul>
