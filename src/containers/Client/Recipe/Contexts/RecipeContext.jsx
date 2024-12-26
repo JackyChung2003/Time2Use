@@ -152,9 +152,11 @@ const fetchRecipes = async () => {
               ingredients (
                 id,
                 name,
+                nutritional_info,
                 unit:quantity_unit_id (
                   unit_tag,
-                  unit_description
+                  unit_description,
+                  conversion_rate_to_grams 
                 )
               ),
               quantity

@@ -28,25 +28,127 @@ const RecipeDetail = () => {
     const [servingPacks, setServingPacks] = useState(2); // Default servings (e.g., 2 servings)
     const [defaultServings, setDefaultServings] = useState(1); // Original serving size from the recipe
 
+    const [nutritionFacts, setNutritionFacts] = useState({
+        calories: 0,
+        protein: 0,
+        carbohydrate: 0,
+        fat: 0,
+    });
+    const [totalWeightInGrams, setTotalWeightInGrams] = useState(0);
 
-    const nutritionFacts = {
-        calories: 500,
-        protein: 20,
-        carbs: 50,
-        fat: 15,
-    };
+    // const nutritionFacts = {
+    //     calories: 500,
+    //     protein: 20,
+    //     carbs: 50,
+    //     fat: 15,
+    // };
 
     useEffect(() => {
         const selectedRecipe = recipes.find((recipe) => recipe.id === parseInt(id));
         if (selectedRecipe) {
             setRecipe(selectedRecipe);
-            fetchRecipeIngredients(selectedRecipe.id).then(setIngredients);
+            // fetchRecipeIngredients(selectedRecipe.id).then(setIngredients);
+            fetchRecipeIngredients(selectedRecipe.id).then((data) => {
+                setIngredients(data);
+                calculateNutrition(data); // Calculate nutrition when ingredients are fetched
+            });
             fetchRecipeSteps(selectedRecipe.id).then(setSteps);
         } else {
             setRecipe(null);
         }
         setLoading(false);
     }, [id, recipes, fetchRecipeIngredients, fetchRecipeSteps]);
+
+    const calculateNutrition = (ingredients) => {
+        let totalNutrition = {
+            calories: 0,
+            protein: 0,
+            carbohydrate: 0,
+            fat: 0,
+        };
+        let totalWeightInGrams = 0; // Total weight of all ingredients in grams
+
+        ingredients.forEach((ingredient) => {
+            const { nutritional_info, unit } = ingredient.ingredients;
+            // const { nutritional_info, quantity, unit } = ingredient.ingredients;
+            const { quantity } = ingredient;
+            
+            console.log("nutritional_info:", nutritional_info);
+            console.log("quantity:", quantity);
+            console.log("unit:", unit);
+
+            let { calories, protein, carbohydrate, fat } = nutritional_info;
+            console.log("calories:", calories);
+            console.log("protein (raw):", protein);
+            console.log("carbohydrate (raw):", carbohydrate);
+            console.log("fat (raw):", fat);
+
+            // Strip "g" and convert to number for protein, carbohydrate, and fat
+            protein = typeof protein === "string" ? parseFloat(protein.replace("g", "")) || 0 : protein || 0;
+            carbohydrate = typeof carbohydrate === "string" ? parseFloat(carbohydrate.replace("g", "")) || 0 : carbohydrate || 0;
+            fat = typeof fat === "string" ? parseFloat(fat.replace("g", "")) || 0 : fat || 0;
+    
+
+            console.log("protein (parsed):", protein);
+            console.log("carbohydrate (parsed):", carbohydrate);
+            console.log("fat (parsed):", fat);
+
+            const conversionRate = unit.conversion_rate_to_grams;
+            console.log("conversionRate:", conversionRate);
+
+            // Handle unit conversion to grams (example for common units)
+            let quantityInGrams = quantity;
+            if (conversionRate && conversionRate > 0) {
+                quantityInGrams *= conversionRate;
+            } else {
+                console.warn(`Unit ${unit.unit_tag} does not have a valid conversion rate.`);
+                return; // Skip this ingredient if no valid conversion rate
+            }
+
+            // Update the total weight
+            totalWeightInGrams += quantityInGrams;
+
+            // Nutritional info is per 100 grams; calculate based on quantity
+            const factor = quantityInGrams / 100;
+            totalNutrition.calories += calories * factor;
+            totalNutrition.protein += protein * factor;
+            totalNutrition.carbohydrate += carbohydrate * factor;
+            totalNutrition.fat += fat * factor;
+        });
+
+        setTotalWeightInGrams(totalWeightInGrams);
+
+        // Calculate per 100g nutrition values
+        const per100gNutrition = {
+            calories: (totalNutrition.calories / (totalWeightInGrams / 100)).toFixed(2),
+            protein: (totalNutrition.protein / (totalWeightInGrams / 100)).toFixed(2),
+            carbohydrate: (totalNutrition.carbohydrate / (totalWeightInGrams / 100)).toFixed(2),
+            fat: (totalNutrition.fat / (totalWeightInGrams / 100)).toFixed(2),
+        };
+
+        console.log(`Total Weight of Recipe: ${totalWeightInGrams.toFixed(2)}g`);
+        console.log("Total Nutrition:", totalNutrition);
+        console.log("Per 100g Nutrition:", per100gNutrition);
+
+        // // Update state
+        // setNutritionFacts({
+        //     calories: totalNutrition.calories.toFixed(2),
+        //     protein: totalNutrition.protein.toFixed(2),
+        //     carbohydrate: totalNutrition.carbohydrate.toFixed(2),
+        //     fat: totalNutrition.fat.toFixed(2),
+        // });
+
+        // Update state with both total and per 100g nutrition facts
+        setNutritionFacts({
+            total: {
+                calories: totalNutrition.calories.toFixed(2),
+                protein: totalNutrition.protein.toFixed(2),
+                carbohydrate: totalNutrition.carbohydrate.toFixed(2),
+                fat: totalNutrition.fat.toFixed(2),
+            },
+            per100g: per100gNutrition,
+        });
+    };
 
     const toggleFavorite = async () => {
         try {
@@ -163,13 +265,39 @@ const RecipeDetail = () => {
             <p>Prep Time: {recipe.prep_time} mins</p>
             <p>Cook Time: {recipe.cook_time} mins</p>
 
-            <h3>Nutrition Facts</h3>
+            <div>
+                <h4>Total Meal Weight</h4>
+                <p>{(totalWeightInGrams * (servingPacks / defaultServings)).toFixed(2)} g</p>
+            </div>
+
+            {/* <h3>Nutrition Facts</h3>
             <ul>
                 <li>Calories: {nutritionFacts.calories} kcal</li>
                 <li>Protein: {nutritionFacts.protein} g</li>
-                <li>Carbs: {nutritionFacts.carbs} g</li>
+                <li>Carbohydrate: {nutritionFacts.carbohydrate} g</li>
                 <li>Fats: {nutritionFacts.fat} g</li>
-            </ul>
+            </ul> */}
+            {/* Nutrition Facts Section */}
+            <h3>Nutrition Facts</h3>
+            <div>
+                <h4>Total Nutrition (for the entire recipe)</h4>
+                <ul>
+                    <li>Calories: {nutritionFacts.total?.calories || 0} kcal</li>
+                    <li>Protein: {nutritionFacts.total?.protein || 0} g</li>
+                    <li>Carbohydrate: {nutritionFacts.total?.carbohydrate || 0} g</li>
+                    <li>Fats: {nutritionFacts.total?.fat || 0} g</li>
+                </ul>
+            </div>
+
+            <div>
+                <h4>Per 100g Nutrition</h4>
+                <ul>
+                    <li>Calories: {nutritionFacts.per100g?.calories || 0} kcal</li>
+                    <li>Protein: {nutritionFacts.per100g?.protein || 0} g</li>
+                    <li>Carbohydrate: {nutritionFacts.per100g?.carbohydrate || 0} g</li>
+                    <li>Fats: {nutritionFacts.per100g?.fat || 0} g</li>
+                </ul>
+            </div>
             <p>Note: Future versions will link to the database and calculate these values dynamically.</p>
 
 
