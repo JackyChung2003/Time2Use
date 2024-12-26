@@ -21,6 +21,7 @@ const RecipeDetail = () => {
     const [isFavorite, setIsFavorite] = useState(false);
     const [isCookingMode, setIsCookingMode] = useState(false);
     const [currentStepIndex, setCurrentStepIndex] = useState(0); // Tracks the current step
+    const [previousStepIndex, setPreviousStepIndex] = useState(null); // Tracks the previous step
     
     const [relatedRecipes, setRelatedRecipes] = useState([]);
 
@@ -67,7 +68,28 @@ const RecipeDetail = () => {
         }
     };
 
-    const toggleCookingMode = () => setIsCookingMode((prev) => !prev);
+    // const toggleCookingMode = () => setIsCookingMode((prev) => !prev);
+
+    const toggleCookingMode = () => {
+        if (!isCookingMode) {
+            // Prompt user if they want to continue from the last step
+            if (previousStepIndex !== null) {
+                const continueFromLast = window.confirm(
+                    'Would you like to continue from your last step or start over?'
+                );
+                if (continueFromLast) {
+                    setCurrentStepIndex(previousStepIndex);
+                } else {
+                    setCurrentStepIndex(0);
+                }
+            } else {
+                setCurrentStepIndex(0);
+            }
+        } else {
+            setPreviousStepIndex(currentStepIndex); // Save the current step when exiting
+        }
+        setIsCookingMode((prev) => !prev);
+    };
 
     const handleNextStep = () => {
         if (currentStepIndex < steps.length - 1) {
@@ -83,6 +105,12 @@ const RecipeDetail = () => {
             setCurrentStepIndex(prevStepIndex);
             console.log(`Now on Step ${prevStepIndex + 1}: ${steps[prevStepIndex].instruction}`);
         }
+    };
+
+    const finishCooking = () => {
+        alert('Congratulations! You have finished cooking this recipe.');
+        setIsCookingMode(false);
+        setPreviousStepIndex(null); // Reset the previous step
     };
 
     const shareRecipe = () => {
@@ -237,6 +265,72 @@ const RecipeDetail = () => {
             <button onClick={toggleCookingMode}>Start Cooking Mode</button>
 
             {/* Cooking Mode Overlay */}
+            {/* {isCookingMode && (
+                <div
+                    style={{
+                        position: 'fixed',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        height: '100%',
+                        background: 'rgba(0, 0, 0, 0.8)',
+                        color: '#fff',
+                        zIndex: 1000,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                    }}
+                >
+                    <h2>Step {currentStepIndex + 1}</h2>
+                    <p>{steps[currentStepIndex]?.instruction}</p>
+
+                    <div style={{ marginTop: '20px', display: 'flex', gap: '10px' }}>
+                        <button
+                            onClick={handlePreviousStep}
+                            style={{
+                                padding: '10px 20px',
+                                background: '#007bff',
+                                color: '#fff',
+                                border: 'none',
+                                borderRadius: '5px',
+                                cursor: 'pointer',
+                                visibility: currentStepIndex === 0 ? 'hidden' : 'visible',
+                            }}
+                        >
+                            Previous
+                        </button>
+                        <button
+                            onClick={handleNextStep}
+                            style={{
+                                padding: '10px 20px',
+                                background: '#007bff',
+                                color: '#fff',
+                                border: 'none',
+                                borderRadius: '5px',
+                                cursor: 'pointer',
+                                visibility: currentStepIndex === steps.length - 1 ? 'hidden' : 'visible',
+                            }}
+                        >
+                            Next
+                        </button>
+                        <button
+                            onClick={toggleCookingMode}
+                            style={{
+                                padding: '10px 20px',
+                                background: 'red',
+                                color: '#fff',
+                                border: 'none',
+                                borderRadius: '5px',
+                                cursor: 'pointer',
+                            }}
+                        >
+                            Exit Cooking Mode
+                        </button>
+                    </div>
+                </div>
+            )} */}
+
             {isCookingMode && (
                 <div
                     style={{
@@ -286,6 +380,21 @@ const RecipeDetail = () => {
                         >
                             Next
                         </button>
+                        {currentStepIndex === steps.length - 1 && (
+                            <button
+                                onClick={finishCooking}
+                                style={{
+                                    padding: '10px 20px',
+                                    background: 'green',
+                                    color: '#fff',
+                                    border: 'none',
+                                    borderRadius: '5px',
+                                    cursor: 'pointer',
+                                }}
+                            >
+                                Finish Cooking
+                            </button>
+                        )}
                         <button
                             onClick={toggleCookingMode}
                             style={{
