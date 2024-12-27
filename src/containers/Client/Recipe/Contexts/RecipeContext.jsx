@@ -13,6 +13,7 @@ export const RecipeProvider = ({ children }) => {
   const [categories, setCategories] = useState([]); // Categories
   const [equipment, setEquipment] = useState([]); // Equipment
   const [ingredients, setIngredients] = useState([]); // State for ingredients
+  const [mealTypes, setMealTypes] = useState([]); // State to store meal types
 
   const [filters, setFilters] = useState({
     categories: [],
@@ -132,6 +133,7 @@ const fetchRecipes = async () => {
     fetchCategories(); // Fetch categories on mount
     fetchEquipment(); // Fetch equipment on mount
     fetchIngredients(); // Fetch ingredients on mount
+    fetchMealTypes(); // Fetch meal types on mount
   }, []);
 
   useEffect(() => {
@@ -202,6 +204,82 @@ const fetchRecipes = async () => {
     }
   };
 
+  const fetchMealPlansByDate = async (date) => {
+    try {
+        // Fetch meal plans for the given date
+        const { data, error } = await supabase
+            .from("meal_plan")
+            .select("meal_type_id, recipe_id, notes")
+            .eq("planned_date", date);
+
+        if (error) {
+            console.error("Error fetching meal plans:", error);
+            return [];
+        }
+
+        // Fetch meal types dynamically
+        const { data: mealTypeData, error: mealTypeError } = await supabase
+            .from("meal_type")
+            .select("id, name");
+
+        if (mealTypeError) {
+            console.error("Error fetching meal types:", mealTypeError);
+            return [];
+        }
+
+        // Map meal_type_id to their names
+        const mealTypesMap = mealTypeData.reduce((map, type) => {
+            map[type.id] = type.name;
+            return map;
+        }, {});
+
+        // Enrich meal plans with meal type names
+        const enrichedMealPlans = data.map((meal) => ({
+            ...meal,
+            meal_type_name: mealTypesMap[meal.meal_type_id] || "Unknown",
+        }));
+
+        return enrichedMealPlans;
+    } catch (err) {
+        console.error("Unexpected error fetching meal plans:", err);
+        return [];
+    }
+  };
+
+  const fetchMealTypes = async () => {
+    try {
+        const { data, error } = await supabase.from("meal_type").select("id, name");
+        if (error) {
+            console.error("Error fetching meal types:", error);
+        } else {
+            setMealTypes(data || []);
+        }
+    } catch (err) {
+        console.error("Unexpected error fetching meal types:", err);
+    }
+  };
+
+  const fetchRecipesByIds = async (recipeIds) => {
+    try {
+        // Fetch recipes based on an array of recipe IDs
+        const { data, error } = await supabase
+            .from("recipes")
+            .select("id, name, image_path, description")
+            .in("id", recipeIds); // Only fetch recipes with specified IDs
+
+        if (error) {
+            console.error("Error fetching recipes by IDs:", error);
+            return [];
+        }
+
+        return data || [];
+    } catch (err) {
+        console.error("Unexpected error fetching recipes by IDs:", err);
+        return [];
+    }
+  };
+
+
   return (
     // <RecipeContext.Provider value={{ recipes, tags, filters, fetchRecipes, fetchTags, applyFilters, loading }}>
     <RecipeContext.Provider
@@ -212,6 +290,7 @@ const fetchRecipes = async () => {
         equipment,
         filters,
         ingredients,
+        mealTypes,
         fetchRecipes,
         fetchTags,
         fetchCategories,
@@ -219,6 +298,8 @@ const fetchRecipes = async () => {
         fetchIngredients,
         fetchRecipeIngredients,
         fetchRecipeSteps,
+        fetchMealPlansByDate,
+        fetchRecipesByIds,
         applyFilters,
         loading,
       }}

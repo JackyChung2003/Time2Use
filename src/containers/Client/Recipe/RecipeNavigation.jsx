@@ -6,6 +6,7 @@ import RecipeExplore from './Recipe';
 // import RecipeDetail from './Recipe/%5BrecipeId%5D';
 import RecipeDetail from './Recipe/[recipeId]';
 import RecipeCalendar from './Calendar';
+import MealPlannerPage from './Calendar/[date]';
 import RecipeFavorites from './Favorites';
 import Chatbot from './Chatbot';
 
@@ -29,6 +30,7 @@ const RecipeNavigation = () => {
 
                     {/* Recipe Calendar page */}
                     <Route path="calendar" element={<RecipeCalendar />} />
+                    <Route path="calendar/:date" element={<MealPlannerPage />} />
 
                     {/* Favorites page */}
                     <Route path="favorites" element={<RecipeFavorites />} />

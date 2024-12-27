@@ -1,0 +1,79 @@
+.calendar-container {
+  padding: 20px;
+  font-family: Arial, sans-serif;
+  text-align: center;
+}
+
+.react-calendar__tile {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 50px;
+  width: 50px;
+  border-radius: 50%; /* Circular shape */
+  text-align: center;
+}
+
+.react-calendar__tile:enabled:hover {
+  background-color: #ffa500; /* Highlight hover effect */
+  color: #fff;
+  border-radius: 50%;
+}
+
+/* Styling for past dates */
+.past-date {
+  background-color: #d3d3d3; /* Light gray */
+  color: black;
+}
+
+/* Styling for today's date */
+.today-date {
+  background-color: white; /* White background */
+  border: 2px solid lightgray; /* Light gray border */
+  color: black; /* Black text */
+}
+
+/* Styling for upcoming dates */
+.coming-date {
+  background-color: white; /* White background */
+  border: 2px solid lightgray; /* Light gray border */
+  color: black; /* Black text */
+}
+
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-content {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  text-align: center;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.modal-content h2 {
+  margin-bottom: 15px;
+}
+
+.modal-content button {
+  margin-top: 15px;
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.modal-content button:hover {
+  background-color: #0056b3;
+}
