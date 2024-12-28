@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import supabase from '../../../../../config/supabaseClient';
 
 import BackButton from '../../../../../components/Button/BackButton';
@@ -8,7 +9,7 @@ import { useRecipeContext } from '../../Contexts/RecipeContext';
 
 const RecipeDetail = () => {
 
-    const { recipes, fetchRecipeIngredients, fetchRecipeSteps } = useRecipeContext();
+    const { recipes, fetchRecipeIngredients, fetchRecipeSteps, mealTypes } = useRecipeContext();
 
     const { id } = useParams();
     const navigate = useNavigate();
@@ -35,6 +36,9 @@ const RecipeDetail = () => {
         fat: 0,
     });
     const [totalWeightInGrams, setTotalWeightInGrams] = useState(0);
+
+    const location = useLocation();
+    const scheduleData = location.state; // Get state passed via navigate
 
     // const nutritionFacts = {
     //     calories: 500,
@@ -246,6 +250,43 @@ const RecipeDetail = () => {
         return <div>Recipe not found!</div>;
     }
 
+    const handleCancelSchedule = async () => {
+        if (!scheduleData) return; // No schedule to cancel
+    
+        const { planned_date, meal_type_id, recipe_id } = scheduleData;
+    
+        const confirm = window.confirm(
+            "Are you sure you want to cancel this scheduled recipe?"
+        );
+        if (!confirm) return;
+    
+        try {
+            const { error } = await supabase
+                .from("meal_plan")
+                .delete()
+                .eq("planned_date", planned_date)
+                .eq("meal_type_id", meal_type_id)
+                .eq("recipe_id", recipe_id);
+    
+            if (error) {
+                console.error("Error canceling schedule:", error.message);
+                return;
+            }
+    
+            alert("Schedule canceled successfully.");
+            navigate(-1); // Go back to the Meal Planner
+        } catch (err) {
+            console.error("Unexpected error:", err.message);
+        }
+    };
+
+    // Map mealTypes to an object for quick lookup
+    const mealTypeMap = mealTypes.reduce((map, type) => {
+        map[type.id] = type.name;
+        return map;
+    }, {});
+    
+
     return (
         <div style={{ padding: '20px' }}>
             <BackButton />
@@ -390,7 +431,7 @@ const RecipeDetail = () => {
                 </div>
             )} */}
 
-            <button onClick={toggleCookingMode}>Start Cooking Mode</button>
+            {/* <button onClick={toggleCookingMode}>Start Cooking Mode</button> */}
 
             {/* Cooking Mode Overlay */}
             {/* {isCookingMode && (
@@ -540,7 +581,7 @@ const RecipeDetail = () => {
                 </div>
             )}
 
-            <button
+            {/* <button
                 onClick={() =>
                     navigate('/recipes/calendar', {
                         state: { recipeId: id, recipeName: recipe.name },
@@ -548,7 +589,117 @@ const RecipeDetail = () => {
                 }
             >
                 Reschedule
-            </button>
+            </button> */}
+
+            {!scheduleData ? (
+                // Default buttons for viewing recipes
+                <>
+                    <button
+                        onClick={toggleCookingMode}
+                        style={{
+                            padding: "10px 20px",
+                            background: "#007bff",
+                            color: "#fff",
+                            border: "none",
+                            borderRadius: "5px",
+                            cursor: "pointer",
+                            marginTop: "20px",
+                        }}
+                    >
+                        Start Cooking Mode
+                    </button>
+
+                    <button
+                        onClick={() =>
+                            navigate('/recipes/calendar', {
+                                state: { recipeId: id, recipeName: recipe.name },
+                            })
+                        }
+                        style={{
+                            padding: "10px 20px",
+                            background: "orange",
+                            color: "#fff",
+                            border: "none",
+                            borderRadius: "5px",
+                            cursor: "pointer",
+                            marginTop: "20px",
+                        }}
+                    >
+                        Reschedule
+                    </button>
+                </>
+            ) : (
+                // Buttons for navigating from the Meal Planning page
+                <>
+                    {/* <button
+                        onClick={handleCancelSchedule}
+                        style={{
+                            padding: "10px 20px",
+                            background: "red",
+                            color: "#fff",
+                            border: "none",
+                            borderRadius: "5px",
+                            cursor: "pointer",
+                            marginTop: "20px",
+                        }}
+                    >
+                        Cancel Schedule for {scheduleData.planned_date}, {scheduleData.meal_type_id}
+                    </button> */}
+
+                    <button
+                        onClick={handleCancelSchedule}
+                        style={{
+                            padding: "12px 20px",
+                            background: "#ff4d4d", // Softer red
+                            color: "#fff",
+                            border: "none",
+                            borderRadius: "8px",
+                            cursor: "pointer",
+                            marginTop: "20px",
+                            fontSize: "16px",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: "8px",
+                            boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
+                            transition: "background 0.3s ease",
+                        }}
+                        onMouseEnter={(e) => (e.target.style.background = "#e63939")}
+                        onMouseLeave={(e) => (e.target.style.background = "#ff4d4d")}
+                    >
+                        <span style={{ fontSize: "20px", fontWeight: "bold" }}>✖</span>
+                        Cancel Schedule for{" "}
+                        {new Date(scheduleData.planned_date).toLocaleDateString("en-US", {
+                            month: "long",
+                            day: "numeric",
+                            year: "numeric",
+                        })}{" "}
+                        ({mealTypeMap[scheduleData.meal_type_id] || "Unknown"})
+                    </button>
+
+
+                    <button
+                        onClick={() =>
+                            navigate('/recipes/calendar', {
+                                state: { recipeId: id, recipeName: recipe.name },
+                            })
+                        }
+                        style={{
+                            padding: "10px 20px",
+                            background: "orange",
+                            color: "#fff",
+                            border: "none",
+                            borderRadius: "5px",
+                            cursor: "pointer",
+                            marginTop: "20px",
+                        }}
+                    >
+                        Reschedule Another Meal
+                    </button>
+                    {/* havnt do passing state for this */}
+                </>
+            )}
+
 
             <h3>Related Recipes</h3>
             <ul>

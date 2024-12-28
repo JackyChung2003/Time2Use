@@ -3,6 +3,9 @@ import { useNavigate } from 'react-router-dom'; // For navigation
 import Calendar from 'react-calendar';
 import { format } from 'date-fns';
 
+
+import BackButton from '../../../../components/Button/BackButton';
+
 // import 'react-calendar/dist/Calendar.css'; // Default React-Calendar styles
 import './index.css'; // Custom styles
 
@@ -57,6 +60,7 @@ const RecipeCalendar = () => {
     return (
         <div className="calendar-container">
             <h1>Calendar</h1>
+            <BackButton />
             <Calendar
                 onChange={(date) => setValue(date)} // Updates selected date
                 value={value} // Current selected date

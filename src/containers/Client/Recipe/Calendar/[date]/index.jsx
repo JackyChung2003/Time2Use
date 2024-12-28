@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import supabase from "../../../../../config/supabaseClient";
 import { useRecipeContext } from "../../Contexts/RecipeContext";
+import BackButton from "../../../../../components/Button/BackButton";
 import "./index.css"; // Custom styles
 
 const MealPlannerPage = () => {
@@ -124,6 +125,7 @@ const MealPlannerPage = () => {
   return (
     <div className="meal-planner-container">
       <header className="meal-planner-header">
+        <BackButton />
         <div className="date-display">
           <p>{date}</p>
         </div>
@@ -162,7 +164,7 @@ const MealPlannerPage = () => {
                 )}
               </div>
               <div className="meal-section-controls">
-                <button onClick={() => console.log("Edit Meal Plan")}>Edit</button>
+                <button onClick={() => console.log("View Meal Plan")}>View details</button>
                 <button onClick={() => console.log("Start Cooking")}>
                   Start Cooking
                 </button>
@@ -185,7 +187,17 @@ const MealPlannerPage = () => {
                       alt={meal.recipe?.name || "Meal Image"}
                       className="meal-image"
                       onClick={() =>
-                        navigate(`/recipes/${meal.recipe?.id || ""}`)
+                        // navigate(`/recipes/${meal.recipe?.id || ""}`)
+                        // console.log("Meal Image Clicked")
+                        navigate(`/recipes/recipe/${meal.recipe?.id || ""}`, {
+                        // navigate(`/recipes/${meal.recipe?.id || ""}`, {
+                            state: {
+                                planned_date: meal.planned_date,
+                                meal_type_id: meal.meal_type_id,
+                                recipe_id: meal.recipe_id,
+                            },
+                        })
+                        // navigate(`/recipes/recipe/${meal.recipe?.id || ""}`)
                       }
                     />
                     <div className="meal-overlay">

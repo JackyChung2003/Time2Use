@@ -101,7 +101,8 @@ body {
 
 .meal-item {
   position: relative;
-  width: calc(50% - 10px);
+  /* width: calc(50% - 10px); */
+  width: 100%;
   margin-bottom: 15px;
   border-radius: 10px;
   overflow: hidden;
@@ -124,6 +125,7 @@ body {
   color: white;
   padding: 10px;
   text-align: center;
+  pointer-events: none; /* Prevent overlay from blocking clicks */
 }
 
 .meal-name {
