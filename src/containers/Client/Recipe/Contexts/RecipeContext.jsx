@@ -209,7 +209,7 @@ const fetchRecipes = async () => {
         // Fetch meal plans for the given date
         const { data, error } = await supabase
             .from("meal_plan")
-            .select("meal_type_id, recipe_id, notes")
+            .select("meal_type_id, recipe_id, notes, planned_date")
             .eq("planned_date", date);
 
         if (error) {
