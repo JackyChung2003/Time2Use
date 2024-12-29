@@ -69,6 +69,11 @@ const RecipePreparationPage = () => {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
 
+  const [ingredients, setIngredients] = useState([]);
+  const [steps, setSteps] = useState([]);
+  const [mergedIngredients, setMergedIngredients] = useState([]);
+  const [isCombined, setIsCombined] = useState(true);
+
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -81,15 +86,15 @@ const RecipePreparationPage = () => {
     const fetchDetails = async () => {
       try {
         setLoading(true);
-
+  
         const { data: mealPlans, error: mealPlansError } = await supabase
           .from("meal_plan")
           .select("recipe_id, notes, planned_date")
           .eq("planned_date", planned_date)
           .eq("meal_type_id", meal_type_id);
-
+  
         if (mealPlansError) throw new Error(mealPlansError.message);
-
+  
         if (!mealPlans || mealPlans.length === 0) {
           console.warn("No meal plans found for the given date and meal type.");
           setRecipes([]);
@@ -97,26 +102,54 @@ const RecipePreparationPage = () => {
         }
 
         const recipeIds = mealPlans.map((meal) => meal.recipe_id);
-
+  
         const { data: recipes, error: recipesError } = await supabase
           .from("recipes")
           .select("id, name, image_path, description, prep_time, cook_time")
           .in("id", recipeIds);
-
+  
         if (recipesError) throw new Error(recipesError.message);
-
+  
         setRecipes(recipes);
+  
+        const allIngredients = [];
+        const allSteps = [];
+        for (const recipe of recipes) {
+          const ingredientsData = await fetchRecipeIngredients(recipe.id);
+          const stepsData = await fetchRecipeSteps(recipe.id);
+          allIngredients.push(
+            ...ingredientsData.map((ingredient) => ({
+              ...ingredient,
+              recipeId: recipe.id,
+            }))
+          );
+          allSteps.push(...stepsData);
+        }
+  
+        setIngredients(allIngredients);
+        setSteps(allSteps);
+  
+        const merged = allIngredients.reduce((acc, ingredient) => {
+          const existing = acc.find((item) => item.ingredients.name === ingredient.ingredients.name);
+          if (existing) {
+            existing.quantity += ingredient.quantity;
+          } else {
+            acc.push({ ...ingredient });
+          }
+          return acc;
+        }, []);
+        setMergedIngredients(merged);
       } catch (error) {
         console.error("Error fetching preparation details:", error.message);
       } finally {
         setLoading(false);
       }
     };
-
+  
     if (planned_date && meal_type_id) {
       fetchDetails();
     }
-  }, [planned_date, meal_type_id]);
+  }, [fetchRecipeIngredients, fetchRecipeSteps, planned_date, meal_type_id]);
 
   const handleDragEnd = (event) => {
     const { active, over } = event;
@@ -132,19 +165,24 @@ const RecipePreparationPage = () => {
     }
   };
 
+  const toggleCombineIngredients = () => {
+    setIsCombined(!isCombined);
+  };
+
   const startCooking = () => {
     setShowModal(true);
   };
-
+  
   const confirmSequence = () => {
     setShowModal(false);
     console.log("Confirmed cooking sequence:", recipes);
-    // Proceed to cooking steps
+    // Proceed to cooking steps logic
   };
-
+  
   const closeModal = () => {
     setShowModal(false);
   };
+  
 
   if (loading) {
     return <div>Loading preparation details...</div>;
@@ -161,23 +199,83 @@ const RecipePreparationPage = () => {
       <h3>Date: {planned_date}</h3>
       <h3>Meal Type: {mealTypes.find((type) => type.id === meal_type_id)?.name || "Unknown"}</h3>
 
-      {recipes.map((recipe) => (
-        <div key={recipe.id} className="recipe-details">
-          <h2>{recipe.name}</h2>
-          <img
-            src={`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/${recipe.image_path}`}
-            alt={recipe.name}
-            style={{ width: "300px", borderRadius: "10px" }}
-          />
-          <p>{recipe.description}</p>
-          <p>
-            <strong>Prep Time:</strong> {recipe.prep_time} mins
-          </p>
-          <p>
-            <strong>Cook Time:</strong> {recipe.cook_time} mins
-          </p>
-        </div>
-      ))}
+      {isCombined ? (
+        <>
+          <div>
+            <h3>Recipes</h3>
+            {recipes.map((recipe) => (
+              <div key={recipe.id} className="recipe-details">
+                <h2>{recipe.name}</h2>
+                <img
+                  src={`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/${recipe.image_path}`}
+                  alt={recipe.name}
+                  style={{ width: "300px", borderRadius: "10px" }}
+                  />
+                <p>{recipe.description}</p>
+                <p>
+                  <strong>Prep Time:</strong> {recipe.prep_time} mins
+                </p>
+                <p>
+                  <strong>Cook Time:</strong> {recipe.cook_time} mins
+                </p>
+              </div>
+            ))}
+          </div>
+          <div>
+            <h3>Merged Ingredients</h3>
+            <ul>
+              {mergedIngredients.map((ingredient, index) => (
+                <li key={index}>
+                  {ingredient.ingredients.name} - {ingredient.quantity} {ingredient.ingredients.unit?.unit_tag || ""}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </>
+      ) : (
+        recipes.map((recipe) => (
+          <div key={recipe.id} className="recipe-details">
+            <h2>{recipe.name}</h2>
+            <img
+              src={`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/${recipe.image_path}`}
+              alt={recipe.name}
+              style={{ width: "300px", borderRadius: "10px" }}
+            />
+            <p>{recipe.description}</p>
+            <p>
+              <strong>Prep Time:</strong> {recipe.prep_time} mins
+            </p>
+            <p>
+              <strong>Cook Time:</strong> {recipe.cook_time} mins
+            </p>
+            <div>
+              <h3>Ingredients</h3>
+              <ul>
+                {ingredients
+                  .filter((ingredient) => ingredient.recipeId === recipe.id)
+                  .map((ingredient, index) => (
+                    <li key={index}>
+                      {ingredient.ingredients.name} - {ingredient.quantity} {ingredient.ingredients.unit?.unit_tag || ""}
+                    </li>
+                  ))}
+              </ul>
+            </div>
+          </div>
+        ))
+      )}
+
+      <button
+        onClick={toggleCombineIngredients}
+        style={{
+          padding: "10px 20px",
+          background: isCombined ? "red" : "green",
+          color: "white",
+          borderRadius: "5px",
+          marginTop: "20px",
+        }}
+      >
+        {isCombined ? "Separate Ingredients" : "Combine Ingredients"}
+      </button>
 
       <button
         onClick={startCooking}
@@ -195,7 +293,7 @@ const RecipePreparationPage = () => {
       {showModal && (
         <div
           className="modal-overlay"
-          onClick={closeModal} // Close modal if user clicks outside
+          onClick={closeModal}
           style={{
             position: "fixed",
             top: 0,
@@ -210,7 +308,7 @@ const RecipePreparationPage = () => {
         >
           <div
             className="modal-content"
-            onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside modal
+            onClick={(e) => e.stopPropagation()}
             style={{
               background: "white",
               padding: "20px",
@@ -237,17 +335,40 @@ const RecipePreparationPage = () => {
                 </ul>
               </SortableContext>
             </DndContext>
-            <div style={{ marginTop: "20px", display: "flex", justifyContent: "space-between" }}>
-              <button onClick={closeModal} style={{ background: "red", color: "white", padding: "10px 20px", borderRadius: "5px" }}>
+            <div
+              style={{
+                marginTop: "20px",
+                display: "flex",
+                justifyContent: "space-between",
+              }}
+            >
+              <button
+                onClick={closeModal}
+                style={{
+                  background: "red",
+                  color: "white",
+                  padding: "10px 20px",
+                  borderRadius: "5px",
+                }}
+              >
                 Cancel
               </button>
-              <button onClick={confirmSequence} style={{ background: "green", color: "white", padding: "10px 20px", borderRadius: "5px" }}>
+              <button
+                onClick={confirmSequence}
+                style={{
+                  background: "green",
+                  color: "white",
+                  padding: "10px 20px",
+                  borderRadius: "5px",
+                }}
+              >
                 Confirm
               </button>
             </div>
           </div>
         </div>
       )}
+
     </div>
   );
 };
