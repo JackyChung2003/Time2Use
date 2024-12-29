@@ -14,6 +14,7 @@ const Inventory = () => {
   const [expandedItems, setExpandedItems] = useState({});  // State to manage expanded text per item
   const [sortOption, setSortOption] = useState(null); // State for sorting option
   const [showFilterMenu, setShowFilterMenu] = useState(false); // State to toggle filter menu
+  const [usedAmount, setUsedAmount] = useState({});
 
   useEffect(() => {
     const fetchUserAndInventory = async () => {
@@ -73,6 +74,17 @@ const Inventory = () => {
   const toggleDropdown = (id) => {
     setActiveDropdown((prev) => (prev === id ? null : id));
   };
+
+  const handleDoneClick = (item) => {
+    const amountUsed = parseFloat(usedAmount[item.id] || 0);
+    if (amountUsed > 0 && amountUsed <= item.quantity) {
+      const updatedQuantity = item.quantity - amountUsed;
+      handleQuantityChange(item, updatedQuantity);
+      setUsedAmount({ ...usedAmount, [item.id]: '' }); // Clear input after updating
+    } else {
+      alert("Please enter a valid amount within the range!");
+    }
+  };  
 
   const handlePortionClickWithState = async (item, portion) => {
     try {
@@ -169,7 +181,7 @@ const Inventory = () => {
                       Date Purchased: {new Date(item.created_at).toISOString().split('T')[0]}
                     </div>
   
-                    {item.quantity_unit === 'unit(s)' ? (
+                    {['unit', 'pcs', 'can', 'box'].includes(item.quantity_unit) ? (
                       <div className="unit-controls">
                         <button onClick={() => handlePortionClickWithState(item, 1)} className="quantity-button">-</button>
                         <div className="quantity-container">
@@ -182,18 +194,42 @@ const Inventory = () => {
                         <div className="quantity-container">
                           <input
                             type="number"
-                            value={item.quantity === 0 ? '' : item.quantity}
-                            onChange={(e) => handleQuantityChange(item, e.target.value)}
+                            value={item.quantity === null || item.quantity === undefined ? '' : item.quantity}
+                            onChange={(e) => handleQuantityChange(item, e.target.value === '' ? '' : parseFloat(e.target.value))}
                             className="quantity-box"
                             min="0"
                           />
                           <div className="quantity-unit">({item.quantity_unit})</div>
                         </div>
-                        <p>Used portion</p>
-                        <div className="portion-buttons">
-                          <button onClick={() => handlePortionClickWithState(item, item.quantity * 0.25)}>1/4</button>
-                          <button onClick={() => handlePortionClickWithState(item, item.quantity * 0.5)}>1/2</button>
-                          <button onClick={() => handlePortionClickWithState(item, item.quantity * 0.75)}>3/4</button>
+                        {/* Used amount input */}
+                        <div className="used-amount-container">
+                          <label htmlFor={`used-amount-${item.id}`}>Used amount:</label>
+                          <input
+                            type="number"
+                            id={`used-amount-${item.id}`}
+                            className="used-amount-input"
+                            value={usedAmount[item.id] || ''}
+                            onChange={(e) => setUsedAmount({ ...usedAmount, [item.id]: e.target.value })}
+                            placeholder=""
+                          />
+                          <div className="quantity-unit">({item.quantity_unit})</div>
+                          <img
+                            src="/image/tick-icon.png"
+                            alt="Confirm"
+                            className="done-icon"
+                            onClick={() => handleDoneClick(item)}
+                          />
+                          
+                        </div>
+                        <p>or</p>
+                        <div className="portion-row">
+                          <p>Used portion: </p>
+                          <div className="portion-buttons">
+                            <button onClick={() => handlePortionClickWithState(item, item.quantity * 0.2)}>1/5</button>
+                            <button onClick={() => handlePortionClickWithState(item, item.quantity * 0.4)}>2/5</button>
+                            <button onClick={() => handlePortionClickWithState(item, item.quantity * 0.6)}>3/5</button>
+                            <button onClick={() => handlePortionClickWithState(item, item.quantity * 0.8)}>4/5</button>
+                          </div>
                         </div>
                       </div>
                     )}
