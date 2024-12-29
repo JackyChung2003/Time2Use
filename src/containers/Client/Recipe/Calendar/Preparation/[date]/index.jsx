@@ -3,60 +3,9 @@ import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useRecipeContext } from "../../../../../../containers/Client/Recipe/Contexts/RecipeContext";
 import BackButton from "../../../../../../components/Button/BackButton";
 import supabase from "../../../../../../config/supabaseClient";
-import {
-  DndContext,
-  closestCenter,
-  PointerSensor,
-  useSensor,
-  useSensors,
-} from "@dnd-kit/core";
-import {
-  SortableContext,
-  verticalListSortingStrategy,
-  useSortable,
-  arrayMove,
-} from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
+
+import SortableRecipeList from "../../../../../../components/SortableDragAndDrop/Recipes_List/SortableRecipeList";
 import "./index.css"; // Add custom styles if needed
-
-const SortableRecipe = ({ id, recipe }) => {
-  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    padding: "10px",
-    border: "1px solid #ccc",
-    borderRadius: "5px",
-    marginBottom: "10px",
-    background: "#f9f9f9",
-    display: "flex",
-    alignItems: "center",
-  };
-
-  return (
-    <li ref={setNodeRef} style={style} {...attributes}>
-      <span
-        {...listeners}
-        style={{
-          cursor: "grab",
-          fontSize: "20px",
-          marginRight: "10px",
-          touchAction: "none", // Prevent scrolling when dragging
-        }}
-        className="drag-handle"
-      >
-        ☰
-      </span>
-      <img
-        src={`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/${recipe.image_path}`}
-        alt={recipe.name}
-        style={{ width: "50px", height: "50px", borderRadius: "5px", marginRight: "10px" }}
-      />
-      <span>{recipe.name}</span>
-    </li>
-  );
-};
 
 const RecipePreparationPage = () => {
   const { fetchRecipeIngredients, fetchRecipeSteps, mealTypes } = useRecipeContext();
@@ -74,13 +23,6 @@ const RecipePreparationPage = () => {
   const [mergedIngredients, setMergedIngredients] = useState([]);
   const [isCombined, setIsCombined] = useState(true);
 
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 10,
-      },
-    })
-  );
 
   useEffect(() => {
     const fetchDetails = async () => {
@@ -150,20 +92,6 @@ const RecipePreparationPage = () => {
       fetchDetails();
     }
   }, [fetchRecipeIngredients, fetchRecipeSteps, planned_date, meal_type_id]);
-
-  const handleDragEnd = (event) => {
-    const { active, over } = event;
-
-    if (active.id !== over?.id) {
-      const updatedRecipes = arrayMove(
-        recipes,
-        recipes.findIndex((recipe) => recipe.id === active.id),
-        recipes.findIndex((recipe) => recipe.id === over.id)
-      );
-
-      setRecipes(updatedRecipes);
-    }
-  };
 
   const toggleCombineIngredients = () => {
     setIsCombined(!isCombined);
@@ -319,7 +247,7 @@ const RecipePreparationPage = () => {
             }}
           >
             <h3>Arrange Cooking Sequence</h3>
-            <DndContext
+            {/* <DndContext
               sensors={sensors}
               collisionDetection={closestCenter}
               onDragEnd={handleDragEnd}
@@ -334,7 +262,9 @@ const RecipePreparationPage = () => {
                   ))}
                 </ul>
               </SortableContext>
-            </DndContext>
+            </DndContext> */}
+
+            <SortableRecipeList recipes={recipes} setRecipes={setRecipes} />
             <div
               style={{
                 marginTop: "20px",
