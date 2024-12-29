@@ -28,10 +28,10 @@ const App = () => {
     const [loading, setLoading] = useState(true);
     const [isCollapsed, setIsCollapsed] = useState(false); // Sidebar collapse state
 
-    
-    // useEffect(() => {
-    //     const fetchUser = async () => {
-    //         const { data: userData, error: userError } = await supabase.auth.getUser();
+    useEffect(() => {
+        const fetchUser = async () => {
+            const { data: userData, error: userError } = await supabase.auth.getUser();
+            console.log(userData);
     //         const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
 
     //         if (userData?.user) {
@@ -60,14 +60,15 @@ const App = () => {
     //             setUserRole(null);
     //             console.error("No session found:", sessionError);
     //         }
-    //     };
+        };
 
-    //     fetchUser();
-    // }, []);
+        fetchUser();
+    }, []);
 
     useEffect(() => {
          // Temporarily hardcode the userRole for development
         setUserRole("client"); // or "admin" depending on the role you want to test
+        // setUserRole("admin"); // or "admin" depending on the role you want to test
         setLoading(false); // Stop the loading spinner
     }, []);
     

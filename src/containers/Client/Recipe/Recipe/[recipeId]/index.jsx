@@ -8,227 +8,146 @@ import { useRecipeContext } from '../../Contexts/RecipeContext';
 
 const RecipeDetail = () => {
 
-    const { fetchRecipeIngredients } = useRecipeContext();
+    const { recipes, fetchRecipeIngredients, fetchRecipeSteps } = useRecipeContext();
 
     const { id } = useParams();
     const navigate = useNavigate();
+
     const [recipe, setRecipe] = useState(null);
-    const [tags, setTags] = useState([]);
-    const [equipment, setEquipment] = useState([]);
     const [ingredients, setIngredients] = useState([]);
     const [steps, setSteps] = useState([]);
-    const [substitutions, setSubstitutions] = useState([]);
-    const [selectedSubstitutions, setSelectedSubstitutions] = useState({});
-    const [selectedIngredient, setSelectedIngredient] = useState(null);
-    const [isModalOpen, setIsModalOpen] = useState(false);
     const [loading, setLoading] = useState(true);
 
     const [isFavorite, setIsFavorite] = useState(false);
     const [isCookingMode, setIsCookingMode] = useState(false);
-    const [currentStepIndex, setCurrentStepIndex] = useState(0);
+    const [currentStepIndex, setCurrentStepIndex] = useState(0); // Tracks the current step
+    const [previousStepIndex, setPreviousStepIndex] = useState(null); // Tracks the previous step
+    
     const [relatedRecipes, setRelatedRecipes] = useState([]);
 
     const [servingPacks, setServingPacks] = useState(2); // Default servings (e.g., 2 servings)
-    const [defaultServings, setDefaultServings] = useState(2); // Original serving size from the recipe
+    const [defaultServings, setDefaultServings] = useState(1); // Original serving size from the recipe
 
+    const [nutritionFacts, setNutritionFacts] = useState({
+        calories: 0,
+        protein: 0,
+        carbohydrate: 0,
+        fat: 0,
+    });
+    const [totalWeightInGrams, setTotalWeightInGrams] = useState(0);
 
-    const nutritionFacts = {
-        calories: 500,
-        protein: 20,
-        carbs: 50,
-        fat: 15,
-    };
-
-    const fetchRecipeDetail = async () => {
-        try {
-            const { data: recipeData, error: recipeError } = await supabase
-                .from('recipes')
-                .select('id, name, description, prep_time, cook_time, image_path')
-                .eq('id', id)
-                .single();
-
-            if (recipeError) {
-                console.error('Error fetching recipe detail:', recipeError);
-                return;
-            }
-            setRecipe(recipeData);
-
-            const [{ data: tagsData }, { data: equipmentData }, { data: ingredientsData }, { data: stepsData }] = await Promise.all([
-                supabase.from('recipe_tags').select('tags(name)').eq('recipe_id', id),
-                supabase.from('recipe_equipment').select('equipment(name)').eq('recipe_id', id),
-                supabase.from('recipe_ingredients').select('quantity, unit, ingredients(name, id)').eq('recipe_id', id),
-                supabase.from('steps').select('step_number, instruction, variations').eq('recipe_id', id),
-            ]);
-
-            setTags(tagsData?.map((tag) => tag.tags.name) || []);
-            setEquipment(equipmentData?.map((equip) => equip.equipment.name) || []);
-            setIngredients(ingredientsData || []);
-            setSteps(stepsData || []);
-        } catch (error) {
-            console.error('Unexpected error:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const fetchSubstitutions = async (ingredientId) => {
-        try {
-            const { data, error } = await supabase
-                .from('ingredient_substitutes')
-                .select(`
-                    quantity,
-                    unit,
-                    note,
-                    substitute_ingredient:ingredients!ingredient_substitutes_substitute_id_fkey(name, id)
-                `)
-                .eq('ingredient_id', ingredientId);
-
-            if (error) {
-                console.error('Error fetching substitutions:', error);
-                return;
-            }
-
-            setSubstitutions(data || []);
-        } catch (error) {
-            console.error('Unexpected error:', error);
-        }
-    };
-
-    // const fetchRelatedRecipes = async () => {
-    //     try {
-    //         const { data, error } = await supabase
-    //             .from('recipes')
-    //             .select('id, name, image_path')
-    //             .in('tags', tags);
-    
-    //         if (error) {
-    //             console.error('Error fetching related recipes:', error);
-    //             return;
-    //         }
-    //         setRelatedRecipes(data);
-    //     } catch (error) {
-    //         console.error('Unexpected error:', error);
-    //     }
+    // const nutritionFacts = {
+    //     calories: 500,
+    //     protein: 20,
+    //     carbs: 50,
+    //     fat: 15,
     // };
 
-    // const fetchRelatedRecipes = async () => {
-    //     try {
-    //         const { data, error } = await supabase
-    //             .from('recipe_tags')
-    //             .select(`
-    //                 recipes!inner (id, name, image_path)
-    //             `)
-    //             .eq('tags.id', tagIds) // Filter recipes by tag IDs
-    //             .neq('recipes.id', id); // Exclude the current recipe
-    
-    //         if (error) {
-    //             console.error('Error fetching related recipes:', error);
-    //             return;
-    //         }
-    
-    //         const uniqueRecipes = [...new Map(data.map((item) => [item.recipes.id, item.recipes])).values()];
-    //         setRelatedRecipes(uniqueRecipes);
-    //     } catch (error) {
-    //         console.error('Unexpected error:', error);
-    //     }
-    // };
-
-    const fetchRelatedRecipes = async (tagIds) => {
-        try {
-            const { data, error } = await supabase
-                .from('recipe_tags')
-                .select(`
-                    recipes (id, name, image_path)
-                `)
-                .in('tag_id', tagIds)
-                .neq('recipes.id', id); // Explicitly use 'recipes.id'
-    
-            // console.log('Supabase Response:', data);
-    
-            if (error) {
-                console.error('Error fetching related recipes:', error);
-                return;
-            }
-    
-            const uniqueRecipes = [
-                ...new Map(data.map((item) => [item.recipes.id, item.recipes])).values(),
-            ];
-            // console.log('Unique Related Recipes:', uniqueRecipes);
-            setRelatedRecipes(uniqueRecipes);
-        } catch (error) {
-            console.error('Unexpected error fetching related recipes:', error);
+    useEffect(() => {
+        const selectedRecipe = recipes.find((recipe) => recipe.id === parseInt(id));
+        if (selectedRecipe) {
+            setRecipe(selectedRecipe);
+            // fetchRecipeIngredients(selectedRecipe.id).then(setIngredients);
+            fetchRecipeIngredients(selectedRecipe.id).then((data) => {
+                setIngredients(data);
+                calculateNutrition(data); // Calculate nutrition when ingredients are fetched
+            });
+            fetchRecipeSteps(selectedRecipe.id).then(setSteps);
+        } else {
+            setRecipe(null);
         }
-    };
-    
-    
-    
-    // const fetchCurrentRecipeTags = async () => {
-    //     const { data, error } = await supabase
-    //         .from('recipe_tags')
-    //         .select('tags(id)')
-    //         .eq('recipe_id', id);
-    
-    //     if (data) {
-    //         const tagIds = data.map((tag) => tag.tags.id);
-    //         fetchRelatedRecipes(tagIds); // Pass the tag IDs
-    //     } else {
-    //         console.error('Error fetching tags:', error);
-    //     }
-    // };
+        setLoading(false);
+    }, [id, recipes, fetchRecipeIngredients, fetchRecipeSteps]);
 
-    const fetchCurrentRecipeTags = async () => {
-        try {
-            const { data, error } = await supabase
-                .from('recipe_tags')
-                .select('tag_id')
-                .eq('recipe_id', id);
+    const calculateNutrition = (ingredients) => {
+        let totalNutrition = {
+            calories: 0,
+            protein: 0,
+            carbohydrate: 0,
+            fat: 0,
+        };
+        let totalWeightInGrams = 0; // Total weight of all ingredients in grams
+
+        ingredients.forEach((ingredient) => {
+            const { nutritional_info, unit } = ingredient.ingredients;
+            // const { nutritional_info, quantity, unit } = ingredient.ingredients;
+            const { quantity } = ingredient;
+            
+            console.log("nutritional_info:", nutritional_info);
+            console.log("quantity:", quantity);
+            console.log("unit:", unit);
+
+            let { calories, protein, carbohydrate, fat } = nutritional_info;
+            console.log("calories:", calories);
+            console.log("protein (raw):", protein);
+            console.log("carbohydrate (raw):", carbohydrate);
+            console.log("fat (raw):", fat);
+
+            // Strip "g" and convert to number for protein, carbohydrate, and fat
+            protein = typeof protein === "string" ? parseFloat(protein.replace("g", "")) || 0 : protein || 0;
+            carbohydrate = typeof carbohydrate === "string" ? parseFloat(carbohydrate.replace("g", "")) || 0 : carbohydrate || 0;
+            fat = typeof fat === "string" ? parseFloat(fat.replace("g", "")) || 0 : fat || 0;
     
-            if (error) {
-                console.error('Error fetching tags:', error);
-                return;
+
+            console.log("protein (parsed):", protein);
+            console.log("carbohydrate (parsed):", carbohydrate);
+            console.log("fat (parsed):", fat);
+
+            const conversionRate = unit.conversion_rate_to_grams;
+            console.log("conversionRate:", conversionRate);
+
+            // Handle unit conversion to grams (example for common units)
+            let quantityInGrams = quantity;
+            if (conversionRate && conversionRate > 0) {
+                quantityInGrams *= conversionRate;
+            } else {
+                console.warn(`Unit ${unit.unit_tag} does not have a valid conversion rate.`);
+                return; // Skip this ingredient if no valid conversion rate
             }
-    
-            const tagIds = data.map((tag) => tag.tag_id);
-            // console.log('Tags for current recipe:', tagIds); // Log the fetched tag IDs
-            fetchRelatedRecipes(tagIds); // Fetch related recipes using tag IDs
-        } catch (error) {
-            console.error('Unexpected error fetching tags:', error);
-        }
-    };
-    
 
-    const handleIngredientClick = async (ingredient) => {
-        setSelectedIngredient(ingredient);
-        await fetchSubstitutions(ingredient.ingredients.id);
-        setIsModalOpen(true);
-    };
+            // Update the total weight
+            totalWeightInGrams += quantityInGrams;
 
-    const handleSubstitutionSelect = (substitution) => {
-        setSelectedSubstitutions((prevState) => ({
-            ...prevState,
-            [selectedIngredient.ingredients.id]: substitution,
-        }));
-        setIsModalOpen(false);
-    };
-
-    const getModifiedSteps = () => {
-        return steps.map((step) => {
-            if (step.variations) {
-                const variation = step.variations[selectedIngredient?.ingredients?.id];
-                if (variation) {
-                    return {
-                        ...step,
-                        instruction: variation,
-                    };
-                }
-            }
-            return step;
+            // Nutritional info is per 100 grams; calculate based on quantity
+            const factor = quantityInGrams / 100;
+            totalNutrition.calories += calories * factor;
+            totalNutrition.protein += protein * factor;
+            totalNutrition.carbohydrate += carbohydrate * factor;
+            totalNutrition.fat += fat * factor;
         });
-    };
 
-    const startCooking = () => {
-        // console.log('Selected Substitutions:', selectedSubstitutions);
-        navigate(`/recipes/start-cooking/${id}`);
+        setTotalWeightInGrams(totalWeightInGrams);
+
+        // Calculate per 100g nutrition values
+        const per100gNutrition = {
+            calories: (totalNutrition.calories / (totalWeightInGrams / 100)).toFixed(2),
+            protein: (totalNutrition.protein / (totalWeightInGrams / 100)).toFixed(2),
+            carbohydrate: (totalNutrition.carbohydrate / (totalWeightInGrams / 100)).toFixed(2),
+            fat: (totalNutrition.fat / (totalWeightInGrams / 100)).toFixed(2),
+        };
+
+        console.log(`Total Weight of Recipe: ${totalWeightInGrams.toFixed(2)}g`);
+        console.log("Total Nutrition:", totalNutrition);
+        console.log("Per 100g Nutrition:", per100gNutrition);
+
+        // // Update state
+        // setNutritionFacts({
+        //     calories: totalNutrition.calories.toFixed(2),
+        //     protein: totalNutrition.protein.toFixed(2),
+        //     carbohydrate: totalNutrition.carbohydrate.toFixed(2),
+        //     fat: totalNutrition.fat.toFixed(2),
+        // });
+
+        // Update state with both total and per 100g nutrition facts
+        setNutritionFacts({
+            total: {
+                calories: totalNutrition.calories.toFixed(2),
+                protein: totalNutrition.protein.toFixed(2),
+                carbohydrate: totalNutrition.carbohydrate.toFixed(2),
+                fat: totalNutrition.fat.toFixed(2),
+            },
+            per100g: per100gNutrition,
+        });
     };
 
     const toggleFavorite = async () => {
@@ -251,103 +170,59 @@ const RecipeDetail = () => {
         }
     };
 
-    const toggleCookingMode = () => setIsCookingMode((prev) => !prev);
+    // const toggleCookingMode = () => setIsCookingMode((prev) => !prev);
+
+    const toggleCookingMode = () => {
+        if (!isCookingMode) {
+            // Prompt user if they want to continue from the last step
+            if (previousStepIndex !== null) {
+                const continueFromLast = window.confirm(
+                    'Would you like to continue from your last step or start over?'
+                );
+                if (continueFromLast) {
+                    setCurrentStepIndex(previousStepIndex);
+                } else {
+                    setCurrentStepIndex(0);
+                }
+            } else {
+                setCurrentStepIndex(0);
+            }
+        } else {
+            setPreviousStepIndex(currentStepIndex); // Save the current step when exiting
+        }
+        setIsCookingMode((prev) => !prev);
+    };
+
+    const handleNextStep = () => {
+        if (currentStepIndex < steps.length - 1) {
+            const nextStepIndex = currentStepIndex + 1;
+            setCurrentStepIndex(nextStepIndex);
+            console.log(`Now on Step ${nextStepIndex + 1}: ${steps[nextStepIndex].instruction}`);
+        }
+    };
+
+    const handlePreviousStep = () => {
+        if (currentStepIndex > 0) {
+            const prevStepIndex = currentStepIndex - 1;
+            setCurrentStepIndex(prevStepIndex);
+            console.log(`Now on Step ${prevStepIndex + 1}: ${steps[prevStepIndex].instruction}`);
+        }
+    };
+
+    const finishCooking = () => {
+        alert('Congratulations! You have finished cooking this recipe.');
+        setIsCookingMode(false);
+        setPreviousStepIndex(null); // Reset the previous step
+    };
 
     const shareRecipe = () => {
         navigator.clipboard.writeText(window.location.href);
         alert('Recipe link copied to clipboard!');
     };
 
-    // useEffect(() => {
-    //     // Fetch recipe details when the ID changes
-    //     fetchRecipeDetail();
-    // }, [id]);
-
-    // useEffect(() => {
-    //     fetchCurrentRecipeTags();
-    // }, [id]);
-    
-    // useEffect(() => {
-    //     // Fetch related recipes only when tags are available
-    //     if (tags.length > 0) {
-    //         fetchRelatedRecipes();
-    //     }
-    // }, [tags]);
-
-    useEffect(() => {
-        const fetchAllData = async () => {
-            try {
-                setLoading(true);
-    
-                // 1. Fetch Recipe Details
-                const { data: recipeData, error: recipeError } = await supabase
-                    .from('recipes')
-                    .select('id, name, description, prep_time, cook_time, image_path')
-                    .eq('id', id)
-                    .single();
-    
-                if (recipeError) {
-                    console.error('Error fetching recipe detail:', recipeError);
-                    setLoading(false);
-                    return;
-                }
-                setRecipe(recipeData);
-    
-                // 2. Fetch Tags for Current Recipe
-                const { data: tagsData, error: tagsError } = await supabase
-                    .from('recipe_tags')
-                    .select('tag_id')
-                    .eq('recipe_id', id);
-    
-                if (tagsError) {
-                    console.error('Error fetching tags:', tagsError);
-                    setLoading(false);
-                    return;
-                }
-    
-                const tagIds = tagsData.map((tag) => tag.tag_id);
-                // console.log('Tags for current recipe:', tagIds);
-                setTags(tagIds);
-    
-                // 3. Fetch Related Recipes Based on Tags
-                if (tagIds.length > 0) {
-                    const { data: relatedData, error: relatedError } = await supabase
-                        .from('recipe_tags')
-                        .select(`
-                            recipes (id, name, image_path)
-                        `)
-                        .in('tag_id', tagIds)
-                        .neq('recipe_id', id);
-    
-                    if (relatedError) {
-                        console.error('Error fetching related recipes:', relatedError);
-                        return;
-                    }
-    
-                    const uniqueRecipes = [
-                        ...new Map(relatedData.map((item) => [item.recipes.id, item.recipes])).values(),
-                    ];
-                    // console.log('Related Recipes:', uniqueRecipes);
-                    setRelatedRecipes(uniqueRecipes);
-                }
-            } catch (error) {
-                console.error('Unexpected error:', error);
-            } finally {
-                setLoading(false);
-            }
-        };
-    
-        fetchAllData();
-    }, [id]);
-    
-    useEffect(() => {
-        const fetchIngredients = async () => {
-            const data = await fetchRecipeIngredients(id);
-            setIngredients(data);
-        };
-
-        fetchIngredients();
-    }, [id, fetchRecipeIngredients]);
+    if (!recipe) {
+        return <div>Recipe not found!</div>;
+    }
     
     const handleIncreaseServing = () => setServingPacks((prev) => prev + 1);
     const handleDecreaseServing = () => {
@@ -356,6 +231,7 @@ const RecipeDetail = () => {
 
     const getAdjustedIngredients = () => {
         const ratio = servingPacks / defaultServings;
+        console.log("Test ingredients:", ingredients);
         return ingredients.map((ingredient) => ({
             ...ingredient,
             quantity: (ingredient.quantity * ratio).toFixed(2), // Adjust the quantity based on servings
@@ -389,13 +265,39 @@ const RecipeDetail = () => {
             <p>Prep Time: {recipe.prep_time} mins</p>
             <p>Cook Time: {recipe.cook_time} mins</p>
 
-            <h3>Nutrition Facts</h3>
+            <div>
+                <h4>Total Meal Weight</h4>
+                <p>{(totalWeightInGrams * (servingPacks / defaultServings)).toFixed(2)} g</p>
+            </div>
+
+            {/* <h3>Nutrition Facts</h3>
             <ul>
                 <li>Calories: {nutritionFacts.calories} kcal</li>
                 <li>Protein: {nutritionFacts.protein} g</li>
-                <li>Carbs: {nutritionFacts.carbs} g</li>
+                <li>Carbohydrate: {nutritionFacts.carbohydrate} g</li>
                 <li>Fats: {nutritionFacts.fat} g</li>
-            </ul>
+            </ul> */}
+            {/* Nutrition Facts Section */}
+            <h3>Nutrition Facts</h3>
+            <div>
+                <h4>Total Nutrition (for the entire recipe)</h4>
+                <ul>
+                    <li>Calories: {nutritionFacts.total?.calories || 0} kcal</li>
+                    <li>Protein: {nutritionFacts.total?.protein || 0} g</li>
+                    <li>Carbohydrate: {nutritionFacts.total?.carbohydrate || 0} g</li>
+                    <li>Fats: {nutritionFacts.total?.fat || 0} g</li>
+                </ul>
+            </div>
+
+            <div>
+                <h4>Per 100g Nutrition</h4>
+                <ul>
+                    <li>Calories: {nutritionFacts.per100g?.calories || 0} kcal</li>
+                    <li>Protein: {nutritionFacts.per100g?.protein || 0} g</li>
+                    <li>Carbohydrate: {nutritionFacts.per100g?.carbohydrate || 0} g</li>
+                    <li>Fats: {nutritionFacts.per100g?.fat || 0} g</li>
+                </ul>
+            </div>
             <p>Note: Future versions will link to the database and calculate these values dynamically.</p>
 
 
@@ -427,7 +329,7 @@ const RecipeDetail = () => {
 
             <h3>Ingredients</h3>
             <ul>
-                {ingredients.map((ingredient, index) => (
+                {/* {ingredients.map((ingredient, index) => (
                     <li
                         key={index}
                         onClick={() => handleIngredientClick(ingredient)}
@@ -440,95 +342,24 @@ const RecipeDetail = () => {
                             </span>
                         )}
                     </li>
-                ))}
+                ))} */}
                 {getAdjustedIngredients().map((ingredient) => (
                     <li key={ingredient.ingredients.id}>
-                        {ingredient.ingredients.name} - {ingredient.quantity} {ingredient.unit}
+                        {ingredient.ingredients.name} - {ingredient.quantity} {ingredient.ingredients.unit?.unit_tag  || ''}
                     </li>
                 ))}
             </ul>
 
             <h3>Steps</h3>
-            <ol>
-                {getModifiedSteps().map((step, index) => (
-                    <li key={index}>{step.instruction}</li>
+            <ul>
+                {steps.map((step) => (
+                    <li key={step.step_number}>
+                        <strong>Step {step.step_number}:</strong> {step.instruction}
+                    </li>
                 ))}
-            </ol>
-
-            {isModalOpen && (
-                <div
-                    style={{
-                        position: 'fixed',
-                        top: 0,
-                        left: 0,
-                        width: '100%',
-                        height: '100%',
-                        background: 'rgba(0, 0, 0, 0.8)',
-                        color: '#fff',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        padding: '20px',
-                        zIndex: 1000,
-                    }}
-                >
-                    <button
-                        onClick={() => setIsModalOpen(false)}
-                        style={{
-                            position: 'absolute',
-                            top: '10px',
-                            right: '10px',
-                            background: 'red',
-                            color: '#fff',
-                            border: 'none',
-                            borderRadius: '50%',
-                            width: '30px',
-                            height: '30px',
-                            cursor: 'pointer',
-                        }}
-                    >
-                        X
-                    </button>
-                    <h2>Substitute for {selectedIngredient?.ingredients?.name}</h2>
-                    <ul>
-                        {substitutions.map((sub, index) => (
-                            <li key={index}>
-                                {sub.substitute_ingredient.name} - {sub.quantity} {sub.unit} ({sub.note})
-                                <button
-                                    onClick={() => handleSubstitutionSelect(sub)}
-                                    style={{
-                                        marginLeft: '10px',
-                                        padding: '5px 10px',
-                                        background: '#32cd32',
-                                        color: '#fff',
-                                        border: 'none',
-                                        borderRadius: '5px',
-                                        cursor: 'pointer',
-                                    }}
-                                >
-                                    Use This
-                                </button>
-                            </li>
-                        ))}
-                    </ul>
-                </div>
-            )}
-
-            <button
-                onClick={startCooking}
-                style={{
-                    marginTop: '20px',
-                    padding: '10px 20px',
-                    background: '#32cd32',
-                    color: '#fff',
-                    border: 'none',
-                    borderRadius: '5px',
-                    cursor: 'pointer',
-                }}
-            >
-                Start Cooking
-            </button>
-            <h3>Steps</h3>
-            {!isCookingMode ? (
+            </ul>
+            {/* <h3>Steps</h3> */}
+            {/* {!isCookingMode ? (
                 <>
                     <button onClick={toggleCookingMode}>Start Cooking Mode</button>
                     <ol>
@@ -557,9 +388,158 @@ const RecipeDetail = () => {
                     </button>
                     <button onClick={toggleCookingMode}>Exit Cooking Mode</button>
                 </div>
+            )} */}
+
+            <button onClick={toggleCookingMode}>Start Cooking Mode</button>
+
+            {/* Cooking Mode Overlay */}
+            {/* {isCookingMode && (
+                <div
+                    style={{
+                        position: 'fixed',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        height: '100%',
+                        background: 'rgba(0, 0, 0, 0.8)',
+                        color: '#fff',
+                        zIndex: 1000,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                    }}
+                >
+                    <h2>Step {currentStepIndex + 1}</h2>
+                    <p>{steps[currentStepIndex]?.instruction}</p>
+
+                    <div style={{ marginTop: '20px', display: 'flex', gap: '10px' }}>
+                        <button
+                            onClick={handlePreviousStep}
+                            style={{
+                                padding: '10px 20px',
+                                background: '#007bff',
+                                color: '#fff',
+                                border: 'none',
+                                borderRadius: '5px',
+                                cursor: 'pointer',
+                                visibility: currentStepIndex === 0 ? 'hidden' : 'visible',
+                            }}
+                        >
+                            Previous
+                        </button>
+                        <button
+                            onClick={handleNextStep}
+                            style={{
+                                padding: '10px 20px',
+                                background: '#007bff',
+                                color: '#fff',
+                                border: 'none',
+                                borderRadius: '5px',
+                                cursor: 'pointer',
+                                visibility: currentStepIndex === steps.length - 1 ? 'hidden' : 'visible',
+                            }}
+                        >
+                            Next
+                        </button>
+                        <button
+                            onClick={toggleCookingMode}
+                            style={{
+                                padding: '10px 20px',
+                                background: 'red',
+                                color: '#fff',
+                                border: 'none',
+                                borderRadius: '5px',
+                                cursor: 'pointer',
+                            }}
+                        >
+                            Exit Cooking Mode
+                        </button>
+                    </div>
+                </div>
+            )} */}
+
+            {isCookingMode && (
+                <div
+                    style={{
+                        position: 'fixed',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        height: '100%',
+                        background: 'rgba(0, 0, 0, 0.8)',
+                        color: '#fff',
+                        zIndex: 1000,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                    }}
+                >
+                    <h2>Step {currentStepIndex + 1}</h2>
+                    <p>{steps[currentStepIndex]?.instruction}</p>
+
+                    <div style={{ marginTop: '20px', display: 'flex', gap: '10px' }}>
+                        <button
+                            onClick={handlePreviousStep}
+                            style={{
+                                padding: '10px 20px',
+                                background: '#007bff',
+                                color: '#fff',
+                                border: 'none',
+                                borderRadius: '5px',
+                                cursor: 'pointer',
+                                visibility: currentStepIndex === 0 ? 'hidden' : 'visible',
+                            }}
+                        >
+                            Previous
+                        </button>
+                        <button
+                            onClick={handleNextStep}
+                            style={{
+                                padding: '10px 20px',
+                                background: '#007bff',
+                                color: '#fff',
+                                border: 'none',
+                                borderRadius: '5px',
+                                cursor: 'pointer',
+                                visibility: currentStepIndex === steps.length - 1 ? 'hidden' : 'visible',
+                            }}
+                        >
+                            Next
+                        </button>
+                        {currentStepIndex === steps.length - 1 && (
+                            <button
+                                onClick={finishCooking}
+                                style={{
+                                    padding: '10px 20px',
+                                    background: 'green',
+                                    color: '#fff',
+                                    border: 'none',
+                                    borderRadius: '5px',
+                                    cursor: 'pointer',
+                                }}
+                            >
+                                Finish Cooking
+                            </button>
+                        )}
+                        <button
+                            onClick={toggleCookingMode}
+                            style={{
+                                padding: '10px 20px',
+                                background: 'red',
+                                color: '#fff',
+                                border: 'none',
+                                borderRadius: '5px',
+                                cursor: 'pointer',
+                            }}
+                        >
+                            Exit Cooking Mode
+                        </button>
+                    </div>
+                </div>
             )}
 
-            {/* <button onClick={() => navigate('/calendar')}>Reschedule</button> */}
             <button
                 onClick={() =>
                     navigate('/recipes/calendar', {

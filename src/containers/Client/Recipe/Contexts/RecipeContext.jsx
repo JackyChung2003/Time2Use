@@ -13,6 +13,7 @@ export const RecipeProvider = ({ children }) => {
   const [categories, setCategories] = useState([]); // Categories
   const [equipment, setEquipment] = useState([]); // Equipment
   const [ingredients, setIngredients] = useState([]); // State for ingredients
+  const [mealTypes, setMealTypes] = useState([]); // State to store meal types
 
   const [filters, setFilters] = useState({
     categories: [],
@@ -36,16 +37,14 @@ const fetchRecipes = async () => {
           prep_time,
           cook_time,
           image_path,
-          recipe_tags ( tags (name) ),
+          recipe_tags:recipe_tags_recipe_id_fkey ( tags (name) ),
           recipe_equipment ( equipment (name) ),
           recipe_category ( category (name) ),
           recipe_ingredients ( ingredients (name) )
         `);
-
-
-      
-        // console.log("Raw data fetched from Supabase:", data); // Log the raw data here
-
+          
+        // recipe_tags ( tags (name) ),
+        // recipe_tags:recipe_tags_recipe_id_fkey ( tags (name) ),
       if (error) {
         console.error("Error fetching recipes:", error);
       } else {
@@ -134,6 +133,7 @@ const fetchRecipes = async () => {
     fetchCategories(); // Fetch categories on mount
     fetchEquipment(); // Fetch equipment on mount
     fetchIngredients(); // Fetch ingredients on mount
+    fetchMealTypes(); // Fetch meal types on mount
   }, []);
 
   useEffect(() => {
@@ -145,16 +145,33 @@ const fetchRecipes = async () => {
     try {
         const { data, error } = await supabase
             .from("recipe_ingredients")
+            // .select(`
+            //     ingredients (id, name),
+            //     quantity,
+            //     unit
+            // `)
             .select(`
-                ingredients (id, name),
-                quantity,
-                unit
+              ingredients (
+                id,
+                name,
+                nutritional_info,
+                unit:quantity_unit_id (
+                  unit_tag,
+                  unit_description,
+                  conversion_rate_to_grams 
+                )
+              ),
+              quantity
             `)
             .eq("recipe_id", recipeId);
+            
+            
+            // quantity_unit_id:ingredients_quantity_unit_id_fkey (
 
         if (error) {
             console.error("Error fetching recipe ingredients:", error);
         } else {
+            console.log("Recipe ingredients:", data);
             return data || [];
         }
     } catch (err) {
@@ -162,6 +179,106 @@ const fetchRecipes = async () => {
         return [];
     }
   };
+
+  const fetchRecipeSteps = async (recipeId) => {
+    try {
+        const { data, error } = await supabase
+            .from("steps")
+            .select(`
+                step_number,
+                instruction,
+                variations
+            `)
+            .eq("recipe_id", recipeId)
+            .order("step_number", { ascending: true }); // Ensure steps are in order
+
+        if (error) {
+            console.error("Error fetching recipe steps:", error);
+        } else {
+            console.log("Recipe steps:", data);
+            return data || [];
+        }
+    } catch (err) {
+        console.error("Unexpected error fetching recipe steps:", err);
+        return [];
+    }
+  };
+
+  const fetchMealPlansByDate = async (date) => {
+    try {
+        // Fetch meal plans for the given date
+        const { data, error } = await supabase
+            .from("meal_plan")
+            .select("meal_type_id, recipe_id, notes")
+            .eq("planned_date", date);
+
+        if (error) {
+            console.error("Error fetching meal plans:", error);
+            return [];
+        }
+
+        // Fetch meal types dynamically
+        const { data: mealTypeData, error: mealTypeError } = await supabase
+            .from("meal_type")
+            .select("id, name");
+
+        if (mealTypeError) {
+            console.error("Error fetching meal types:", mealTypeError);
+            return [];
+        }
+
+        // Map meal_type_id to their names
+        const mealTypesMap = mealTypeData.reduce((map, type) => {
+            map[type.id] = type.name;
+            return map;
+        }, {});
+
+        // Enrich meal plans with meal type names
+        const enrichedMealPlans = data.map((meal) => ({
+            ...meal,
+            meal_type_name: mealTypesMap[meal.meal_type_id] || "Unknown",
+        }));
+
+        return enrichedMealPlans;
+    } catch (err) {
+        console.error("Unexpected error fetching meal plans:", err);
+        return [];
+    }
+  };
+
+  const fetchMealTypes = async () => {
+    try {
+        const { data, error } = await supabase.from("meal_type").select("id, name");
+        if (error) {
+            console.error("Error fetching meal types:", error);
+        } else {
+            setMealTypes(data || []);
+        }
+    } catch (err) {
+        console.error("Unexpected error fetching meal types:", err);
+    }
+  };
+
+  const fetchRecipesByIds = async (recipeIds) => {
+    try {
+        // Fetch recipes based on an array of recipe IDs
+        const { data, error } = await supabase
+            .from("recipes")
+            .select("id, name, image_path, description")
+            .in("id", recipeIds); // Only fetch recipes with specified IDs
+
+        if (error) {
+            console.error("Error fetching recipes by IDs:", error);
+            return [];
+        }
+
+        return data || [];
+    } catch (err) {
+        console.error("Unexpected error fetching recipes by IDs:", err);
+        return [];
+    }
+  };
+
 
   return (
     // <RecipeContext.Provider value={{ recipes, tags, filters, fetchRecipes, fetchTags, applyFilters, loading }}>
@@ -173,12 +290,16 @@ const fetchRecipes = async () => {
         equipment,
         filters,
         ingredients,
+        mealTypes,
         fetchRecipes,
         fetchTags,
         fetchCategories,
         fetchEquipment,
         fetchIngredients,
         fetchRecipeIngredients,
+        fetchRecipeSteps,
+        fetchMealPlansByDate,
+        fetchRecipesByIds,
         applyFilters,
         loading,
       }}
