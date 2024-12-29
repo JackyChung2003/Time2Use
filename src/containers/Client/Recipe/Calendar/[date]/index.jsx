@@ -164,7 +164,19 @@ const MealPlannerPage = () => {
                 )}
               </div>
               <div className="meal-section-controls">
-                <button onClick={() => console.log("View Meal Plan")}>View details</button>
+                {/* <button onClick={() => console.log("View Meal Plan")}>View details</button> */}
+                <button
+                  onClick={() =>
+                    navigate(`/recipes/calendar/preparation/${date}`, {
+                      state: {
+                        planned_date: date, // Include the formatted date in the state
+                        meal_type_id: mealType.id, 
+                      },
+                    })
+                  }
+                >
+                  View Details
+                </button>
                 <button onClick={() => console.log("Start Cooking")}>
                   Start Cooking
                 </button>
