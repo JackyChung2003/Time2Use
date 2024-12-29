@@ -1,3 +1,4 @@
+// Successful directed page
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import supabase from './config/supabaseClient';
@@ -35,13 +36,31 @@ const App = () => {
 
             if (authUser?.user) {
                 try {
-                    // Fetch user role from user_metadata
-                    const userRole = authUser.user.user_metadata?.role || 'client'; // Default to 'client'
+                    // Fetch user role from public.user_roles and public.roles tables
+                    const { data: userRoleData, error: userRoleError } = await supabase
+                        .from('user_roles')
+                        .select('role_id')
+                        .eq('user_id', authUser.user.id)
+                        .single();
 
-                    setUserRole(userRole);
+                    if (userRoleError) throw new Error(userRoleError.message);
+
+                    const { data: roleData, error: roleError } = await supabase
+                        .from('roles')
+                        .select('role_name')
+                        .eq('id', userRoleData?.role_id)
+                        .single();
+
+                    if (roleError) throw new Error(roleError.message);
+
+                    // Normalize the role name
+                    const normalizedRoleName = roleData?.role_name.trim().toLowerCase();
+                    console.log("Fetched Role Name:", normalizedRoleName);
+
+                    setUserRole(normalizedRoleName || 'client');
                 } catch (error) {
                     console.error('Error fetching user role:', error.message);
-                    setUserRole('client'); // Default to 'client' role in case of error
+                    setUserRole('client'); // Default to client role if errors occur
                 }
             } else {
                 setUserRole(null); // Not logged in
@@ -126,6 +145,139 @@ const App = () => {
 };
 
 export default App;
+
+
+
+
+//failed code (metadata)
+// import { Routes, Route, Navigate } from 'react-router-dom';
+// import { useEffect, useState } from 'react';
+// import supabase from './config/supabaseClient';
+
+// // Authentication Components
+// import Login from './containers/Authentication/Login';
+// import Signup from './containers/Authentication/Registration';
+
+// // Client Components
+// import HorizontalNavbar from './containers/Client/Navigation/HorizontalNavBar';
+// import BottomNavBar from './containers/Client/Navigation/BottomNavBar';
+// import Dashboard from './containers/Client/Dashboard';
+// import Inventory from './containers/Client/Inventory';
+// import Scan from './containers/Client/Scan';
+// import Recipe from './containers/Client/Recipe';
+// import Profile from './containers/Client/Profile';
+
+// // Admin Components
+// import AdminLayout from './components/AdminLayout';
+// import AdminDashboard from './containers/Admin/Admin_Dashboard';
+// import SideNavBar from './containers/Admin/Admin_Navigation/SideNavBar';
+
+// // Shared Components
+// import ProtectedRoute from './components/ProtectedRoute';
+
+// const App = () => {
+//     const [userRole, setUserRole] = useState(null);
+//     const [loading, setLoading] = useState(true);
+//     const [isCollapsed, setIsCollapsed] = useState(false);
+
+//     useEffect(() => {
+//         const fetchUserRole = async () => {
+//             setLoading(true);
+//             const { data: authUser, error: authError } = await supabase.auth.getUser();
+
+//             if (authUser?.user) {
+//                 try {
+//                     // Fetch user role from user_metadata
+//                     const userRole = authUser.user.user_metadata?.role || 'client'; // Default to 'client'
+
+//                     setUserRole(userRole);
+//                 } catch (error) {
+//                     console.error('Error fetching user role:', error.message);
+//                     setUserRole('client'); // Default to 'client' role in case of error
+//                 }
+//             } else {
+//                 setUserRole(null); // Not logged in
+//             }
+//             setLoading(false);
+//         };
+
+//         fetchUserRole();
+//     }, []);
+
+//     const toggleSidebar = () => setIsCollapsed((prev) => !prev);
+
+//     if (loading) {
+//         return <div>Loading...</div>; // Add a spinner or skeleton loader here
+//     }
+
+//     return (
+//         <div className={`App ${userRole === 'admin' ? (isCollapsed ? 'sidebar-collapsed' : 'sidebar-expanded') : ''}`}>
+//             {/* Conditional Navigation */}
+//             {userRole === 'client' ? (
+//                 <>
+//                     <HorizontalNavbar />
+//                     <BottomNavBar className="stickyBottom" />
+//                 </>
+//             ) : userRole === 'admin' ? (
+//                 <SideNavBar isCollapsed={isCollapsed} toggleSidebar={toggleSidebar} />
+//             ) : null}
+
+//             {/* Main Content */}
+//             <main className={userRole === 'admin' ? 'admin-main-content' : ''}>
+//                 <Routes>
+//                     {/* Default Route */}
+//                     <Route
+//                         path="/"
+//                         element={
+//                             userRole === 'admin' ? (
+//                                 <Navigate to="/admin/dashboard" />
+//                             ) : userRole === 'client' ? (
+//                                 <Navigate to="/dashboard" />
+//                             ) : (
+//                                 <Navigate to="/login" />
+//                             )
+//                         }
+//                     />
+
+//                     {/* Authentication Routes */}
+//                     <Route path="/login" element={<Login />} />
+//                     <Route path="/signup" element={<Signup />} />
+
+//                     {/* Client Routes */}
+//                     {userRole === 'client' && (
+//                         <>
+//                             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+//                             <Route path="/inventory" element={<ProtectedRoute><Inventory /></ProtectedRoute>} />
+//                             <Route path="/scan" element={<ProtectedRoute><Scan /></ProtectedRoute>} />
+//                             <Route path="/recipe" element={<ProtectedRoute><Recipe /></ProtectedRoute>} />
+//                             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+//                         </>
+//                     )}
+
+//                     {/* Admin Routes */}
+//                     {userRole === 'admin' && (
+//                         <>
+//                             <Route
+//                                 path="/admin/dashboard"
+//                                 element={
+//                                     <AdminLayout isCollapsed={isCollapsed} toggleSidebar={toggleSidebar}>
+//                                         <AdminDashboard />
+//                                     </AdminLayout>
+//                                 }
+//                             />
+//                             {/* Add additional admin routes here */}
+//                         </>
+//                     )}
+
+//                     {/* Fallback for unmatched routes */}
+//                     <Route path="*" element={<Navigate to="/" />} />
+//                 </Routes>
+//             </main>
+//         </div>
+//     );
+// };
+
+// export default App;
 
 
 //cleaner code of 2.0
