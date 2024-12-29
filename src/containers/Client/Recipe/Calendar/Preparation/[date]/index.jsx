@@ -3,7 +3,60 @@ import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useRecipeContext } from "../../../../../../containers/Client/Recipe/Contexts/RecipeContext";
 import BackButton from "../../../../../../components/Button/BackButton";
 import supabase from "../../../../../../config/supabaseClient";
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+  useSortable,
+  arrayMove,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import "./index.css"; // Add custom styles if needed
+
+const SortableRecipe = ({ id, recipe }) => {
+  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    padding: "10px",
+    border: "1px solid #ccc",
+    borderRadius: "5px",
+    marginBottom: "10px",
+    background: "#f9f9f9",
+    display: "flex",
+    alignItems: "center",
+  };
+
+  return (
+    <li ref={setNodeRef} style={style} {...attributes}>
+      <span
+        {...listeners}
+        style={{
+          cursor: "grab",
+          fontSize: "20px",
+          marginRight: "10px",
+          touchAction: "none", // Prevent scrolling when dragging
+        }}
+        className="drag-handle" // Optional class for styling
+      >
+        ☰
+      </span>
+      <img
+        src={`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/${recipe.image_path}`}
+        alt={recipe.name}
+        style={{ width: "50px", height: "50px", borderRadius: "5px", marginRight: "10px" }}
+      />
+      <span>{recipe.name}</span>
+    </li>
+  );
+};
 
 const RecipePreparationPage = () => {
   const { fetchRecipeIngredients, fetchRecipeSteps, mealTypes } = useRecipeContext();
@@ -13,18 +66,22 @@ const RecipePreparationPage = () => {
   const { planned_date, meal_type_id } = location.state || {};
 
   const [recipes, setRecipes] = useState([]);
-  const [ingredients, setIngredients] = useState([]);
-  const [steps, setSteps] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [combinedIngredients, setCombinedIngredients] = useState([]);
-  const [isCombined, setIsCombined] = useState(false);
+  const [isSortableMode, setIsSortableMode] = useState(false);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 10, // Require a slight drag before activating
+      },
+    })
+  );
 
   useEffect(() => {
     const fetchDetails = async () => {
       try {
         setLoading(true);
 
-        // Fetch meal plans for the given planned date and meal type
         const { data: mealPlans, error: mealPlansError } = await supabase
           .from("meal_plan")
           .select("recipe_id, notes, planned_date")
@@ -39,10 +96,8 @@ const RecipePreparationPage = () => {
           return;
         }
 
-        // Extract recipe IDs
         const recipeIds = mealPlans.map((meal) => meal.recipe_id);
 
-        // Fetch recipe details by IDs
         const { data: recipes, error: recipesError } = await supabase
           .from("recipes")
           .select("id, name, image_path, description, prep_time, cook_time")
@@ -51,19 +106,6 @@ const RecipePreparationPage = () => {
         if (recipesError) throw new Error(recipesError.message);
 
         setRecipes(recipes);
-
-        // Fetch ingredients and steps for all recipes
-        const allIngredients = [];
-        const allSteps = [];
-        for (const recipe of recipes) {
-          const ingredientsData = await fetchRecipeIngredients(recipe.id);
-          const stepsData = await fetchRecipeSteps(recipe.id);
-          allIngredients.push(...ingredientsData);
-          allSteps.push(...stepsData);
-        }
-
-        setIngredients(allIngredients);
-        setSteps(allSteps);
       } catch (error) {
         console.error("Error fetching preparation details:", error.message);
       } finally {
@@ -74,25 +116,24 @@ const RecipePreparationPage = () => {
     if (planned_date && meal_type_id) {
       fetchDetails();
     }
-  }, [fetchRecipeIngredients, fetchRecipeSteps, planned_date, meal_type_id]);
+  }, [planned_date, meal_type_id]);
 
-  const toggleCombineIngredients = () => {
-    if (isCombined) {
-      setCombinedIngredients([]);
-      setIsCombined(false);
-    } else {
-      const combined = ingredients.reduce((acc, ingredient) => {
-        const existing = acc.find((i) => i.ingredients.name === ingredient.ingredients.name);
-        if (existing) {
-          existing.quantity += ingredient.quantity;
-        } else {
-          acc.push({ ...ingredient });
-        }
-        return acc;
-      }, []);
-      setCombinedIngredients(combined);
-      setIsCombined(true);
+  const handleDragEnd = (event) => {
+    const { active, over } = event;
+
+    if (active.id !== over?.id) {
+      const updatedRecipes = arrayMove(
+        recipes,
+        recipes.findIndex((recipe) => recipe.id === active.id),
+        recipes.findIndex((recipe) => recipe.id === over.id)
+      );
+
+      setRecipes(updatedRecipes);
     }
+  };
+
+  const startCooking = () => {
+    console.log("Starting cooking with recipes:", recipes);
   };
 
   if (loading) {
@@ -110,62 +151,59 @@ const RecipePreparationPage = () => {
       <h3>Date: {planned_date}</h3>
       <h3>Meal Type: {mealTypes.find((type) => type.id === meal_type_id)?.name || "Unknown"}</h3>
 
-      {recipes.map((recipe) => (
-        <div key={recipe.id} className="recipe-details">
-          <h2>{recipe.name}</h2>
-          <img
-            src={`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/${recipe.image_path}`}
-            alt={recipe.name}
-            style={{ width: "300px", borderRadius: "10px" }}
-          />
-          <p>{recipe.description}</p>
-          <p>
-            <strong>Prep Time:</strong> {recipe.prep_time} mins
-          </p>
-          <p>
-            <strong>Cook Time:</strong> {recipe.cook_time} mins
-          </p>
-        </div>
-      ))}
+      <button
+        onClick={() => setIsSortableMode(!isSortableMode)}
+        style={{
+          padding: "10px 20px",
+          background: isSortableMode ? "red" : "green",
+          color: "white",
+          border: "none",
+          borderRadius: "5px",
+          marginBottom: "20px",
+        }}
+      >
+        {isSortableMode ? "Exit Sort Mode" : "Reorder Recipes"}
+      </button>
 
-      <div>
-        <h3>Ingredients</h3>
-        <button
-          onClick={toggleCombineIngredients}
-          style={{
-            padding: "10px 20px",
-            background: isCombined ? "red" : "green",
-            color: "white",
-            border: "none",
-            borderRadius: "5px",
-            marginBottom: "20px",
-          }}
+      {isSortableMode ? (
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
         >
-          {isCombined ? "Separate Ingredients" : "Combine Ingredients"}
-        </button>
-        <ul>
-          {(isCombined ? combinedIngredients : ingredients).map((ingredient, index) => (
-            <li key={index}>
-              {ingredient.ingredients.name} - {ingredient.quantity}{" "}
-              {ingredient.ingredients.unit?.unit_tag || ""}
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      <div>
-        <h3>Steps</h3>
-        <ul>
-          {steps.map((step, index) => (
-            <li key={index}>
-              <strong>Step {step.step_number}:</strong> {step.instruction}
-            </li>
-          ))}
-        </ul>
-      </div>
+          <SortableContext
+            items={recipes.map((recipe) => recipe.id)}
+            strategy={verticalListSortingStrategy}
+          >
+            <ul style={{ listStyleType: "none", padding: 0 }}>
+              {recipes.map((recipe) => (
+                <SortableRecipe key={recipe.id} id={recipe.id} recipe={recipe} />
+              ))}
+            </ul>
+          </SortableContext>
+        </DndContext>
+      ) : (
+        recipes.map((recipe) => (
+          <div key={recipe.id} className="recipe-details">
+            <h2>{recipe.name}</h2>
+            <img
+              src={`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/${recipe.image_path}`}
+              alt={recipe.name}
+              style={{ width: "300px", borderRadius: "10px" }}
+            />
+            <p>{recipe.description}</p>
+            <p>
+              <strong>Prep Time:</strong> {recipe.prep_time} mins
+            </p>
+            <p>
+              <strong>Cook Time:</strong> {recipe.cook_time} mins
+            </p>
+          </div>
+        ))
+      )}
 
       <button
-        onClick={() => console.log("Start Cooking")}
+        onClick={startCooking}
         style={{
           padding: "10px 20px",
           background: "orange",
