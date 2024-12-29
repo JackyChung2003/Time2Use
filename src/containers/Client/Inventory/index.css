@@ -1,5 +1,24 @@
 /* index.css */
 
+.item-container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0px;
+  margin: 0px 0;
+  transition: transform 0.3s ease-in-out;
+}
+
+.item-container.swiped-left {
+  transform: translateX(-100%); /* Move item off-screen to the left */
+}
+
+.item-container.swiped-right {
+  transform: translateX(100%); /* Move item off-screen to the right */
+}
+
 .inventory-container {
     display: flex;
     flex-direction: column;
@@ -9,7 +28,7 @@
     height: 100vh;
     overflow-y: auto; /* Scrollable page */
   }
-  
+
   .search-bar {
     width: 80%;
     padding: 10px;
@@ -98,21 +117,24 @@
     padding: 10px 15px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     position: relative;
-    gap: 5px;
+    gap: 10px;
+    overflow:hidden;
+    width: calc(100% - 10px);
   }
   
   .left-section {
     display: flex;
     align-items: center;
-    justify-content: space-between; /* Adjust spacing between children */
+    justify-content: flex-start; 
     gap: 10px;
-    flex-grow: 0; 
+    flex-grow: 0;
+    flex: 1; 
   }
 
   .right-section {
     display: flex;
     align-items: center;
-    justify-content: space-between; /* Adjust spacing between children */
+    justify-content: flex-end; /* Adjust spacing between children */
     gap: 0px;
     flex-grow: 0; 
   }
@@ -159,7 +181,7 @@
 
   .item-days.shelf-life.full-text {
     white-space: normal;           /* Allow text to wrap when expanded */
-    text-overflow: unset;          /* Remove ellipsis when full text is shown */
+    text-overflow: unset;         /* Remove ellipsis when full text is shown */
   }
 
   .item-days.shelf-life {
@@ -167,15 +189,15 @@
     font-style: italic; 
     white-space: nowrap; /* Prevent text from wrapping */
     overflow: hidden; /* Hide text overflow */
-    text-overflow: ellipsis; /* Add ellipsis (...) when text overflows */
     cursor: pointer; /* Show a pointer cursor to indicate clickability */
-    max-width: 120px;  
+    max-width: 100px;  
   }
   
   .circle-image {
     width: 50px;
     height: 50px;
     border-radius: 50%;
+    border: 1px solid #ddd;
     background-color: #ddd; /* Placeholder background for image */
     overflow: hidden;
     display: flex;          /* Center image inside circle */

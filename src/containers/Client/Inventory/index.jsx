@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useSwipeable } from 'react-swipeable';
 import './index.css';
 import inventoryUtils from './index.js';
 import supabase from '../../../config/supabaseClient';
@@ -15,6 +16,8 @@ const Inventory = () => {
   const [sortOption, setSortOption] = useState(null); // State for sorting option
   const [showFilterMenu, setShowFilterMenu] = useState(false); // State to toggle filter menu
   const [usedAmount, setUsedAmount] = useState({});
+  const [pendingSwipe, setPendingSwipe] = useState(null);  // State to track pending swipe actions
+
 
   useEffect(() => {
     const fetchUserAndInventory = async () => {
@@ -107,6 +110,27 @@ const Inventory = () => {
     }
   };
 
+   // Function to remove item from the list after condition update
+   const removeItemFromList = (itemId, setItems) => {
+    setItems((prevItems) => prevItems.filter((item) => item.id !== itemId));
+  };
+
+  // swipe handler to show action buttons
+  const handleSwipe = (item, condition) => {
+    setPendingSwipe({ id: item.id, action: condition }); // Show the button for discard or used
+  };
+
+  const confirmAction = () => {
+    if (pendingSwipe) {
+      const { id, action } = pendingSwipe;
+      const newConditionId = action === 'discard' ? 3 : 2; // 3 for discarded, 2 for used
+      inventoryUtils.updateItemCondition(id, newConditionId); // Update condition in the database
+      removeItemFromList(id, setItems); // Remove item from the list
+      setPendingSwipe(null); // Clear pending swipe state
+    }
+  };
+
+
   return (
     <div className="inventory-container">
       <input
@@ -142,127 +166,177 @@ const Inventory = () => {
         : (
           <div className="item-list">
             {sortedItems.map(item => (
-              <div key={item.id} className="item-container">
-                <div className="item">
-                  <div className="left-section">
-                    <div className={`green-dot ${item.statusColor}`} />
-                    <div className="circle-image">
-                      <img src={item.imageUrl} alt={item.name} />
-                    </div>
-                    <div className="text-section">
-                      <div className="item-name">{item.name}</div>
-                      <div className={item.daysLeft == null ? 'item-days shelf-life' : 'item-days'}>
-                        {item.daysLeft != null ? `${item.daysLeft}d left` : null}
-                      </div>
-                      {item.daysLeft == null && (
-                        <div
-                          className={`item-days shelf-life ${expandedItems[item.id] ? 'full-text' : ''}`}
-                          onClick={() => handleClick(item.id)}
-                        >
-                          {expandedItems[item.id] ? item.pred_shelf_life : `${item.pred_shelf_life.slice(0, 20)}...`}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-  
-                  <div className="right-section">
-                    <span className="item-quantity">
-                      {item.quantity} {item.quantity_unit}
-                    </span>
-                    <span className="tag">{item.category}</span>
-                    <span className="dropdown-icon" onClick={() => toggleDropdown(item.id)}>▼</span>
-                  </div>
-                </div>
-  
-                {activeDropdown === item.id && (
-                  <div className="dropdown-box">
-                    <div className="date-purchased">
-                      <img src="/image/date-icon.png" alt="Calendar Icon" className="date-icon" />
-                      Date Purchased: {new Date(item.created_at).toISOString().split('T')[0]}
-                    </div>
-  
-                    {['unit', 'pcs', 'can', 'box'].includes(item.quantity_unit) ? (
-                      <div className="unit-controls">
-                        <button onClick={() => handlePortionClickWithState(item, 1)} className="quantity-button">-</button>
-                        <div className="quantity-container">
-                          <div className="quantity-box">{item.quantity}</div>
-                        </div>
-                        <button onClick={() => handlePortionClickWithState(item, -1)} className="quantity-button">+</button>
-                      </div>
-                    ) : (
-                      <div className="portion-section">
-                        <div className="quantity-container">
-                          <input
-                            type="number"
-                            value={item.quantity === null || item.quantity === undefined ? '' : item.quantity}
-                            onChange={(e) => handleQuantityChange(item, e.target.value === '' ? '' : parseFloat(e.target.value))}
-                            className="quantity-box"
-                            min="0"
-                          />
-                          <div className="quantity-unit">({item.quantity_unit})</div>
-                        </div>
-                        {/* Used amount input */}
-                        <div className="used-amount-container">
-                          <label htmlFor={`used-amount-${item.id}`}>Used amount:</label>
-                          <input
-                            type="number"
-                            id={`used-amount-${item.id}`}
-                            className="used-amount-input"
-                            value={usedAmount[item.id] || ''}
-                            onChange={(e) => setUsedAmount({ ...usedAmount, [item.id]: e.target.value })}
-                            placeholder=""
-                          />
-                          <div className="quantity-unit">({item.quantity_unit})</div>
-                          <img
-                            src="/image/tick-icon.png"
-                            alt="Confirm"
-                            className="done-icon"
-                            onClick={() => handleDoneClick(item)}
-                          />
-                          
-                        </div>
-                        <p>or</p>
-                        <div className="portion-row">
-                          <p>Used portion: </p>
-                          <div className="portion-buttons">
-                            <button onClick={() => handlePortionClickWithState(item, item.quantity * 0.2)}>1/5</button>
-                            <button onClick={() => handlePortionClickWithState(item, item.quantity * 0.4)}>2/5</button>
-                            <button onClick={() => handlePortionClickWithState(item, item.quantity * 0.6)}>3/5</button>
-                            <button onClick={() => handlePortionClickWithState(item, item.quantity * 0.8)}>4/5</button>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-  
-                    <div className="nutritional-facts">
-                      <h4>
-                        Nutritional Facts
-                        <img src="/image/nutrition-facts-icon.png" alt="Nutrition Icon" className="nutrition-icon" />
-                      </h4>
-                      <p>
-                        Fat: {item.nutritionalInfo.fat},
-                        Protein: {item.nutritionalInfo.protein},
-                        Calories: {item.nutritionalInfo.calories}kcal,
-                        Carbohydrates: {item.nutritionalInfo.carbohydrate}
-                      </p>
-                    </div>
-  
-                    <div className="storage-tips">
-                      <h4>
-                        Storage Tips
-                        <img src="/image/yellow-bulb-icon.png" alt="Bulb Icon" className="bulb-icon" />
-                      </h4>
-                      <p>{item.storageTips}</p>
-                    </div>
-                  </div>
-                )}
-              </div>
+              <Item
+                key={item.id}
+                item={item}
+                handleSwipe={handleSwipe}
+                setItems={setItems}
+                handleClick={handleClick}
+                expandedItems={expandedItems}
+                setExpandedItems={setExpandedItems}
+                usedAmount={usedAmount}
+                setUsedAmount={setUsedAmount}
+                handleQuantityChange={handleQuantityChange}
+                handlePortionClickWithState={handlePortionClickWithState}
+                handleDoneClick={handleDoneClick}
+                activeDropdown={activeDropdown}
+                toggleDropdown={toggleDropdown}
+                pendingSwipe={pendingSwipe} // Pass pending swipe state
+                confirmAction={confirmAction}
+              />
             ))}
           </div>
         )
       }
     </div>
   );
-}  
+};
 
+const Item = ({
+  item,
+  handleSwipe,
+  setItems,
+  handleClick,
+  expandedItems,
+  setExpandedItems,
+  usedAmount,
+  setUsedAmount,
+  handleQuantityChange,
+  handlePortionClickWithState,
+  handleDoneClick,
+  activeDropdown,
+  toggleDropdown,
+  pendingSwipe,
+  confirmAction,
+}) => {
+  // Swipeable hook
+  const swipeHandlers = useSwipeable({
+    onSwipedLeft: () => handleSwipe(item, 'discard', setItems),
+    onSwipedRight: () => handleSwipe(item, 'used', setItems),
+    preventDefaultTouchmoveEvent: true, // Prevent default scroll on swipe
+    trackMouse: true,
+  });
+
+  return (
+    <div className="item-container"{...swipeHandlers}>
+      <div className="item">
+        {/* Show the discard or used button if pendingSwipe matches this item */}
+        {pendingSwipe && pendingSwipe.id === item.id && (
+          <div className="swipe-buttons">
+            <button onClick={confirmAction}>Confirm {pendingSwipe.action}</button>
+          </div>
+        )}
+        <div className="left-section">
+          <div className={`green-dot ${item.statusColor}`} />
+          <div className="circle-image">
+            <img src={item.imageUrl} alt={item.name} />
+          </div>
+          <div className="text-section">
+            <div className="item-name">{item.name}</div>
+            <div className={item.daysLeft == null ? 'item-days shelf-life' : 'item-days'}>
+              {item.daysLeft != null ? `${item.daysLeft}d left` : null}
+            </div>
+            {item.daysLeft == null && (
+              <div
+                className={`item-days shelf-life ${expandedItems[item.id] ? 'full-text' : ''}`}
+                onClick={() => handleClick(item.id)}
+              >
+                {expandedItems[item.id] ? item.pred_shelf_life : `${item.pred_shelf_life.slice(0, 20)}...`}
+              </div>
+            )}
+          </div>
+        </div>
+  
+        <div className="right-section">
+          <span className="item-quantity">
+            {item.quantity} {item.quantity_unit}
+          </span>
+          <span className="tag">{item.category}</span>
+          <span className="dropdown-icon" onClick={() => toggleDropdown(item.id)}>▼</span>
+        </div>
+      </div>
+  
+      {activeDropdown === item.id && (
+        <div className="dropdown-box">
+          <div className="date-purchased">
+            <img src="/image/date-icon.png" alt="Calendar Icon" className="date-icon" />
+            Date Purchased: {new Date(item.created_at).toISOString().split('T')[0]}
+          </div>
+  
+          {/* Quantity Adjustment */}
+          {['unit', 'pcs', 'can', 'box'].includes(item.quantity_unit) ? (
+            <div className="unit-controls">
+              <button onClick={() => handlePortionClickWithState(item, -1)} className="quantity-button">-</button>
+              <div className="quantity-container">
+                <div className="quantity-box">{item.quantity}</div>
+              </div>
+              <button onClick={() => handlePortionClickWithState(item, 1)} className="quantity-button">+</button>
+            </div>
+          ) : (
+            <div className="portion-section">
+              <div className="quantity-container">
+                <input
+                  type="number"
+                  value={item.quantity === null || item.quantity === undefined ? '' : item.quantity}
+                  onChange={(e) => handleQuantityChange(item, e.target.value === '' ? '' : parseFloat(e.target.value))}
+                  className="quantity-box"
+                  min="0"
+                />
+                <div className="quantity-unit">({item.quantity_unit})</div>
+              </div>
+              <div className="used-amount-container">
+                <label htmlFor={`used-amount-${item.id}`}>Used amount:</label>
+                <input
+                  type="number"
+                  id={`used-amount-${item.id}`}
+                  className="used-amount-input"
+                  value={usedAmount[item.id] || ''}
+                  onChange={(e) => setUsedAmount({ ...usedAmount, [item.id]: e.target.value })}
+                />
+                <div className="quantity-unit">({item.quantity_unit})</div>
+                <img
+                  src="/image/tick-icon.png"
+                  alt="Confirm"
+                  className="done-icon"
+                  onClick={() => handleDoneClick(item)}
+                />
+              </div>
+              <p>or</p>
+              <div className="portion-row">
+                <p>Used portion:</p>
+                <div className="portion-buttons">
+                  <button onClick={() => handlePortionClickWithState(item, item.quantity * 0.2)}>1/5</button>
+                  <button onClick={() => handlePortionClickWithState(item, item.quantity * 0.4)}>2/5</button>
+                  <button onClick={() => handlePortionClickWithState(item, item.quantity * 0.6)}>3/5</button>
+                  <button onClick={() => handlePortionClickWithState(item, item.quantity * 0.8)}>4/5</button>
+                </div>
+              </div>
+            </div>
+          )}
+  
+          {/* Nutritional Facts */}
+          <div className="nutritional-facts">
+            <h4>
+              Nutritional Facts
+              <img src="/image/nutrition-facts-icon.png" alt="Nutrition Icon" className="nutrition-icon" />
+            </h4>
+            <p>
+              Fat: {item.nutritionalInfo.fat}, Protein: {item.nutritionalInfo.protein},
+              Calories: {item.nutritionalInfo.calories}kcal, Carbohydrates: {item.nutritionalInfo.carbohydrate}
+            </p>
+          </div>
+  
+          {/* Storage Tips */}
+          <div className="storage-tips">
+            <h4>
+              Storage Tips
+              <img src="/image/yellow-bulb-icon.png" alt="Bulb Icon" className="bulb-icon" />
+            </h4>
+            <p>{item.storageTips}</p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 export default Inventory;
