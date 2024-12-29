@@ -44,7 +44,7 @@ const SortableRecipe = ({ id, recipe }) => {
           marginRight: "10px",
           touchAction: "none", // Prevent scrolling when dragging
         }}
-        className="drag-handle" // Optional class for styling
+        className="drag-handle"
       >
         ☰
       </span>
@@ -67,12 +67,12 @@ const RecipePreparationPage = () => {
 
   const [recipes, setRecipes] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [isSortableMode, setIsSortableMode] = useState(false);
+  const [showModal, setShowModal] = useState(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 10, // Require a slight drag before activating
+        distance: 10,
       },
     })
   );
@@ -133,7 +133,17 @@ const RecipePreparationPage = () => {
   };
 
   const startCooking = () => {
-    console.log("Starting cooking with recipes:", recipes);
+    setShowModal(true);
+  };
+
+  const confirmSequence = () => {
+    setShowModal(false);
+    console.log("Confirmed cooking sequence:", recipes);
+    // Proceed to cooking steps
+  };
+
+  const closeModal = () => {
+    setShowModal(false);
   };
 
   if (loading) {
@@ -151,56 +161,23 @@ const RecipePreparationPage = () => {
       <h3>Date: {planned_date}</h3>
       <h3>Meal Type: {mealTypes.find((type) => type.id === meal_type_id)?.name || "Unknown"}</h3>
 
-      <button
-        onClick={() => setIsSortableMode(!isSortableMode)}
-        style={{
-          padding: "10px 20px",
-          background: isSortableMode ? "red" : "green",
-          color: "white",
-          border: "none",
-          borderRadius: "5px",
-          marginBottom: "20px",
-        }}
-      >
-        {isSortableMode ? "Exit Sort Mode" : "Reorder Recipes"}
-      </button>
-
-      {isSortableMode ? (
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          onDragEnd={handleDragEnd}
-        >
-          <SortableContext
-            items={recipes.map((recipe) => recipe.id)}
-            strategy={verticalListSortingStrategy}
-          >
-            <ul style={{ listStyleType: "none", padding: 0 }}>
-              {recipes.map((recipe) => (
-                <SortableRecipe key={recipe.id} id={recipe.id} recipe={recipe} />
-              ))}
-            </ul>
-          </SortableContext>
-        </DndContext>
-      ) : (
-        recipes.map((recipe) => (
-          <div key={recipe.id} className="recipe-details">
-            <h2>{recipe.name}</h2>
-            <img
-              src={`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/${recipe.image_path}`}
-              alt={recipe.name}
-              style={{ width: "300px", borderRadius: "10px" }}
-            />
-            <p>{recipe.description}</p>
-            <p>
-              <strong>Prep Time:</strong> {recipe.prep_time} mins
-            </p>
-            <p>
-              <strong>Cook Time:</strong> {recipe.cook_time} mins
-            </p>
-          </div>
-        ))
-      )}
+      {recipes.map((recipe) => (
+        <div key={recipe.id} className="recipe-details">
+          <h2>{recipe.name}</h2>
+          <img
+            src={`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/${recipe.image_path}`}
+            alt={recipe.name}
+            style={{ width: "300px", borderRadius: "10px" }}
+          />
+          <p>{recipe.description}</p>
+          <p>
+            <strong>Prep Time:</strong> {recipe.prep_time} mins
+          </p>
+          <p>
+            <strong>Cook Time:</strong> {recipe.cook_time} mins
+          </p>
+        </div>
+      ))}
 
       <button
         onClick={startCooking}
@@ -214,6 +191,63 @@ const RecipePreparationPage = () => {
       >
         Start Cooking
       </button>
+
+      {showModal && (
+        <div
+          className="modal-overlay"
+          onClick={closeModal} // Close modal if user clicks outside
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            background: "rgba(0, 0, 0, 0.5)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <div
+            className="modal-content"
+            onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside modal
+            style={{
+              background: "white",
+              padding: "20px",
+              borderRadius: "10px",
+              width: "400px",
+              maxHeight: "90vh",
+              overflowY: "auto",
+            }}
+          >
+            <h3>Arrange Cooking Sequence</h3>
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
+            >
+              <SortableContext
+                items={recipes.map((recipe) => recipe.id)}
+                strategy={verticalListSortingStrategy}
+              >
+                <ul style={{ listStyleType: "none", padding: 0 }}>
+                  {recipes.map((recipe) => (
+                    <SortableRecipe key={recipe.id} id={recipe.id} recipe={recipe} />
+                  ))}
+                </ul>
+              </SortableContext>
+            </DndContext>
+            <div style={{ marginTop: "20px", display: "flex", justifyContent: "space-between" }}>
+              <button onClick={closeModal} style={{ background: "red", color: "white", padding: "10px 20px", borderRadius: "5px" }}>
+                Cancel
+              </button>
+              <button onClick={confirmSequence} style={{ background: "green", color: "white", padding: "10px 20px", borderRadius: "5px" }}>
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
