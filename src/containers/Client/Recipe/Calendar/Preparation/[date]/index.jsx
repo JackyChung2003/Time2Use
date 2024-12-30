@@ -423,6 +423,30 @@ const RecipePreparationPage = () => {
     return <div>No recipes found for this meal plan.</div>;
   }
 
+  const autoAdjustQuantities = () => {
+    let remainingRequired = selectedIngredient.quantity;
+  
+    const adjustedInventory = selectedInventory.map((item) => {
+      if (!item.preselected || remainingRequired <= 0) {
+        // Skip items not selected or when no more is required
+        return { ...item, selectedQuantity: 0 };
+      }
+  
+      const allocatedQuantity = Math.min(item.quantity, remainingRequired);
+      remainingRequired -= allocatedQuantity;
+  
+      return { ...item, selectedQuantity: allocatedQuantity };
+    });
+  
+    setSelectedInventory(adjustedInventory);
+  
+    if (remainingRequired > 0) {
+      alert(
+        `Not enough inventory to fulfill the required amount of ${selectedIngredient.quantity}.`
+      );
+    }
+  };
+
   return (
     <div className="recipe-preparation-page">
       <BackButton onClick={() => navigate(-1)} />
@@ -684,20 +708,6 @@ const RecipePreparationPage = () => {
                   ))}
                 </ul>
 
-                {/* <div style={{ margin: "10px 0" }}>
-                  <button
-                    onClick={() => setCapped(!capped)}
-                    style={{
-                      padding: "10px 20px",
-                      background: capped ? "red" : "green",
-                      color: "white",
-                      borderRadius: "5px",
-                      marginRight: "10px",
-                    }}
-                  >
-                    {capped ? "Uncap Selection" : "Cap Selection"}
-                  </button>
-                </div> */}
                 <div style={{ margin: "10px 0" }}>
                   <label style={{ display: "block", margin: "10px 0" }}>
                     <input
@@ -760,7 +770,10 @@ const RecipePreparationPage = () => {
                 </button>
 
                 <ul>
-                  {selectedInventory.map((item) => (
+                  {selectedInventory
+
+                    .filter((item) => item.preselected) // Only show preselected items
+                    .map((item) => (
                     <li key={item.id}>
                       <label>
                         {item.quantity} {item.unit?.unit_tag || ""} (Expiry:{" "}
@@ -790,6 +803,19 @@ const RecipePreparationPage = () => {
                     </li>
                   ))}
                 </ul>
+
+                <button
+      onClick={autoAdjustQuantities} // Button to auto-adjust
+      style={{
+        marginTop: "10px",
+        padding: "10px 20px",
+        background: "blue",
+        color: "white",
+        borderRadius: "5px",
+      }}
+    >
+      Auto Adjust Quantities
+    </button>
 
                 <button
                   onClick={finalizeSelection}
