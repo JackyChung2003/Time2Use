@@ -209,7 +209,7 @@ const fetchRecipes = async () => {
         // Fetch meal plans for the given date
         const { data, error } = await supabase
             .from("meal_plan")
-            .select("meal_type_id, recipe_id, notes, planned_date")
+            .select("id, meal_type_id, recipe_id, notes, planned_date")
             .eq("planned_date", date);
 
         if (error) {
@@ -344,25 +344,48 @@ const fetchRecipes = async () => {
     }
   };
   
-  const fetchMealPlanIds = async (ingredientId, recipeId, plannedDate) => {
+  // const fetchMealPlanIds = async (ingredientId, recipeId, plannedDate) => {
+  //   try {
+  //     const { data, error } = await supabase
+  //       .from("meal_plan")
+  //       .select("id, recipe_id")
+  //       .eq("planned_date", plannedDate)
+  //       .eq("recipe_id", recipeId);
+
+  //     if (error) {
+  //       console.error("Error fetching meal plan IDs:", error);
+  //       return [];
+  //     }
+
+  //     return data || [];
+  //   } catch (err) {
+  //     console.error("Unexpected error fetching meal plan IDs:", err);
+  //     return [];
+  //   }
+  // };
+
+  const fetchMealPlanId = async (recipe_id, meal_type_id, planned_date) => {
     try {
       const { data, error } = await supabase
         .from("meal_plan")
-        .select("id, recipe_id")
-        .eq("planned_date", plannedDate)
-        .eq("recipe_id", recipeId);
-
+        .select("id")
+        .eq("recipe_id", recipe_id)
+        .eq("meal_type_id", meal_type_id)
+        .eq("planned_date", planned_date)
+        .single(); // Assuming one meal_plan per combination
+  
       if (error) {
-        console.error("Error fetching meal plan IDs:", error);
-        return [];
+        console.error("Error fetching meal_plan_id:", error);
+        return null;
       }
-
-      return data || [];
+  
+      return data?.id || null;
     } catch (err) {
-      console.error("Unexpected error fetching meal plan IDs:", err);
-      return [];
+      console.error("Unexpected error fetching meal_plan_id:", err.message);
+      return null;
     }
   };
+  
 
   const updateInventoryPlanStatus = async (inventoryMealPlanId, newStatusId) => {
     try {
@@ -408,6 +431,80 @@ const fetchRecipes = async () => {
     }
   };
   
+  const fetchInventoryMealPlanData = async (planned_date) => {
+    try {
+      const { data, error } = await supabase
+        .from("inventory_meal_plan")
+        .select("inventory_id, meal_plan_id, used_quantity, status_id")
+        .eq("meal_plan_id", planned_date); // Use the provided planned_date or meal_plan_id
+  
+      if (error) {
+        console.error("Error fetching inventory meal plan data:", error);
+        return [];
+      }
+  
+      return data;
+    } catch (err) {
+      console.error("Unexpected error fetching inventory meal plan data:", err.message);
+      return [];
+    }
+  };
+
+  const fetchInventoryMealPlanByMealPlanId = async (mealPlanIds) => {
+    try {
+      const { data, error } = await supabase
+        .from("inventory_meal_plan")
+        // .select("inventory_id, meal_plan_id, used_quantity, status_id")
+        // .select("inventory_id, meal_plan_id, used_quantity, status_id, ingredients(id, name)") // Include ingredient details
+        .select(`
+          inventory_id, 
+          meal_plan_id, 
+          used_quantity, 
+          status_id, 
+          inventory_meal_plan_status (
+            name,
+            description
+          ),
+          inventory (
+            ingredient_id,
+            quantity,
+            expiry_date:expiry_date_id(
+              date
+            ),
+            days_left,
+            freshness_status_id,
+            quantity_unit_id,
+            init_quantity,
+            condition:condition_id (
+              condition
+            )
+          ),
+          ingredients (
+            id,
+            name,
+            nutritional_info,
+            unit:quantity_unit_id (
+              unit_tag,
+              unit_description,
+              conversion_rate_to_grams 
+            )
+          )
+        `)
+        .in("meal_plan_id", mealPlanIds); // Query using multiple meal_plan_ids
+  
+      if (error) {
+        console.error("Error fetching inventory meal plan data by meal_plan_id:", error);
+        return [];
+      }
+  
+      return data;
+    } catch (err) {
+      console.error("Unexpected error fetching inventory meal plan data by meal_plan_id:", err.message);
+      return [];
+    }
+  };
+  
+  
 
   return (
     // <RecipeContext.Provider value={{ recipes, tags, filters, fetchRecipes, fetchTags, applyFilters, loading }}>
@@ -433,6 +530,8 @@ const fetchRecipes = async () => {
         // fetchMealPlanIds,
         // updateInventoryPlanStatus,
         getStatusIdByName,
+        fetchInventoryMealPlanData,
+        fetchInventoryMealPlanByMealPlanId,
         applyFilters,
         loading,
       }}

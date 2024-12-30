@@ -5,10 +5,9 @@ import BackButton from "../../../../../../components/Button/BackButton";
 import supabase from "../../../../../../config/supabaseClient";
 
 import SortableRecipeList from "../../../../../../components/SortableDragAndDrop/Recipes_List/SortableRecipeList";
-import "./index.css"; // Add custom styles if needed
+import "./index.css"; 
 
 const RecipePreparationPage = () => { 
-  // const { fetchRecipeIngredients, fetchRecipeSteps, mealTypes } = useRecipeContext();
   const {
     fetchMealPlansByDate,
     fetchRecipesByIds,
@@ -17,6 +16,8 @@ const RecipePreparationPage = () => {
     fetchUserInventory,
     mealTypes,
     getStatusIdByName,
+    fetchInventoryMealPlanData,
+    fetchInventoryMealPlanByMealPlanId,
   } = useRecipeContext();
 
   const navigate = useNavigate();
@@ -35,7 +36,6 @@ const RecipePreparationPage = () => {
 
   const [selectedIngredient, setSelectedIngredient] = useState(null);
   const [inventoryItems, setInventoryItems] = useState([]);
-  const [selectedItems, setSelectedItems] = useState([]);
   const [capped, setCapped] = useState(true); // To toggle capped/uncapped mode
 
   const [selectedInventory, setSelectedInventory] = useState([]); // State to track selected inventory items
@@ -47,76 +47,248 @@ const RecipePreparationPage = () => {
       (selectedIngredient?.quantity || 0) // Safeguard in case selectedIngredient is null
   );
 
+  // useEffect(() => {
+  //   const loadData = async () => {
+  //     try {
+  //       setLoading(true);
+
+  //       // Fetch meal plans for the given date
+  //       const mealPlans = await fetchMealPlansByDate(planned_date);
+
+  //       // Log the fetched MealPlan details
+  //       console.log("Fetched MealPlans:", mealPlans);
+
+  //       const relevantPlans = mealPlans.filter(
+  //         (meal) => meal.meal_type_id === meal_type_id
+  //       );
+
+  //       if (relevantPlans.length === 0) {
+  //         console.warn("No meal plans found for the given date and meal type.");
+  //         setRecipes([]);
+  //         return;
+  //       }
+
+  //       // Extract recipe IDs and fetch recipes
+  //       const recipeIds = relevantPlans.map((meal) => meal.recipe_id);
+  //       const fetchedRecipes = await fetchRecipesByIds(recipeIds);
+  //       setRecipes(fetchedRecipes);
+
+  //       // Fetch ingredients and steps for each recipe
+  //       const allIngredients = [];
+  //       const allSteps = [];
+  //       for (const recipe of fetchedRecipes) {
+  //         const ingredientsData = await fetchRecipeIngredients(recipe.id);
+  //         const stepsData = await fetchRecipeSteps(recipe.id);
+
+  //         allIngredients.push(
+  //           ...ingredientsData.map((ingredient) => ({
+  //             ...ingredient,
+  //             recipeId: recipe.id,
+  //           }))
+  //         );
+  //         allSteps.push(...stepsData);
+  //       }
+
+  //       setIngredients(allIngredients);
+  //       setSteps(allSteps);
+
+  //       const merged = allIngredients.reduce((acc, ingredient) => {
+  //         const existing = acc.find(
+  //           (item) => item.ingredients.name === ingredient.ingredients.name
+  //         );
+  //         if (existing) {
+  //           existing.quantity += ingredient.quantity;
+        
+  //           // Add the recipe-specific quantity
+  //           existing.recipes.push({
+  //             recipeId: ingredient.recipeId,
+  //             quantity: ingredient.quantity,
+  //           });
+  //         } else {
+  //           acc.push({
+  //             ...ingredient,
+  //             recipes: [
+  //               {
+  //                 recipeId: ingredient.recipeId,
+  //                 quantity: ingredient.quantity,
+  //               },
+  //             ],
+  //           });
+  //         }
+  //         return acc;
+  //       }, []);
+  //       setMergedIngredients(merged);
+  //     } catch (error) {
+  //       console.error("Error loading data:", error.message);
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
+
+  //   if (planned_date && meal_type_id) {
+  //     loadData();
+  //   }
+  // }, [planned_date, meal_type_id, fetchMealPlansByDate, fetchRecipesByIds, fetchRecipeIngredients, fetchRecipeSteps]);
+
+  // useEffect(() => {
+  //   const loadData = async () => {
+  //     try {
+  //       setLoading(true);
+  
+  //       // Fetch meal plans
+  //       const mealPlans = await fetchMealPlansByDate(planned_date);
+  //       const relevantPlans = mealPlans.filter(
+  //         (meal) => meal.meal_type_id === meal_type_id
+  //       );
+  
+  //       if (relevantPlans.length === 0) {
+  //         console.warn("No meal plans found for the given date and meal type.");
+  //         setRecipes([]);
+  //         setMergedIngredients([]);
+  //         return;
+  //       }
+  
+  //       // Fetch recipes
+  //       const recipeIds = relevantPlans.map((meal) => meal.recipe_id);
+  //       const fetchedRecipes = await fetchRecipesByIds(recipeIds);
+  //       setRecipes(fetchedRecipes);
+  
+  //       // Fetch ingredients for each recipe
+  //       const allIngredients = [];
+  //       for (const recipe of fetchedRecipes) {
+  //         const ingredientsData = await fetchRecipeIngredients(recipe.id);
+  //         allIngredients.push(
+  //           ...ingredientsData.map((ingredient) => ({
+  //             ...ingredient,
+  //             recipeId: recipe.id,
+  //           }))
+  //         );
+  //       }
+  
+  //       // Fetch inventory meal plan data
+  //       const mealPlanIds = relevantPlans.map((plan) => plan.id);
+  //       // console.log("Meal Plan IDs:", mealPlanIds);
+  //       // console.log("Relevant Plans:", relevantPlans);
+  //       const inventoryMealPlanData = await fetchInventoryMealPlanByMealPlanId(mealPlanIds);
+  //       console.log("Fetched Inventory Meal Plan Data:", inventoryMealPlanData);
+  
+  //       // Link ingredients with inventory items
+  //       const merged = allIngredients.reduce((acc, ingredient) => {
+  //         const existing = acc.find(
+  //           (item) => item.ingredients.name === ingredient.ingredients.name
+  //         );
+        
+  //         // Link inventory items to ingredients
+  //         const linkedInventory = inventoryMealPlanData.filter(
+  //           (inv) => inv.inventory_id === ingredient.ingredients.id
+  //         );
+        
+  //         if (existing) {
+  //           existing.quantity += ingredient.quantity;
+  //           existing.recipes.push({
+  //             recipeId: ingredient.recipeId,
+  //             quantity: ingredient.quantity,
+  //           });
+  //           existing.inventoryItems = [
+  //             ...(existing.inventoryItems || []),
+  //             ...linkedInventory,
+  //           ];
+  //         } else {
+  //           acc.push({
+  //             ...ingredient,
+  //             recipes: [
+  //               {
+  //                 recipeId: ingredient.recipeId,
+  //                 quantity: ingredient.quantity,
+  //               },
+  //             ],
+  //             inventoryItems: linkedInventory,
+  //           });
+  //         }
+  //         return acc;
+  //       }, []);
+        
+        
+  //     console.log("Merged Ingredients:", merged); // Log mergedIngredients
+  //       setMergedIngredients(merged);
+  //     } catch (error) {
+  //       console.error("Error loading data:", error.message);
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
+  
+  //   if (planned_date && meal_type_id) {
+  //     loadData();
+  //   }
+  // }, [planned_date, meal_type_id, fetchMealPlansByDate, fetchRecipesByIds, fetchRecipeIngredients]);
+  
   useEffect(() => {
     const loadData = async () => {
       try {
         setLoading(true);
-
+  
         // Fetch meal plans for the given date
         const mealPlans = await fetchMealPlansByDate(planned_date);
-
-        // Log the fetched MealPlan details
-        console.log("Fetched MealPlans:", mealPlans);
-
         const relevantPlans = mealPlans.filter(
           (meal) => meal.meal_type_id === meal_type_id
         );
-
+  
         if (relevantPlans.length === 0) {
           console.warn("No meal plans found for the given date and meal type.");
           setRecipes([]);
+          setMergedIngredients([]);
           return;
         }
-
-        // Extract recipe IDs and fetch recipes
+  
+        // Fetch recipes by IDs
         const recipeIds = relevantPlans.map((meal) => meal.recipe_id);
         const fetchedRecipes = await fetchRecipesByIds(recipeIds);
         setRecipes(fetchedRecipes);
-
-        // Fetch ingredients and steps for each recipe
+  
+        // Fetch ingredients for each recipe
         const allIngredients = [];
-        const allSteps = [];
         for (const recipe of fetchedRecipes) {
           const ingredientsData = await fetchRecipeIngredients(recipe.id);
-          const stepsData = await fetchRecipeSteps(recipe.id);
-
           allIngredients.push(
             ...ingredientsData.map((ingredient) => ({
               ...ingredient,
               recipeId: recipe.id,
             }))
           );
-          allSteps.push(...stepsData);
         }
-
-        setIngredients(allIngredients);
-        setSteps(allSteps);
-
-        // Merge ingredients
-        // const merged = allIngredients.reduce((acc, ingredient) => {
-        //   const existing = acc.find(
-        //     (item) => item.ingredients.name === ingredient.ingredients.name
-        //   );
-        //   if (existing) {
-        //     existing.quantity += ingredient.quantity;
-        //   } else {
-        //     acc.push({ ...ingredient });
-        //   }
-        //   return acc;
-        // }, []);
-        // setMergedIngredients(merged);
+  
+        // Fetch inventory meal plan data
+        const mealPlanIds = relevantPlans.map((plan) => plan.id);
+        const inventoryMealPlanData = await fetchInventoryMealPlanByMealPlanId(mealPlanIds);
+  
+        console.log("Fetched Inventory Meal Plan Data:", inventoryMealPlanData);
+  
+        // Map inventory to ingredients
         const merged = allIngredients.reduce((acc, ingredient) => {
           const existing = acc.find(
-            (item) => item.ingredients.name === ingredient.ingredients.name
+            (item) => item.ingredients.id === ingredient.ingredients.id
           );
+  
+          // Find related inventory data for this ingredient
+          console.log(`Ingredient ID for ${ingredient.ingredients.name}:`, ingredient.ingredients.id);
+  
+          const linkedInventory = inventoryMealPlanData.filter(
+            (inv) => inv.inventory.ingredient_id === ingredient.ingredients.id
+          );
+  
+          console.log(`Linked Inventory for ${ingredient.ingredients.name}:`, linkedInventory);
+  
           if (existing) {
             existing.quantity += ingredient.quantity;
-        
-            // Add the recipe-specific quantity
             existing.recipes.push({
               recipeId: ingredient.recipeId,
               quantity: ingredient.quantity,
             });
+            existing.inventoryItems = [
+              ...(existing.inventoryItems || []),
+              ...linkedInventory,
+            ];
           } else {
             acc.push({
               ...ingredient,
@@ -126,10 +298,12 @@ const RecipePreparationPage = () => {
                   quantity: ingredient.quantity,
                 },
               ],
+              inventoryItems: linkedInventory,
             });
           }
           return acc;
         }, []);
+  
         setMergedIngredients(merged);
       } catch (error) {
         console.error("Error loading data:", error.message);
@@ -137,12 +311,19 @@ const RecipePreparationPage = () => {
         setLoading(false);
       }
     };
-
+  
     if (planned_date && meal_type_id) {
       loadData();
     }
-  }, [planned_date, meal_type_id, fetchMealPlansByDate, fetchRecipesByIds, fetchRecipeIngredients, fetchRecipeSteps]);
-
+  }, [
+    planned_date,
+    meal_type_id,
+    fetchMealPlansByDate,
+    fetchRecipesByIds,
+    fetchRecipeIngredients,
+    fetchInventoryMealPlanByMealPlanId,
+  ]);
+  
   const toggleCombineIngredients = () => {
     setIsCombined(!isCombined);
   };
@@ -248,11 +429,6 @@ const RecipePreparationPage = () => {
   const toggleInventorySelection = (item) => {
     setSelectedInventory((prevSelected) => {
       const exists = prevSelected.find((selected) => selected.id === item.id);
-  
-      // if (exists) {
-      //   // If already selected, remove from selectedInventory
-      //   return prevSelected.filter((selected) => selected.id !== item.id);
-      // }
   
       if (exists) {
         // If already selected, toggle off
@@ -409,193 +585,6 @@ const RecipePreparationPage = () => {
     });
   };
   
-  // const finalizeQuantities = () => {
-  //   const total = selectedInventory.reduce((sum, item) => sum + item.selectedQuantity, 0);
-  
-  //   if (capped && total !== selectedIngredient.quantity) {
-  //     alert(
-  //       `The total quantity must match the required amount (${selectedIngredient.quantity} ${
-  //         selectedIngredient.ingredients.unit?.unit_tag || ""
-  //       }). Adjust the quantities accordingly.`
-  //     );
-  //     return;
-  //   }
-  
-  //   console.log("Finalized Quantities:", selectedInventory);
-  
-  //   // Proceed with saving or next step
-  //   setSelectedIngredient(null); // Close modal
-  //   setSelectedInventory([]); // Reset inventory
-  //   setAdjustingQuantity(false); // Exit adjusting mode
-  // };
-
-  // const finalizeQuantities = async () => {
-  //   const total = selectedInventory.reduce(
-  //     (sum, item) => sum + item.selectedQuantity,
-  //     0
-  //   );
-  
-  //   if (capped && total !== selectedIngredient.quantity) {
-  //     alert(
-  //       `The total quantity must match the required amount (${selectedIngredient.quantity} ${
-  //         selectedIngredient.ingredients.unit?.unit_tag || ""
-  //       }). Adjust the quantities accordingly.`
-  //     );
-  //     return;
-  //   }
-  
-  //   console.log("Finalized Quantities:", selectedInventory);
-  
-  //   try {
-  //     // Construct the data to be inserted into `inventory_meal_plan`
-  //     const mealPlanId = location.state?.meal_plan_id; // Assuming this is available from your component's state
-  //     if (!mealPlanId) {
-  //       alert("Meal Plan ID is missing!");
-  //       return;
-  //     }
-  
-  //     const dataToInsert = selectedInventory.map((item) => ({
-  //       inventory_id: item.id,
-  //       meal_plan_id: mealPlanId,
-  //       used_quantity: item.selectedQuantity,
-  //       status_id: 1, // Assuming a default status ID of 1; update this if needed
-  //     }));
-  
-  //     // Insert data into the table using Supabase
-  //     const { data, error } = await supabase
-  //       .from("inventory_meal_plan")
-  //       .insert(dataToInsert);
-  
-  //     if (error) {
-  //       throw error;
-  //     }
-  
-  //     console.log("Inserted Data:", data);
-  
-  //     // Reset states after successful insertion
-  //     setSelectedIngredient(null); // Close modal
-  //     setSelectedInventory([]); // Reset inventory
-  //     setAdjustingQuantity(false); // Exit adjusting mode
-  //     alert("Quantities successfully saved to inventory_meal_plan!");
-  //   } catch (err) {
-  //     console.error("Error inserting data into inventory_meal_plan:", err.message);
-  //     alert("Failed to save quantities. Please try again.");
-  //   }
-  // };
-
-  // const finalizeQuantities = async () => {
-  //   const total = selectedInventory.reduce(
-  //     (sum, item) => sum + item.selectedQuantity,
-  //     0
-  //   );
-  
-  //   if (capped && total !== selectedIngredient.quantity) {
-  //     alert(
-  //       `The total quantity must match the required amount (${selectedIngredient.quantity} ${selectedIngredient.ingredients.unit?.unit_tag || ""
-  //       }). Adjust the quantities accordingly.`
-  //     );
-  //     return;
-  //   }
-  
-  //   console.log("Finalized Quantities:", selectedInventory);
-  
-  //   try {
-  //     // Construct the data to be inserted into `inventory_meal_plan`
-  //     const mealPlanId = location.state?.meal_plan_id; // Assuming this is available from your component's state
-  //     if (!mealPlanId) {
-  //       alert("Meal Plan ID is missing!");
-  //       return;
-  //     }
-  
-  //     // Prepare multiple rows for insertion, one for each inventory item used
-  //     const dataToInsert = selectedInventory
-  //       .filter((item) => item.selectedQuantity > 0) // Only include items with used quantities
-  //       .map((item) => ({
-  //         inventory_id: item.id,
-  //         meal_plan_id: mealPlanId,
-  //         used_quantity: item.selectedQuantity,
-  //         status_id: 1, // Assuming a default status ID of 1; update this if needed
-  //       }));
-  
-  //     if (dataToInsert.length === 0) {
-  //       alert("No inventory selected. Please select quantities to proceed.");
-  //       return;
-  //     }
-  
-  //     // Insert data into the table using Supabase
-  //     const { data, error } = await supabase
-  //       .from("inventory_meal_plan")
-  //       .insert(dataToInsert);
-  
-  //     if (error) {
-  //       throw error;
-  //     }
-  
-  //     console.log("Inserted Data:", data);
-  
-  //     // Reset states after successful insertion
-  //     setSelectedIngredient(null); // Close modal
-  //     setSelectedInventory([]); // Reset inventory
-  //     setAdjustingQuantity(false); // Exit adjusting mode
-  //     alert("Quantities successfully saved to inventory_meal_plan!");
-  //   } catch (err) {
-  //     console.error("Error inserting data into inventory_meal_plan:", err.message);
-  //     alert("Failed to save quantities. Please try again.");
-  //   }
-  // };
-  
-  // const finalizeQuantities = async () => {
-  //   try {
-  //     // Check if selectedIngredient and selectedInventory are valid
-  //     if (!selectedIngredient || !selectedInventory || selectedInventory.length === 0) {
-  //       console.warn("Ingredient or inventory selection is missing.");
-  //       return;
-  //     }
-  
-  //     // Build the data array for insertion
-  //     const dataToInsert = selectedInventory.map((inventoryItem) => ({
-  //       inventory_id: inventoryItem.id, // Inventory ID from the selected inventory
-  //       meal_plan_id: inventoryItem.meal_plan_id || null, // Use meal_plan_id from inventoryItem if available
-  //       recipe_id: selectedIngredient.recipes[0]?.recipeId || null, // Default to first recipe ID
-  //       ingredient_id: selectedIngredient.ingredients.id, // Ingredient ID
-  //       used_quantity: inventoryItem.selectedQuantity || 0, // Total used quantity
-  //       unit: selectedIngredient.ingredients.unit?.unit_tag || "", // Unit
-  //     }));
-  
-  //     if (dataToInsert.length === 0) {
-  //       alert("No valid data to insert. Please verify your selection.");
-  //       return;
-  //     }
-  
-  //     // Log the constructed data for debugging
-  //     console.log("Data to Insert for Meal Plans:", dataToInsert);
-  
-  //     // Simulate database insertion (e.g., send data to Supabase or other DB)
-  //     // Uncomment the following if Supabase or another API is used
-  //     /*
-  //     const { data, error } = await supabase
-  //       .from("inventory_meal_plan")
-  //       .insert(dataToInsert);
-  
-  //     if (error) {
-  //       throw error;
-  //     }
-  
-  //     console.log("Inserted Data:", data);
-  //     */
-  
-  //     // Reset states after processing
-  //     setSelectedIngredient(null); // Close modal
-  //     setSelectedInventory([]); // Reset inventory
-  //     setAdjustingQuantity(false); // Exit adjusting mode
-  
-  //     alert("Quantities successfully logged to the console!");
-  //   } catch (err) {
-  //     console.error("Error finalizing quantities:", err.message);
-  //     alert("Failed to finalize quantities. Please try again.");
-  //   }
-  // };
-  
   const finalizeQuantities = async () => {
     try {
       // Check if selectedIngredient and selectedInventory are valid
@@ -650,17 +639,13 @@ const RecipePreparationPage = () => {
       // created_at
       // updated_at
 
-      
       // Prepare the data for insertion
       const dataToInsert = enrichedInventory.map((item) => ({
         inventory_id: item.id,
         meal_plan_id: item.meal_plan_id,
-        // recipe_id: selectedIngredient.recipes[0]?.recipeId || null,
-        // ingredient_id: selectedIngredient.ingredients.id,
         used_quantity: item.selectedQuantity,
         status_id: statusId, // Use the dynamically fetched status_id
         created_at: new Date().toISOString(), // Track when the entry was created
-        // unit: selectedIngredient.ingredients.unit?.unit_tag || "",
       }));
   
       // Log data for debugging
@@ -673,7 +658,6 @@ const RecipePreparationPage = () => {
         throw error;
       }
       console.log("Inserted Data:", data);
-
       // Reset states after processing
       setSelectedIngredient(null); // Close modal
       setSelectedInventory([]); // Reset inventory
@@ -685,8 +669,6 @@ const RecipePreparationPage = () => {
       alert("Failed to finalize quantities. Please try again.");
     }
   };
-  
-  
   
   const assignToRecipes = () => {
     const updatedMergedIngredients = mergedIngredients.map((ingredient) => {
@@ -758,95 +740,6 @@ const RecipePreparationPage = () => {
     const recipe = recipes.find((r) => r.id === recipeId);
     return recipe ? recipe.name : `Recipe ${recipeId}`; // Default to "Recipe {id}" if not found
   };
-
-  // const adjustExceedAllocation = (recipeId, delta) => {
-  //   setSelectedIngredient((prev) => {
-  //     const updatedRecipes = prev.recipes.map((recipe) => {
-  //       if (recipe.recipeId === recipeId) {
-  //         const newAllocation = Math.max(0, (recipe.exceedAllocation || 0) + delta);
-  //         return { ...recipe, exceedAllocation: newAllocation };
-  //       }
-  //       return recipe;
-  //     });
-  //     return { ...prev, recipes: updatedRecipes };
-  //   });
-  // };
-
-  // const adjustExceedAllocation = (recipeId, delta) => {
-  //   setSelectedIngredient((prev) => {
-  //     const totalExceedAllowed = Math.max(
-  //       0,
-  //       selectedInventory.reduce((sum, item) => sum + item.selectedQuantity, 0) -
-  //         (prev.quantity || 0) // Ensure valid quantity handling
-  //     );
-  
-  //     const currentTotalExceed = prev.recipes.reduce(
-  //       (sum, recipe) => sum + (recipe.exceedAllocation || 0),
-  //       0
-  //     );
-  
-  //     const updatedRecipes = prev.recipes.map((recipe) => {
-  //       if (recipe.recipeId === recipeId) {
-  //         // Calculate the new exceed allocation
-  //         const newAllocation = Math.max(
-  //           0,
-  //           Math.min(
-  //             (recipe.exceedAllocation || 0) + delta,
-  //             totalExceedAllowed - (currentTotalExceed - (recipe.exceedAllocation || 0)) // Adjust allocation without exceeding the cap
-  //           )
-  //         );
-  
-  //         return { ...recipe, exceedAllocation: newAllocation };
-  //       }
-  //       return recipe;
-  //     });
-  
-  //     return { ...prev, recipes: updatedRecipes };
-  //   });
-  // };
-
-  // const adjustExceedAllocation = (recipeId, delta) => {
-  //   setSelectedIngredient((prev) => {
-  //     const totalExceedAllowed = Math.max(
-  //       0,
-  //       selectedInventory.reduce((sum, item) => sum + item.selectedQuantity, 0) -
-  //         (prev.quantity || 0)
-  //     );
-  
-  //     // Calculate the current total allocation
-  //     const currentTotalExceed = prev.recipes.reduce(
-  //       (sum, recipe) => sum + (recipe.exceedAllocation || 0),
-  //       0
-  //     );
-  
-  //     let remainingExceed = totalExceedAllowed;
-  
-  //     const updatedRecipes = prev.recipes.map((recipe) => {
-  //       if (recipe.recipeId === recipeId) {
-  //         // Try to adjust the selected recipe's allocation
-  //         const newAllocation = Math.max(
-  //           0,
-  //           Math.min(
-  //             (recipe.exceedAllocation || 0) + delta,
-  //             remainingExceed // Cap by remaining allowable exceed
-  //           )
-  //         );
-  //         remainingExceed -= newAllocation; // Deduct from remaining exceed
-  //         return { ...recipe, exceedAllocation: newAllocation };
-  //       } else {
-  //         // Deduct from other recipes to allow redistribution
-  //         const adjustedAllocation = Math.min(
-  //           recipe.exceedAllocation || 0,
-  //           remainingExceed
-  //         );
-  //         remainingExceed -= adjustedAllocation;
-  //         return { ...recipe, exceedAllocation: adjustedAllocation };
-  //       }
-  //     });
-  
-  //     return { ...prev, recipes: updatedRecipes };
-  //   });
-  // };
   
   const adjustExceedAllocation = (recipeId, delta) => {
     setSelectedIngredient((prev) => {
@@ -905,32 +798,6 @@ const RecipePreparationPage = () => {
       return { ...prev, recipes: updatedRecipes };
     });
   };
-  
-
-  
-  // const autoAllocateExceed = () => {
-  //   const exceedAmount = Math.max(
-  //     0,
-  //     selectedInventory.reduce((sum, item) => sum + item.selectedQuantity, 0) -
-  //       selectedIngredient.quantity
-  //   );
-  
-  //   setSelectedIngredient((prev) => {
-  //     const totalRecipes = prev.recipes.length;
-  //     const allocationPerRecipe = Math.floor(exceedAmount / totalRecipes);
-  
-  //     const updatedRecipes = prev.recipes.map((recipe, index) => {
-  //       const remainingExceed =
-  //         index === totalRecipes - 1 // Add remaining to the last recipe
-  //           ? exceedAmount -
-  //             allocationPerRecipe * (totalRecipes - 1)
-  //           : allocationPerRecipe;
-  //       return { ...recipe, exceedAllocation: remainingExceed };
-  //     });
-  
-  //     return { ...prev, recipes: updatedRecipes };
-  //   });
-  // };
 
   const autoAllocateExceed = () => {
     setSelectedIngredient((prev) => {
@@ -973,8 +840,6 @@ const RecipePreparationPage = () => {
       return { ...prev, recipes: updatedRecipes };
     });
   };
-  
-  
 
   return (
     <div className="recipe-preparation-page">
@@ -1005,21 +870,6 @@ const RecipePreparationPage = () => {
               </div>
             ))}
           </div>
-          {/* <div>
-            <h3>Merged Ingredients</h3>
-            <ul>
-              {mergedIngredients.map((ingredient, index) => (
-                <li
-                  key={index}
-                  onClick={() => handleIngredientClick(ingredient)}
-                  style={{ cursor: "pointer", color: "blue" }}
-                >
-                  {ingredient.ingredients.name} - {ingredient.quantity}{" "}
-                  {ingredient.ingredients.unit?.unit_tag || ""}
-                </li>
-              ))}
-            </ul>
-          </div> */}
           <div>
             <h3>Merged Ingredients</h3>
             <ul>
@@ -1041,19 +891,34 @@ const RecipePreparationPage = () => {
                     <ul style={{ paddingLeft: "20px", marginTop: "5px", fontSize: "14px" }}>
                       {ingredient.recipes.map((recipe) => (
                         <li key={recipe.recipeId}>
-                          Needed in {getRecipeNameById(recipe.recipeId)}: <strong>{recipe.quantity}{" "}
-                          {ingredient.ingredients.unit?.unit_tag || ""}</strong>
+                          Needed in {getRecipeNameById(recipe.recipeId)}:{" "}
+                          <strong>
+                            {recipe.quantity} {ingredient.ingredients.unit?.unit_tag || ""}
+                          </strong>
                         </li>
                       ))}
                     </ul>
+                  )}
+                  {ingredient.inventoryItems?.length > 0 && (
+                    <div style={{ marginTop: "10px" }}>
+                      <h4>Linked Inventory Items:</h4>
+                      <ul>
+                        {ingredient.inventoryItems.map((inventory, idx) => (
+                          <li key={idx}>
+                            Inventory ID: {inventory.inventory_id},
+                            original quantity: {inventory.inventory.quantity} {inventory.ingredients.unit.unit_tag},
+                             Used Quantity:{" "}
+                            {inventory.used_quantity} {inventory.ingredients.unit.unit_tag}, Status ID: {inventory.status_id},  Status: {inventory.inventory_meal_plan_status.name}
+                            expiry date: {inventory.inventory.expiry_date.date}, {inventory.inventory.days_left}days left
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
                   )}
                 </li>
               ))}
             </ul>
           </div>
-
-
-
         </>
       ) : (
         recipes.map((recipe) => (
@@ -1112,8 +977,6 @@ const RecipePreparationPage = () => {
       >
         Start Cooking
       </button>
-
-      
 
       {selectedIngredient && (
         <div className="modal-overlay" onClick={() => setSelectedIngredient(null)}>
@@ -1258,7 +1121,6 @@ const RecipePreparationPage = () => {
                       >
                         -
                       </button>
-                      {/* <span> {item.selectedQuantity} </span> */}
                       <input
                         type="number"
                         min="1"
@@ -1275,7 +1137,6 @@ const RecipePreparationPage = () => {
                         onClick={() => adjustQuantity(item.id, 1)}
                         disabled={
                           (selectedInventory.filter((item) => item.preselected).length === 1 && item.selectedQuantity >= item.quantity) || // Check if only one preselected item
-                          
                           item.selectedQuantity >= item.quantity // Check if maximum quantity reached
                         }
                         style={{ margin: "0 5px", backgroundColor: "blue", color: "white" }}
