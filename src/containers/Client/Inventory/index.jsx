@@ -17,6 +17,7 @@ const Inventory = () => {
   const [showFilterMenu, setShowFilterMenu] = useState(false); // State to toggle filter menu
   const [usedAmount, setUsedAmount] = useState({});
   const [pendingSwipe, setPendingSwipe] = useState(null);  // State to track pending swipe actions
+  const [isProcessing, setIsProcessing] = useState(false);
 
 
   useEffect(() => {
@@ -40,23 +41,32 @@ const Inventory = () => {
   
     fetchUserAndInventory();
   }, [navigate]);
+
+  useEffect(() => {
+    if (pendingSwipe) {
+      confirmAction();  // Run only when pendingSwipe is set
+    }
+  }, [pendingSwipe]);  // This ensures confirmAction is called after pendingSwipe is updated
+  
   
   if (isLoading) {
     return <div>Loading...</div>;
   }
 
   const sortedItems = items
-    .filter((item) =>
-      item.name.toLowerCase().includes(searchTerm.toLowerCase())
-    ) // Search filtering
-    .sort((a, b) => {
-      if (sortOption === 'days_left') {
-        return (a.daysLeft || Infinity) - (b.daysLeft || Infinity); // Sort by days_left (smallest to greatest)
-      } else if (sortOption === 'category') {
-        return a.category.localeCompare(b.category); // Sort alphabetically by category
-      }
-      return 0; // Default order
-    });
+  .filter((item) => item.condition_id === 1) // Only show items with condition_id = 1
+  .filter((item) =>
+    item.name.toLowerCase().includes(searchTerm.toLowerCase())
+  ) // Search filtering
+  .sort((a, b) => {
+    if (sortOption === 'days_left') {
+      return (a.daysLeft || Infinity) - (b.daysLeft || Infinity); // Sort by days_left (smallest to greatest)
+    } else if (sortOption === 'category') {
+      return a.category.localeCompare(b.category); // Sort alphabetically by category
+    }
+    return 0; // Default order
+  });
+
 
   const handleFilterClick = () => {
     setShowFilterMenu((prev) => !prev); // Toggle filter menu visibility
@@ -110,26 +120,48 @@ const Inventory = () => {
     }
   };
 
-   // Function to remove item from the list after condition update
-   const removeItemFromList = (itemId, setItems) => {
+   // Function to remove an item from the list after updating the condition
+  const removeItemFromList = (itemId) => {
     setItems((prevItems) => prevItems.filter((item) => item.id !== itemId));
   };
 
-  // swipe handler to show action buttons
-  const handleSwipe = (item, condition) => {
-    setPendingSwipe({ id: item.id, action: condition }); // Show the button for discard or used
-  };
-
-  const confirmAction = () => {
-    if (pendingSwipe) {
+  // Function to confirm and execute the action (discard or used)
+  const confirmAction = async () => {
+    if (pendingSwipe && !isProcessing) {
+      setIsProcessing(true); // Disable further actions until processing completes
       const { id, action } = pendingSwipe;
-      const newConditionId = action === 'discard' ? 3 : 2; // 3 for discarded, 2 for used
-      inventoryUtils.updateItemCondition(id, newConditionId); // Update condition in the database
-      removeItemFromList(id, setItems); // Remove item from the list
-      setPendingSwipe(null); // Clear pending swipe state
+      const newConditionId = action === 'discard' ? 3 : 2;
+  
+      try {
+        const { data, error, count } = await inventoryUtils.updateItemCondition(id, newConditionId);
+  
+        if (error) {
+          console.error('Error updating item condition:', error);
+          return;
+        }
+  
+        if (count === 0) {
+          console.warn('No matching rows found to update.');
+          return;
+        }
+  
+        // Update UI after action
+        removeItemFromList(id);
+      } catch (err) {
+        console.error('Error during action confirmation:', err.message);
+      } finally {
+        setIsProcessing(false); // Re-enable actions
+        setPendingSwipe(null);  // Reset the pending swipe state
+      }
     }
   };
+  
 
+  // Handle swipe action by setting the pendingSwipe state
+  const handleSwipeAction = (item, action) => {
+    setPendingSwipe({ id: item.id, action });  // Store pending swipe action
+  };
+  
 
   return (
     <div className="inventory-container">
@@ -169,7 +201,6 @@ const Inventory = () => {
               <Item
                 key={item.id}
                 item={item}
-                handleSwipe={handleSwipe}
                 setItems={setItems}
                 handleClick={handleClick}
                 expandedItems={expandedItems}
@@ -181,8 +212,7 @@ const Inventory = () => {
                 handleDoneClick={handleDoneClick}
                 activeDropdown={activeDropdown}
                 toggleDropdown={toggleDropdown}
-                pendingSwipe={pendingSwipe} // Pass pending swipe state
-                confirmAction={confirmAction}
+                handleSwipeAction={handleSwipeAction}
               />
             ))}
           </div>
@@ -194,7 +224,6 @@ const Inventory = () => {
 
 const Item = ({
   item,
-  handleSwipe,
   setItems,
   handleClick,
   expandedItems,
@@ -206,24 +235,53 @@ const Item = ({
   handleDoneClick,
   activeDropdown,
   toggleDropdown,
-  pendingSwipe,
-  confirmAction,
+  handleSwipeAction,
 }) => {
+  const [isSwiped, setIsSwiped] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);  // Add this line
+
   // Swipeable hook
   const swipeHandlers = useSwipeable({
-    onSwipedLeft: () => handleSwipe(item, 'discard', setItems),
-    onSwipedRight: () => handleSwipe(item, 'used', setItems),
-    preventDefaultTouchmoveEvent: true, // Prevent default scroll on swipe
+    onSwipedLeft: () => setIsSwiped(true),
+    onSwipedRight: () => setIsSwiped(false),
+    preventDefaultTouchmoveEvent: true,
     trackMouse: true,
   });
 
+  const handleActionClick = (action) => {
+    if (!isProcessing) {  // Prevent further actions during processing
+      setIsProcessing(true);
+      setIsSwiped(false);  // Reset swipe state
+      handleSwipeAction(item, action);  // Trigger action
+    }
+  };
+  
+
   return (
     <div className="item-container"{...swipeHandlers}>
+      <div
+        className="swipeable-item"
+        style={{
+          transform: isSwiped ? "translateX(-50%)" : "translateX(0)",
+        }}
+      ></div>
+
       <div className="item">
-        {/* Show the discard or used button if pendingSwipe matches this item */}
-        {pendingSwipe && pendingSwipe.id === item.id && (
-          <div className="swipe-buttons">
-            <button onClick={confirmAction}>Confirm {pendingSwipe.action}</button>
+        {/* Buttons revealed when swiped */}
+        {isSwiped && (
+          <div className="action-buttons">
+            <button
+              className="used-button"
+              onClick={() => handleActionClick("used")}
+            >
+              Used
+            </button>
+            <button
+              className="discard-button"
+              onClick={() => handleActionClick("discard")}
+            >
+              Discard
+            </button>
           </div>
         )}
         <div className="left-section">

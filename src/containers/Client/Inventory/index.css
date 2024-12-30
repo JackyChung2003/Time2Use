@@ -11,12 +11,37 @@
   transition: transform 0.3s ease-in-out;
 }
 
-.item-container.swiped-left {
-  transform: translateX(-100%); /* Move item off-screen to the left */
+.swipeable-item {
+  position: relative;
+  z-index: 2;
+  background: white;
+  transition: transform 0.3s ease;
 }
 
-.item-container.swiped-right {
-  transform: translateX(100%); /* Move item off-screen to the right */
+.action-buttons {
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 100%;
+  display: flex;
+  z-index: 1;
+  background: #f8f8f8;
+}
+
+.action-buttons button {
+  flex: 1;
+  border: none;
+  font-size: 12px;
+  color: white;
+  cursor: pointer;
+}
+
+.used-button {
+  background: #03ac13;
+}
+
+.discard-button {
+  background: #ff0800;
 }
 
 .inventory-container {

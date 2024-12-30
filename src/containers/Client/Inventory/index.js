@@ -137,24 +137,27 @@ export const handleQuantityChange = async (item, newQuantity, setItems) => {
   }
 };
 
-// Function to handle the condition change (used/discarded)
 export const updateItemCondition = async (itemId, conditionId) => {
   console.log('Attempting to update item condition...');
   console.log('Item ID:', itemId);
   console.log('Condition ID:', conditionId);
 
-  const { data, error, count } = await supabase
-    .from('inventory') // Ensure table name matches
-    .update({ condition_id: conditionId })
-    .eq('ingredient_id', itemId) // Use the correct column name
-    .select('*', { count: 'exact' }); // Include count to verify matched rows
+  try {
+    const response = await supabase
+      .from('inventory') // Ensure table name matches
+      .update({ condition_id: conditionId })
+      .eq('ingredient_id', itemId) // Use the correct column name
+      .select('*', { count: 'exact' }); // Include count to verify matched rows
 
-  if (error) {
+    // Return a standardized structure
+    if (response.error) {
+      throw new Error(response.error.message);
+    }
+
+    return { data: response.data, error: null, count: response.count }; // Return a standard response object
+  } catch (error) {
     console.error('Error updating condition:', error.message);
-  } else if (count === 0) {
-    console.warn('No matching rows found for the provided item ID.');
-  } else {
-    console.log('Condition updated successfully:', data);
+    return { data: null, error: error.message, count: 0 }; // Return error details in a structured format
   }
 };
 
