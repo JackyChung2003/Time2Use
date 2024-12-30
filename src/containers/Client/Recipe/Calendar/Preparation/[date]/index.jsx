@@ -188,6 +188,11 @@ const RecipePreparationPage = () => {
 
   const handleIngredientClick = async (ingredient) => {
     try {
+      setSelectedIngredient(null); // Clear previous selection
+      setInventoryItems([]); // Reset inventory items
+      setSelectedInventory([]); // Reset selected inventory
+      setAdjustingQuantity(false); // Reset adjusting state
+
       const inventory = await fetchUserInventory(ingredient.ingredients.id);
       console.log('ingredient:', ingredient);
       console.log("Fetched Inventory:", inventory);
@@ -255,24 +260,43 @@ const RecipePreparationPage = () => {
   const getTotalAdjustedQuantity = () => {
     return selectedInventory.reduce((sum, item) => sum + (item.selectedQuantity || 0), 0);
   };
-  
+
   // const confirmSelection = () => {
-  //   if (validateSelection() || !capped) { // If valid or uncapped
-  //     console.log("Selected Inventory Items:", selectedInventory);
+  //   const currentlySelected = selectedInventory.filter((item) => item.preselected);
   
-  //     // Initialize selectedQuantity for adjustment
+  //   const totalSelectedQuantity = currentlySelected.reduce(
+  //     (sum, item) => sum + (item.selectedQuantity || item.quantity), // Use `selectedQuantity` if present
+  //     0
+  //   );
+
+  //   if ((!capped && currentlySelected.length === 0) || (capped && totalSelectedQuantity < selectedIngredient.quantity)) {
+  //     alert(
+  //       `You must select at least ${
+  //         capped ? selectedIngredient.quantity : "one item"
+  //       } to proceed.`
+  //     );
+  //     return;
+  //   }
+  
+  //   if (totalSelectedQuantity >= selectedIngredient.quantity || !capped) {
+  //     console.log("Confirmed Inventory Selection:", currentlySelected);
+  
+  //     // Initialize selectedQuantity for adjustment if needed
   //     setSelectedInventory((prevSelected) =>
-  //       prevSelected.map((item) => ({
-  //         ...item,
-  //         // selectedQuantity: item.quantity, // Initialize selectedQuantity with current quantity
-  //         selectedQuantity: item.selectedQuantity || 0, // Ensure it has a value
-  //       }))
+  //       prevSelected.map((item) =>
+  //         currentlySelected.find((selected) => selected.id === item.id)
+  //           ? {
+  //               ...item,
+  //               selectedQuantity: item.selectedQuantity || item.quantity, // Initialize with current quantity
+  //             }
+  //           : item
+  //       )
   //     );
   
-  //     setAdjustingQuantity(true); // Move to adjustment step
+  //     setAdjustingQuantity(true); // Proceed to adjustment step
   //   } else {
   //     alert(
-  //       `Selected quantity (${getTotalAdjustedQuantity()} ${
+  //       `Selected quantity (${totalSelectedQuantity} ${
   //         selectedIngredient.ingredients.unit?.unit_tag || ""
   //       }) is less than the required amount (${selectedIngredient.quantity} ${
   //         selectedIngredient.ingredients.unit?.unit_tag || ""
@@ -280,41 +304,40 @@ const RecipePreparationPage = () => {
   //     );
   //   }
   // };
-
   const confirmSelection = () => {
     const currentlySelected = selectedInventory.filter((item) => item.preselected);
-  
     const totalSelectedQuantity = currentlySelected.reduce(
-      (sum, item) => sum + (item.selectedQuantity || item.quantity), // Use `selectedQuantity` if present
+      (sum, item) => sum + (item.selectedQuantity || item.quantity),
       0
     );
   
-    if (totalSelectedQuantity >= selectedIngredient.quantity || !capped) {
-      console.log("Confirmed Inventory Selection:", currentlySelected);
-  
-      // Initialize selectedQuantity for adjustment if needed
-      setSelectedInventory((prevSelected) =>
-        prevSelected.map((item) =>
-          currentlySelected.find((selected) => selected.id === item.id)
-            ? {
-                ...item,
-                selectedQuantity: item.selectedQuantity || item.quantity, // Initialize with current quantity
-              }
-            : item
-        )
-      );
-  
-      setAdjustingQuantity(true); // Proceed to adjustment step
-    } else {
+    // Validation for capped and uncapped
+    if ((!capped && currentlySelected.length === 0) || (capped && totalSelectedQuantity < selectedIngredient.quantity)) {
       alert(
-        `Selected quantity (${totalSelectedQuantity} ${
-          selectedIngredient.ingredients.unit?.unit_tag || ""
-        }) is less than the required amount (${selectedIngredient.quantity} ${
-          selectedIngredient.ingredients.unit?.unit_tag || ""
-        }).`
+        `You must select at least ${
+          capped ? `${selectedIngredient.quantity} ${selectedIngredient.ingredients.unit?.unit_tag || ""}` : "one item"
+        } to proceed.`
       );
+      return;
     }
+  
+    // Proceed to adjustment
+    console.log("Confirmed Inventory Selection:", currentlySelected);
+  
+    setSelectedInventory((prevSelected) =>
+      prevSelected.map((item) =>
+        currentlySelected.find((selected) => selected.id === item.id)
+          ? {
+              ...item,
+              selectedQuantity: item.selectedQuantity || item.quantity, // Initialize with current quantity
+            }
+          : item
+      )
+    );
+  
+    setAdjustingQuantity(true); // Proceed to adjustment step
   };
+  
   
 
   const adjustQuantity = (itemId, delta) => {
@@ -650,26 +673,7 @@ const RecipePreparationPage = () => {
                       <label>
                         <input
                           type="checkbox"
-                          // checked={!!selectedInventory.find(
-                          //   (selected) => selected.id === item.id
-                          // )}
-
-                          // checked={
-                          //   !!selectedInventory.find(
-                          //     (selected) => selected.id === item.id && selected.preselected
-                          //   )
-                          // }
-
-                          // checked={
-                          //   !!selectedInventory.find((selected) => selected.id === item.id)
-                          // }
-                          // checked={
-                          //   // !!selectedInventory.find((selected) => selected.id === item.id && selected.preselected)
-                          //   !!selectedInventory.find((selected) => selected.id === item.id)?.preselected                          }
-
-                          // checked={!!selectedInventory.find((selected) => selected.id === item.id)}
                           checked={selectedInventory.find((selected) => selected.id === item.id)?.preselected || false}
-  
                           onChange={() => toggleInventorySelection(item)}
                         />
                         {item.quantity} {item.unit?.unit_tag || ""} (Expiry:{" "}
@@ -679,6 +683,31 @@ const RecipePreparationPage = () => {
                     
                   ))}
                 </ul>
+
+                {/* <div style={{ margin: "10px 0" }}>
+                  <button
+                    onClick={() => setCapped(!capped)}
+                    style={{
+                      padding: "10px 20px",
+                      background: capped ? "red" : "green",
+                      color: "white",
+                      borderRadius: "5px",
+                      marginRight: "10px",
+                    }}
+                  >
+                    {capped ? "Uncap Selection" : "Cap Selection"}
+                  </button>
+                </div> */}
+                <div style={{ margin: "10px 0" }}>
+                  <label style={{ display: "block", margin: "10px 0" }}>
+                    <input
+                      type="checkbox"
+                      checked={capped}
+                      onChange={() => setCapped(!capped)}
+                    />
+                    Cap total to match required quantity
+                  </label>
+                </div>
 
                 <button
                   onClick={confirmSelection}
@@ -716,6 +745,19 @@ const RecipePreparationPage = () => {
                     Cap total to match required quantity
                   </label>
                 </div>
+
+                <button
+                  onClick={() => setAdjustingQuantity(false)} // Back to selection
+                  style={{
+                    marginTop: "10px",
+                    padding: "10px 20px",
+                    background: "orange",
+                    color: "white",
+                    borderRadius: "5px",
+                  }}
+                >
+                  Back to Select
+                </button>
 
                 <ul>
                   {selectedInventory.map((item) => (
