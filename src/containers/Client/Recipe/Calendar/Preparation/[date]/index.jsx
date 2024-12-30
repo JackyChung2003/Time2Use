@@ -40,6 +40,12 @@ const RecipePreparationPage = () => {
   const [selectedInventory, setSelectedInventory] = useState([]); // State to track selected inventory items
   const [adjustingQuantity, setAdjustingQuantity] = useState(false); // Add this state
 
+  const exceedAmount = Math.max(
+    0,
+    selectedInventory.reduce((sum, item) => sum + item.selectedQuantity, 0) -
+      (selectedIngredient?.quantity || 0) // Safeguard in case selectedIngredient is null
+  );
+
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -500,6 +506,11 @@ const RecipePreparationPage = () => {
     }
   }, [selectedInventory]);
   
+  useEffect(() => {
+    if (exceedAmount > 0) {
+      autoAllocateExceed(); // Automatically allocate exceed amount
+    }
+  }, [exceedAmount]); // Dependency array includes exceedAmount
   
   if (loading) {
     return <div>Loading preparation details...</div>;
@@ -537,6 +548,88 @@ const RecipePreparationPage = () => {
     const recipe = recipes.find((r) => r.id === recipeId);
     return recipe ? recipe.name : `Recipe ${recipeId}`; // Default to "Recipe {id}" if not found
   };
+
+  const adjustExceedAllocation = (recipeId, delta) => {
+    setSelectedIngredient((prev) => {
+      const updatedRecipes = prev.recipes.map((recipe) => {
+        if (recipe.recipeId === recipeId) {
+          const newAllocation = Math.max(0, (recipe.exceedAllocation || 0) + delta);
+          return { ...recipe, exceedAllocation: newAllocation };
+        }
+        return recipe;
+      });
+      return { ...prev, recipes: updatedRecipes };
+    });
+  };
+
+  
+  // const autoAllocateExceed = () => {
+  //   const exceedAmount = Math.max(
+  //     0,
+  //     selectedInventory.reduce((sum, item) => sum + item.selectedQuantity, 0) -
+  //       selectedIngredient.quantity
+  //   );
+  
+  //   setSelectedIngredient((prev) => {
+  //     const totalRecipes = prev.recipes.length;
+  //     const allocationPerRecipe = Math.floor(exceedAmount / totalRecipes);
+  
+  //     const updatedRecipes = prev.recipes.map((recipe, index) => {
+  //       const remainingExceed =
+  //         index === totalRecipes - 1 // Add remaining to the last recipe
+  //           ? exceedAmount -
+  //             allocationPerRecipe * (totalRecipes - 1)
+  //           : allocationPerRecipe;
+  //       return { ...recipe, exceedAllocation: remainingExceed };
+  //     });
+  
+  //     return { ...prev, recipes: updatedRecipes };
+  //   });
+  // };
+
+  const autoAllocateExceed = () => {
+    setSelectedIngredient((prev) => {
+      const totalRecipes = prev.recipes.length;
+      const allocationPerRecipe = Math.floor(exceedAmount / totalRecipes);
+
+      const updatedRecipes = prev.recipes.map((recipe, index) => {
+        const remainingExceed =
+          index === totalRecipes - 1 // Add remaining to the last recipe
+            ? exceedAmount - allocationPerRecipe * (totalRecipes - 1)
+            : allocationPerRecipe;
+
+        return { ...recipe, exceedAllocation: remainingExceed };
+      });
+
+      return { ...prev, recipes: updatedRecipes };
+    });
+  };
+
+  const handleExceedInputChange = (recipeId, value) => {
+    const parsedValue = Math.max(
+      0,
+      Math.min(
+        parseInt(value) || 0,
+        Math.max(
+          0,
+          selectedInventory.reduce((sum, item) => sum + item.selectedQuantity, 0) -
+            selectedIngredient.quantity
+        )
+      )
+    );
+  
+    setSelectedIngredient((prev) => {
+      const updatedRecipes = prev.recipes.map((recipe) => {
+        if (recipe.recipeId === recipeId) {
+          return { ...recipe, exceedAllocation: parsedValue };
+        }
+        return recipe;
+      });
+      return { ...prev, recipes: updatedRecipes };
+    });
+  };
+  
+  
 
   return (
     <div className="recipe-preparation-page">
@@ -836,7 +929,8 @@ const RecipePreparationPage = () => {
                       <button
                         onClick={() => adjustQuantity(item.id, 1)}
                         disabled={
-                          selectedInventory.filter((item) => item.preselected).length === 1 && // Check if only one preselected item
+                          (selectedInventory.filter((item) => item.preselected).length === 1 && item.selectedQuantity >= item.quantity) || // Check if only one preselected item
+                          
                           item.selectedQuantity >= item.quantity // Check if maximum quantity reached
                         }
                         style={{ margin: "0 5px", backgroundColor: "blue", color: "white" }}
@@ -872,6 +966,106 @@ const RecipePreparationPage = () => {
                 >
                   Finalize Quantities
                 </button>
+
+                {/* Exceed Section */}
+  {!capped && (
+    <div style={{ marginTop: "20px" }}>
+      <h4>Exceed Amount:</h4>
+      <p>
+        {Math.max(
+          0,
+          selectedInventory.reduce((sum, item) => sum + item.selectedQuantity, 0) -
+            selectedIngredient.quantity
+        )}{" "}
+        {selectedIngredient.ingredients.unit?.unit_tag || ""}
+      </p>
+
+      {/* Recipes Allocation for Exceed */}
+      <h4>Allocate Exceed Amount</h4>
+      <ul>
+        {selectedIngredient.recipes.map((recipe, index) => (
+          <li key={index} style={{ marginBottom: "10px" }}>
+            <div>
+              <strong>{getRecipeNameById(recipe.recipeId)}:</strong>{" "}
+              {recipe.quantity}{" "}
+              {selectedIngredient.ingredients.unit?.unit_tag || ""}
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+              <button
+                onClick={() =>
+                  adjustExceedAllocation(recipe.recipeId, -1)
+                }
+                disabled={recipe.exceedAllocation <= 0}
+                style={{
+                  background: "blue",
+                  color: "white",
+                  borderRadius: "5px",
+                }}
+              >
+                -
+              </button>
+              {/* <span>{recipe.exceedAllocation || 0}</span> */}
+              <input
+                type="number"
+                min="0"
+                max={Math.max(
+                  0,
+                  selectedInventory.reduce(
+                    (sum, item) => sum + item.selectedQuantity,
+                    0
+                  ) - selectedIngredient.quantity
+                )}
+                value={recipe.exceedAllocation || 0}
+                onChange={(e) => handleExceedInputChange(recipe.recipeId, e.target.value)}
+                style={{
+                  width: "60px",
+                  textAlign: "center",
+                  borderRadius: "5px",
+                  border: "1px solid #ccc",
+                  padding: "5px",
+                }}
+              />
+              <button
+                onClick={() =>
+                  adjustExceedAllocation(recipe.recipeId, 1)
+                }
+                disabled={
+                  recipe.exceedAllocation >=
+                  Math.max(
+                    0,
+                    selectedInventory.reduce(
+                      (sum, item) => sum + item.selectedQuantity,
+                      0
+                    ) - selectedIngredient.quantity
+                  )
+                }
+                style={{
+                  background: "blue",
+                  color: "white",
+                  borderRadius: "5px",
+                }}
+              >
+                +
+              </button>
+            </div>
+          </li>
+        ))}
+      </ul>
+
+      <button
+        onClick={autoAllocateExceed}
+        style={{
+          marginTop: "10px",
+          padding: "10px 20px",
+          background: "blue",
+          color: "white",
+          borderRadius: "5px",
+        }}
+      >
+        Auto Adjust Exceed Quantities
+      </button>
+    </div>
+  )}
               </>
             )}
           </div>
