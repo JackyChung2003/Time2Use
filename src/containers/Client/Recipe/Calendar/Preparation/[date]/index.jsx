@@ -549,18 +549,153 @@ const RecipePreparationPage = () => {
     return recipe ? recipe.name : `Recipe ${recipeId}`; // Default to "Recipe {id}" if not found
   };
 
+  // const adjustExceedAllocation = (recipeId, delta) => {
+  //   setSelectedIngredient((prev) => {
+  //     const updatedRecipes = prev.recipes.map((recipe) => {
+  //       if (recipe.recipeId === recipeId) {
+  //         const newAllocation = Math.max(0, (recipe.exceedAllocation || 0) + delta);
+  //         return { ...recipe, exceedAllocation: newAllocation };
+  //       }
+  //       return recipe;
+  //     });
+  //     return { ...prev, recipes: updatedRecipes };
+  //   });
+  // };
+
+  // const adjustExceedAllocation = (recipeId, delta) => {
+  //   setSelectedIngredient((prev) => {
+  //     const totalExceedAllowed = Math.max(
+  //       0,
+  //       selectedInventory.reduce((sum, item) => sum + item.selectedQuantity, 0) -
+  //         (prev.quantity || 0) // Ensure valid quantity handling
+  //     );
+  
+  //     const currentTotalExceed = prev.recipes.reduce(
+  //       (sum, recipe) => sum + (recipe.exceedAllocation || 0),
+  //       0
+  //     );
+  
+  //     const updatedRecipes = prev.recipes.map((recipe) => {
+  //       if (recipe.recipeId === recipeId) {
+  //         // Calculate the new exceed allocation
+  //         const newAllocation = Math.max(
+  //           0,
+  //           Math.min(
+  //             (recipe.exceedAllocation || 0) + delta,
+  //             totalExceedAllowed - (currentTotalExceed - (recipe.exceedAllocation || 0)) // Adjust allocation without exceeding the cap
+  //           )
+  //         );
+  
+  //         return { ...recipe, exceedAllocation: newAllocation };
+  //       }
+  //       return recipe;
+  //     });
+  
+  //     return { ...prev, recipes: updatedRecipes };
+  //   });
+  // };
+
+  // const adjustExceedAllocation = (recipeId, delta) => {
+  //   setSelectedIngredient((prev) => {
+  //     const totalExceedAllowed = Math.max(
+  //       0,
+  //       selectedInventory.reduce((sum, item) => sum + item.selectedQuantity, 0) -
+  //         (prev.quantity || 0)
+  //     );
+  
+  //     // Calculate the current total allocation
+  //     const currentTotalExceed = prev.recipes.reduce(
+  //       (sum, recipe) => sum + (recipe.exceedAllocation || 0),
+  //       0
+  //     );
+  
+  //     let remainingExceed = totalExceedAllowed;
+  
+  //     const updatedRecipes = prev.recipes.map((recipe) => {
+  //       if (recipe.recipeId === recipeId) {
+  //         // Try to adjust the selected recipe's allocation
+  //         const newAllocation = Math.max(
+  //           0,
+  //           Math.min(
+  //             (recipe.exceedAllocation || 0) + delta,
+  //             remainingExceed // Cap by remaining allowable exceed
+  //           )
+  //         );
+  //         remainingExceed -= newAllocation; // Deduct from remaining exceed
+  //         return { ...recipe, exceedAllocation: newAllocation };
+  //       } else {
+  //         // Deduct from other recipes to allow redistribution
+  //         const adjustedAllocation = Math.min(
+  //           recipe.exceedAllocation || 0,
+  //           remainingExceed
+  //         );
+  //         remainingExceed -= adjustedAllocation;
+  //         return { ...recipe, exceedAllocation: adjustedAllocation };
+  //       }
+  //     });
+  
+  //     return { ...prev, recipes: updatedRecipes };
+  //   });
+  // };
+  
   const adjustExceedAllocation = (recipeId, delta) => {
     setSelectedIngredient((prev) => {
+      const totalExceedAllowed = Math.max(
+        0,
+        selectedInventory.reduce((sum, item) => sum + item.selectedQuantity, 0) -
+          (prev.quantity || 0)
+      );
+  
       const updatedRecipes = prev.recipes.map((recipe) => {
-        if (recipe.recipeId === recipeId) {
-          const newAllocation = Math.max(0, (recipe.exceedAllocation || 0) + delta);
-          return { ...recipe, exceedAllocation: newAllocation };
-        }
-        return recipe;
+        // Clone the recipe object
+        return { ...recipe };
       });
+  
+      const targetRecipe = updatedRecipes.find((recipe) => recipe.recipeId === recipeId);
+  
+      if (!targetRecipe) return prev; // If the target recipe is not found, return the original state
+  
+      // Adjust the target recipe's allocation
+      const currentAllocation = targetRecipe.exceedAllocation || 0;
+      const newAllocation = Math.max(
+        0,
+        Math.min(currentAllocation + delta, totalExceedAllowed)
+      );
+  
+      // Calculate the change in allocation
+      const allocationChange = newAllocation - currentAllocation;
+  
+      if (allocationChange === 0) {
+        return prev; // If no change, return the original state
+      }
+  
+      targetRecipe.exceedAllocation = newAllocation;
+  
+      if (allocationChange > 0) {
+        // If incrementing, find another recipe to deduct from
+        for (const recipe of updatedRecipes) {
+          if (recipe.recipeId !== recipeId && recipe.exceedAllocation > 0) {
+            recipe.exceedAllocation = Math.max(recipe.exceedAllocation - 1, 0);
+            break; // Deduct only one and stop
+          }
+        }
+      } else {
+        // If decrementing, add the freed allocation to another recipe
+        for (const recipe of updatedRecipes) {
+          if (recipe.recipeId !== recipeId) {
+            recipe.exceedAllocation = Math.min(
+              (recipe.exceedAllocation || 0) + 1,
+              totalExceedAllowed
+            );
+            break; // Add only one and stop
+          }
+        }
+      }
+  
       return { ...prev, recipes: updatedRecipes };
     });
   };
+  
 
   
   // const autoAllocateExceed = () => {
