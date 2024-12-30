@@ -82,14 +82,40 @@ const RecipePreparationPage = () => {
         setSteps(allSteps);
 
         // Merge ingredients
+        // const merged = allIngredients.reduce((acc, ingredient) => {
+        //   const existing = acc.find(
+        //     (item) => item.ingredients.name === ingredient.ingredients.name
+        //   );
+        //   if (existing) {
+        //     existing.quantity += ingredient.quantity;
+        //   } else {
+        //     acc.push({ ...ingredient });
+        //   }
+        //   return acc;
+        // }, []);
+        // setMergedIngredients(merged);
         const merged = allIngredients.reduce((acc, ingredient) => {
           const existing = acc.find(
             (item) => item.ingredients.name === ingredient.ingredients.name
           );
           if (existing) {
             existing.quantity += ingredient.quantity;
+        
+            // Add the recipe-specific quantity
+            existing.recipes.push({
+              recipeId: ingredient.recipeId,
+              quantity: ingredient.quantity,
+            });
           } else {
-            acc.push({ ...ingredient });
+            acc.push({
+              ...ingredient,
+              recipes: [
+                {
+                  recipeId: ingredient.recipeId,
+                  quantity: ingredient.quantity,
+                },
+              ],
+            });
           }
           return acc;
         }, []);
@@ -238,72 +264,6 @@ const RecipePreparationPage = () => {
     });
   };
 
-  const validateSelection = () => {
-    const totalSelectedQuantity = selectedInventory.reduce(
-      (sum, item) => sum + item.selectedQuantity,
-      0
-    );
-    return totalSelectedQuantity >= selectedIngredient.quantity;
-  };
-  
-  const finalizeSelection = () => {
-    const total = getTotalAdjustedQuantity();
-    if (capped && total < selectedIngredient.quantity) {
-      alert(`You must select at least ${selectedIngredient.quantity}.`);
-      return;
-    }
-    console.log("Finalized Quantities:", selectedInventory);
-    setSelectedIngredient(null); // Close the modal
-    setSelectedInventory([]); // Clear selection
-  };
-  
-  const getTotalAdjustedQuantity = () => {
-    return selectedInventory.reduce((sum, item) => sum + (item.selectedQuantity || 0), 0);
-  };
-
-  // const confirmSelection = () => {
-  //   const currentlySelected = selectedInventory.filter((item) => item.preselected);
-  
-  //   const totalSelectedQuantity = currentlySelected.reduce(
-  //     (sum, item) => sum + (item.selectedQuantity || item.quantity), // Use `selectedQuantity` if present
-  //     0
-  //   );
-
-  //   if ((!capped && currentlySelected.length === 0) || (capped && totalSelectedQuantity < selectedIngredient.quantity)) {
-  //     alert(
-  //       `You must select at least ${
-  //         capped ? selectedIngredient.quantity : "one item"
-  //       } to proceed.`
-  //     );
-  //     return;
-  //   }
-  
-  //   if (totalSelectedQuantity >= selectedIngredient.quantity || !capped) {
-  //     console.log("Confirmed Inventory Selection:", currentlySelected);
-  
-  //     // Initialize selectedQuantity for adjustment if needed
-  //     setSelectedInventory((prevSelected) =>
-  //       prevSelected.map((item) =>
-  //         currentlySelected.find((selected) => selected.id === item.id)
-  //           ? {
-  //               ...item,
-  //               selectedQuantity: item.selectedQuantity || item.quantity, // Initialize with current quantity
-  //             }
-  //           : item
-  //       )
-  //     );
-  
-  //     setAdjustingQuantity(true); // Proceed to adjustment step
-  //   } else {
-  //     alert(
-  //       `Selected quantity (${totalSelectedQuantity} ${
-  //         selectedIngredient.ingredients.unit?.unit_tag || ""
-  //       }) is less than the required amount (${selectedIngredient.quantity} ${
-  //         selectedIngredient.ingredients.unit?.unit_tag || ""
-  //       }).`
-  //     );
-  //   }
-  // };
   const confirmSelection = () => {
     const currentlySelected = selectedInventory.filter((item) => item.preselected);
     const totalSelectedQuantity = currentlySelected.reduce(
@@ -337,74 +297,6 @@ const RecipePreparationPage = () => {
   
     setAdjustingQuantity(true); // Proceed to adjustment step
   };
-  
-  
-
-  // const adjustQuantity = (itemId, delta) => {
-  //   setSelectedInventory((prevSelected) => {
-  //     const updated = prevSelected.map((item) => {
-  //       if (item.id === itemId) {
-  //         const newQuantity = Math.max(0, item.selectedQuantity + delta);
-  //         return { ...item, selectedQuantity: newQuantity };
-  //       }
-  //       return item;
-  //     });
-  
-  //     if (capped) {
-  //       const total = updated.reduce((sum, item) => sum + item.selectedQuantity, 0);
-  //       if (total > selectedIngredient.quantity) {
-  //         const excess = total - selectedIngredient.quantity;
-  //         return adjustForExcess(updated, itemId, excess);
-  //       }
-  //     }
-  //     return updated;
-  //   });
-  // };
-  
-  // const adjustQuantity = (itemId, delta) => {
-  //   setSelectedInventory((prevSelected) => {
-  //     // Calculate the current total
-  //     const total = prevSelected.reduce((sum, item) => sum + item.selectedQuantity, 0);
-  //     const target = selectedIngredient.quantity;
-  
-  //     // Update the specific item
-  //     const updatedInventory = prevSelected.map((item) => {
-  //       if (item.id === itemId) {
-  //         // Prevent the quantity from going below 1
-  //         const newQuantity = Math.max(1, item.selectedQuantity + delta);
-  //         return { ...item, selectedQuantity: newQuantity };
-  //       }
-  //       return item;
-  //     });
-  
-  //     if (capped) {
-  //       if (total === target) {
-  //         if (delta > 0) {
-  //           // Adding: Redistribute the excess to maintain the target
-  //           const excess = updatedInventory.reduce(
-  //             (sum, item) => sum + item.selectedQuantity,
-  //             0
-  //           ) - target;
-  //           return redistributeExcess(updatedInventory, itemId, excess);
-  //         }
-  //         // Subtracting: Normal subtraction is already handled
-  //         return updatedInventory;
-  //       }
-  
-  //       if (total < target) {
-  //         // Allow normal addition until the target is reached
-  //         const newTotal = updatedInventory.reduce(
-  //           (sum, item) => sum + item.selectedQuantity,
-  //           0
-  //         );
-  //         return newTotal <= target ? updatedInventory : adjustToFitTarget(updatedInventory, target);
-  //       }
-  //     }
-  
-  //     // If uncapped, no restrictions
-  //     return updatedInventory;
-  //   });
-  // };
 
   const adjustQuantity = (itemId, delta) => {
     setSelectedInventory((prevSelected) => {
@@ -447,39 +339,6 @@ const RecipePreparationPage = () => {
     });
   };
   
-
-  // const handleQuantityInputChange = (itemId, newQuantity) => {
-  //   setSelectedInventory((prevSelected) => {
-  //     const target = selectedIngredient.quantity;
-  
-  //     // Parse and ensure valid quantity input
-  //     const parsedQuantity = Math.max(1, parseInt(newQuantity) || 1);
-  
-  //     const updatedInventory = prevSelected.map((item) => {
-  //       if (item.id === itemId) {
-  //         return { ...item, selectedQuantity: parsedQuantity };
-  //       }
-  //       return item;
-  //     });
-  
-  //     if (capped) {
-  //       const total = updatedInventory.reduce((sum, item) => sum + item.selectedQuantity, 0);
-  
-  //       if (total > target) {
-  //         const excess = total - target;
-  //         return redistributeExcessToMaintainTarget(updatedInventory, itemId, excess);
-  //       }
-  
-  //       if (total === target) {
-  //         return updatedInventory; // Allow setting when exactly at the target
-  //       }
-  //     }
-  
-  //     // Allow unrestricted input in uncapped mode
-  //     return updatedInventory;
-  //   });
-  // };
-  
   const handleQuantityInputChange = (itemId, newQuantity) => {
     setSelectedInventory((prevSelected) => {
       const target = selectedIngredient.quantity;
@@ -514,31 +373,6 @@ const RecipePreparationPage = () => {
       return updatedInventory;
     });
   };
-  
-  
-  
-  
-
-  // const redistributeExcess = (inventory, excludeItemId, excess) => {
-  //   return inventory.map((item) => {
-  //     if (item.id === excludeItemId || excess <= 0) return item;
-  
-  //     // Deduct excess from other items
-  //     const deduction = Math.min(item.selectedQuantity, excess);
-  //     excess -= deduction;
-  //     return { ...item, selectedQuantity: item.selectedQuantity - deduction };
-  //   });
-  // };
-
-  const redistributeExcess = (inventory, excludeItemId, excess) => {
-    return inventory.map((item) => {
-      if (item.id === excludeItemId || excess <= 0) return item;
-  
-      const deduction = Math.min(item.selectedQuantity, excess);
-      excess -= deduction;
-      return { ...item, selectedQuantity: item.selectedQuantity - deduction };
-    });
-  };
 
   const redistributeExcessToMaintainTarget = (inventory, excludeItemId, excess) => {
     return inventory.map((item) => {
@@ -549,26 +383,6 @@ const RecipePreparationPage = () => {
       return { ...item, selectedQuantity: item.selectedQuantity - deduction };
     });
   };
-  
-  
-  
-  
-  
-
-  
-  // const adjustToFitTarget = (inventory, target) => {
-  //   let remainingRequired = target;
-  
-  //   return inventory.map((item) => {
-  //     if (remainingRequired <= 0) {
-  //       return { ...item, selectedQuantity: 0 };
-  //     }
-  
-  //     const allocatedQuantity = Math.min(item.selectedQuantity, remainingRequired);
-  //     remainingRequired -= allocatedQuantity;
-  //     return { ...item, selectedQuantity: allocatedQuantity };
-  //   });
-  // };
 
   const adjustToFitTarget = (inventory, target) => {
     let remaining = target;
@@ -584,30 +398,31 @@ const RecipePreparationPage = () => {
     });
   };
   
+  // const finalizeQuantities = () => {
+  //   const total = selectedInventory.reduce((sum, item) => sum + item.selectedQuantity, 0);
   
+  //   if (capped && total !== selectedIngredient.quantity) {
+  //     alert(
+  //       `The total quantity must match the required amount (${selectedIngredient.quantity} ${
+  //         selectedIngredient.ingredients.unit?.unit_tag || ""
+  //       }). Adjust the quantities accordingly.`
+  //     );
+  //     return;
+  //   }
   
+  //   console.log("Finalized Quantities:", selectedInventory);
   
-  
-  // const adjustForExcess = (inventory, excludeItemId, excess) => {
-  //   return inventory.map((item) => {
-  //     if (item.id === excludeItemId || excess <= 0) return item;
-  //     const deduction = Math.min(item.selectedQuantity, excess);
-  //     excess -= deduction;
-  //     return { ...item, selectedQuantity: item.selectedQuantity - deduction };
-  //   });
+  //   // Proceed with saving or next step
+  //   setSelectedIngredient(null); // Close modal
+  //   setSelectedInventory([]); // Reset inventory
+  //   setAdjustingQuantity(false); // Exit adjusting mode
   // };
-  
-  const adjustForExcess = (inventory, excludeItemId, excess) => {
-    return inventory.map((item) => {
-      if (item.id === excludeItemId || excess <= 0) return item;
-      const deduction = Math.min(item.selectedQuantity, excess);
-      excess -= deduction;
-      return { ...item, selectedQuantity: item.selectedQuantity - deduction };
-    });
-  };
-  
-  const finalizeQuantities = () => {
-    const total = selectedInventory.reduce((sum, item) => sum + item.selectedQuantity, 0);
+
+  const finalizeQuantities = async () => {
+    const total = selectedInventory.reduce(
+      (sum, item) => sum + item.selectedQuantity,
+      0
+    );
   
     if (capped && total !== selectedIngredient.quantity) {
       alert(
@@ -620,11 +435,71 @@ const RecipePreparationPage = () => {
   
     console.log("Finalized Quantities:", selectedInventory);
   
-    // Proceed with saving or next step
-    setSelectedIngredient(null); // Close modal
-    setSelectedInventory([]); // Reset inventory
-    setAdjustingQuantity(false); // Exit adjusting mode
+    try {
+      // Construct the data to be inserted into `inventory_meal_plan`
+      const mealPlanId = location.state?.meal_plan_id; // Assuming this is available from your component's state
+      if (!mealPlanId) {
+        alert("Meal Plan ID is missing!");
+        return;
+      }
+  
+      const dataToInsert = selectedInventory.map((item) => ({
+        inventory_id: item.id,
+        meal_plan_id: mealPlanId,
+        used_quantity: item.selectedQuantity,
+        status_id: 1, // Assuming a default status ID of 1; update this if needed
+      }));
+  
+      // Insert data into the table using Supabase
+      const { data, error } = await supabase
+        .from("inventory_meal_plan")
+        .insert(dataToInsert);
+  
+      if (error) {
+        throw error;
+      }
+  
+      console.log("Inserted Data:", data);
+  
+      // Reset states after successful insertion
+      setSelectedIngredient(null); // Close modal
+      setSelectedInventory([]); // Reset inventory
+      setAdjustingQuantity(false); // Exit adjusting mode
+      alert("Quantities successfully saved to inventory_meal_plan!");
+    } catch (err) {
+      console.error("Error inserting data into inventory_meal_plan:", err.message);
+      alert("Failed to save quantities. Please try again.");
+    }
   };
+  
+  const assignToRecipes = () => {
+    const updatedMergedIngredients = mergedIngredients.map((ingredient) => {
+      let remainingQuantity = ingredient.quantity;
+  
+      const updatedRecipes = ingredient.recipes.map((recipe) => {
+        const allocated = Math.min(remainingQuantity, recipe.quantity);
+        remainingQuantity -= allocated;
+        return {
+          recipeId: recipe.recipeId,
+          quantity: allocated,
+        };
+      });
+  
+      return {
+        ...ingredient,
+        recipes: updatedRecipes,
+      };
+    });
+  
+    setMergedIngredients(updatedMergedIngredients);
+  };
+  
+  useEffect(() => {
+    if (selectedInventory.length > 0) {
+      assignToRecipes();
+    }
+  }, [selectedInventory]);
+  
   
   if (loading) {
     return <div>Loading preparation details...</div>;
@@ -656,6 +531,11 @@ const RecipePreparationPage = () => {
         `Not enough inventory to fulfill the required amount of ${selectedIngredient.quantity}.`
       );
     }
+  };
+
+  const getRecipeNameById = (recipeId) => {
+    const recipe = recipes.find((r) => r.id === recipeId);
+    return recipe ? recipe.name : `Recipe ${recipeId}`; // Default to "Recipe {id}" if not found
   };
 
   return (
@@ -691,16 +571,6 @@ const RecipePreparationPage = () => {
             <h3>Merged Ingredients</h3>
             <ul>
               {mergedIngredients.map((ingredient, index) => (
-                <li key={index}>
-                  {ingredient.ingredients.name} - {ingredient.quantity} {ingredient.ingredients.unit?.unit_tag || ""}
-                </li>
-              ))}
-            </ul>
-          </div> */}
-          <div>
-            <h3>Merged Ingredients</h3>
-            <ul>
-              {mergedIngredients.map((ingredient, index) => (
                 <li
                   key={index}
                   onClick={() => handleIngredientClick(ingredient)}
@@ -711,7 +581,40 @@ const RecipePreparationPage = () => {
                 </li>
               ))}
             </ul>
+          </div> */}
+          <div>
+            <h3>Merged Ingredients</h3>
+            <ul>
+              {mergedIngredients.map((ingredient, index) => (
+                <li key={index} style={{ marginBottom: "15px" }}>
+                  <div
+                    onClick={() => handleIngredientClick(ingredient)}
+                    style={{
+                      cursor: "pointer",
+                      color: "blue",
+                      fontWeight: "bold",
+                      fontSize: "16px",
+                    }}
+                  >
+                    {ingredient.ingredients.name} - {ingredient.quantity}{" "}
+                    {ingredient.ingredients.unit?.unit_tag || ""}
+                  </div>
+                  {ingredient.recipes.length > 1 && (
+                    <ul style={{ paddingLeft: "20px", marginTop: "5px", fontSize: "14px" }}>
+                      {ingredient.recipes.map((recipe) => (
+                        <li key={recipe.recipeId}>
+                          Needed in {getRecipeNameById(recipe.recipeId)}: <strong>{recipe.quantity}{" "}
+                          {ingredient.ingredients.unit?.unit_tag || ""}</strong>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </li>
+              ))}
+            </ul>
           </div>
+
+
 
         </>
       ) : (
@@ -772,102 +675,7 @@ const RecipePreparationPage = () => {
         Start Cooking
       </button>
 
-      {/* {selectedIngredient && (
-        <div className="modal-overlay" onClick={() => setSelectedIngredient(null)}>
-          <div
-            className="modal-content"
-            onClick={(e) => e.stopPropagation()}
-            style={{ background: "white", padding: "20px", borderRadius: "10px" }}
-          >
-            <h3>Adjust Inventory for: {selectedIngredient.ingredients.name}</h3>
-            <ul>
-              {inventoryItems.map((item) => (
-                <li key={item.id}>
-                  {item.quantity} 
-                  (Unit in Inventory: {item.unit.unit_tag})
-                  (Unit in Ingredient: {item.ingredients.unit.unit_tag})
-                  (Expiry: {item.expiry_date.date})
-                  <button
-                    onClick={() => adjustQuantity(item.id, -1)}
-                    disabled={item.quantity <= 0 || (capped && getTotalQuantity() <= 0)}
-                  >
-                    -
-                  </button>
-                  <button
-                    onClick={() => adjustQuantity(item.id, 1)}
-                    disabled={capped && getTotalQuantity() >= selectedIngredient.quantity}
-                  >
-                    +
-                  </button>
-                </li>
-              ))}
-            </ul>
-            <button onClick={() => setCapped(!capped)}>
-              {capped ? "Uncap Quantities" : "Cap Quantities"}
-            </button>
-            <button onClick={confirmInventorySelection}>Confirm</button>
-          </div>
-        </div>
-      )} */}
-
-      {/* {selectedIngredient && (
-        <div className="modal-overlay" onClick={() => setSelectedIngredient(null)}>
-          <div
-            className="modal-content"
-            onClick={(e) => e.stopPropagation()}
-            style={{ background: "white", padding: "20px", borderRadius: "10px" }}
-          >
-            <h3>Select Inventory for: {selectedIngredient.ingredients.name}</h3>
-            <p>
-              <strong>Required:</strong> {selectedIngredient.quantity} {selectedIngredient.ingredients.unit?.unit_tag || ""}
-            </p>
-            <p>
-              <strong>Your Selection:</strong> {selectedInventory.reduce((sum, item) => sum + item.quantity, 0)}{" "}
-              {selectedIngredient.ingredients.unit?.unit_tag || ""}
-            </p>
-            
-            <div>
-              <label style={{ display: "block", margin: "10px 0" }}>
-                <input
-                  type="checkbox"
-                  checked={!capped}
-                  onChange={() => setCapped(!capped)}
-                />
-                Ignore minimum required quantity
-              </label>
-            </div>
-
-            <ul>
-              {inventoryItems.map((item) => (
-                <li key={item.id}>
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={!!selectedInventory.find((selected) => selected.id === item.id)}
-                      onChange={() => toggleInventorySelection(item)}
-                    />
-                    {item.quantity} {item.ingredients.unit.unit_tag || ""} (Expiry:{" "}
-                    {item.expiry_date?.date || "No expiry date"})
-                  </label>
-                </li>
-              ))}
-            </ul>
-
-            <button
-              onClick={confirmSelection}
-              style={{
-                marginTop: "10px",
-                padding: "10px 20px",
-                background: "green",
-                color: "white",
-                borderRadius: "5px",
-              }}
-            >
-              Confirm Selection
-            </button>
-          </div>
-        </div>
-      )} */}
+      
 
       {selectedIngredient && (
         <div className="modal-overlay" onClick={() => setSelectedIngredient(null)}>
@@ -885,9 +693,6 @@ const RecipePreparationPage = () => {
                 </p>
                 <p>
                   <strong>Your Selection:</strong>{" "}
-                  {/* {selectedInventory.reduce((sum, item) => sum + item.quantity, 0)}{" "}
-                  {selectedIngredient.ingredients.unit?.unit_tag || ""}
-                   */}
                   {selectedInventory
                     .filter((item) => item.preselected) // Only count selected items
                     .reduce((sum, item) => sum + item.quantity, 0)}{" "}
@@ -990,14 +795,6 @@ const RecipePreparationPage = () => {
                         {item.quantity} {item.unit?.unit_tag || ""} (Expiry:{" "}
                         {item.expiry_date?.date || "No expiry date"})
                       </label>
-                      {/* <button
-                        onClick={() => adjustQuantity(item.id, -1)}
-                        disabled={
-                          item.selectedQuantity <= 0 ||
-                          (capped &&
-                            getTotalAdjustedQuantity() <= selectedIngredient.quantity)
-                        }
-                      > */}
                       <button
                         onClick={() => adjustQuantity(item.id, -1)}
                         disabled={item.selectedQuantity <= 1} // Prevent going below 1
@@ -1018,19 +815,6 @@ const RecipePreparationPage = () => {
                           textAlign: "center",
                         }}
                       />
-                      {/* <button
-                        onClick={() => adjustQuantity(item.id, 1)}
-                        disabled={
-                          item.selectedQuantity >= item.quantity ||
-                          (capped &&
-                            getTotalAdjustedQuantity() >= selectedIngredient.quantity)
-                        }
-                      > */}
-                      {/* <button
-                        onClick={() => adjustQuantity(item.id, 1)}
-                        // disabled={capped && getTotalAdjustedQuantity() >= selectedIngredient.quantity} // Prevent exceeding target
-                        style={{ margin: "0 5px", backgroundColor: "blue", color: "white" }}
-                      > */}
                       <button
                         onClick={() => adjustQuantity(item.id, 1)}
                         disabled={item.selectedQuantity >= item.quantity} // Prevent exceeding item's max quantity
@@ -1103,22 +887,6 @@ const RecipePreparationPage = () => {
             }}
           >
             <h3>Arrange Cooking Sequence</h3>
-            {/* <DndContext
-              sensors={sensors}
-              collisionDetection={closestCenter}
-              onDragEnd={handleDragEnd}
-            >
-              <SortableContext
-                items={recipes.map((recipe) => recipe.id)}
-                strategy={verticalListSortingStrategy}
-              >
-                <ul style={{ listStyleType: "none", padding: 0 }}>
-                  {recipes.map((recipe) => (
-                    <SortableRecipe key={recipe.id} id={recipe.id} recipe={recipe} />
-                  ))}
-                </ul>
-              </SortableContext>
-            </DndContext> */}
 
             <SortableRecipeList recipes={recipes} setRecipes={setRecipes} />
             <div
