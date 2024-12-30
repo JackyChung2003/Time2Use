@@ -32,16 +32,17 @@
   flex: 1;
   border: none;
   font-size: 12px;
+  font-weight: bold;
   color: white;
   cursor: pointer;
 }
 
 .used-button {
-  background: #03ac13;
+  background: #238823;
 }
 
 .discard-button {
-  background: #ff0800;
+  background: #d2222d;
 }
 
 .inventory-container {
@@ -109,9 +110,15 @@
   }  
 
   .tracker-title {
-    font-size: 24px;
+    font-size: 28px;
     font-weight: bold;
     margin-bottom: 15px;
+    text-align: center; 
+    color: #000000; 
+    letter-spacing: 1px; 
+    text-transform: capitalize; 
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+    position: relative; 
   }
   
   .empty-inventory-message {
@@ -123,6 +130,35 @@
     color: #555;
     text-align: center;
   }  
+
+  /* Section Titles */
+  .section-title {
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 10px;
+    text-align: left;
+    border-bottom: 2px solid #ccc;
+    padding-bottom: 5px;
+  }
+
+  /* Expired Section */
+  .expired-section {
+    margin-bottom: 30px;
+  }
+
+  .expired-section .section-title {
+    color: #dc3d2a; /* Red for expired food */
+  }
+
+  /* Fresh Section */
+  .fresh-section {
+    margin-bottom: 30px;
+  }
+
+  .fresh-section .section-title {
+    color: #01a42a; /* Green for fresh food */
+  }
   
   .item-list {
     display: flex;
@@ -144,7 +180,7 @@
     position: relative;
     gap: 10px;
     overflow:hidden;
-    width: calc(100% - 10px);
+    width: 100%;
   }
   
   .left-section {
