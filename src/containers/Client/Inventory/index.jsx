@@ -193,34 +193,68 @@ const Inventory = () => {
       )}
   
       {/* Display message if inventory is empty */}
-      {sortedItems.length === 0 
-        ? <div className="empty-inventory-message">Oops, your inventory is empty...</div> 
-        : (
-          <div className="item-list">
-            {sortedItems.map(item => (
-              <Item
-                key={item.id}
-                item={item}
-                setItems={setItems}
-                handleClick={handleClick}
-                expandedItems={expandedItems}
-                setExpandedItems={setExpandedItems}
-                usedAmount={usedAmount}
-                setUsedAmount={setUsedAmount}
-                handleQuantityChange={handleQuantityChange}
-                handlePortionClickWithState={handlePortionClickWithState}
-                handleDoneClick={handleDoneClick}
-                activeDropdown={activeDropdown}
-                toggleDropdown={toggleDropdown}
-                handleSwipeAction={handleSwipeAction}
-              />
-            ))}
+      {sortedItems.length === 0 ? (
+        <div className="empty-inventory-message">Oops, your inventory is empty...</div>
+      ) : (
+        <div className="item-sections">
+          {/* Expired Food Section */}
+          <div className="expired-section">
+            <h2 className="section-title">Expired Food</h2>
+            <div className="item-list">
+              {sortedItems
+                .filter(item => item.daysLeft !== null && item.daysLeft <= 0)
+                .map(item => (
+                  <Item
+                    key={item.id}
+                    item={item}
+                    setItems={setItems}
+                    handleClick={handleClick}
+                    expandedItems={expandedItems}
+                    setExpandedItems={setExpandedItems}
+                    usedAmount={usedAmount}
+                    setUsedAmount={setUsedAmount}
+                    handleQuantityChange={handleQuantityChange}
+                    handlePortionClickWithState={handlePortionClickWithState}
+                    handleDoneClick={handleDoneClick}
+                    activeDropdown={activeDropdown}
+                    toggleDropdown={toggleDropdown}
+                    handleSwipeAction={handleSwipeAction}
+                  />
+                ))}
+            </div>
           </div>
-        )
-      }
+  
+          {/* Fresh & Good Section */}
+          <div className="fresh-section">
+            <h2 className="section-title">Fresh & Good</h2>
+            <div className="item-list">
+              {sortedItems
+                .filter(item => item.daysLeft > 0 || item.daysLeft === null)
+                .map(item => (
+                  <Item
+                    key={item.id}
+                    item={item}
+                    setItems={setItems}
+                    handleClick={handleClick}
+                    expandedItems={expandedItems}
+                    setExpandedItems={setExpandedItems}
+                    usedAmount={usedAmount}
+                    setUsedAmount={setUsedAmount}
+                    handleQuantityChange={handleQuantityChange}
+                    handlePortionClickWithState={handlePortionClickWithState}
+                    handleDoneClick={handleDoneClick}
+                    activeDropdown={activeDropdown}
+                    toggleDropdown={toggleDropdown}
+                    handleSwipeAction={handleSwipeAction}
+                  />
+                ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
-};
+};  
 
 const Item = ({
   item,
