@@ -699,6 +699,24 @@ const RecipePreparationPage = () => {
                   {selectedIngredient.ingredients.unit?.unit_tag || ""}
                 </p>
 
+                {/* Add associated recipes */}
+                {selectedIngredient.recipes.length > 0 && (
+                  <div style={{ marginTop: "15px" }}>
+                    <h4>Used in Recipes:</h4>
+                    <ul style={{ paddingLeft: "20px", fontSize: "14px" }}>
+                      {selectedIngredient.recipes.map((recipe) => (
+                        <li key={recipe.recipeId}>
+                          {getRecipeNameById(recipe.recipeId)}:{" "}
+                          <strong>
+                            {recipe.quantity} {selectedIngredient.ingredients.unit?.unit_tag || ""}
+                          </strong>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Inventory selection */}
                 <ul>
                   {inventoryItems.map((item) => (
                     <li key={item.id}
@@ -817,7 +835,10 @@ const RecipePreparationPage = () => {
                       />
                       <button
                         onClick={() => adjustQuantity(item.id, 1)}
-                        disabled={item.selectedQuantity >= item.quantity} // Prevent exceeding item's max quantity
+                        disabled={
+                          selectedInventory.filter((item) => item.preselected).length === 1 && // Check if only one preselected item
+                          item.selectedQuantity >= item.quantity // Check if maximum quantity reached
+                        }
                         style={{ margin: "0 5px", backgroundColor: "blue", color: "white" }}
                       >
                         +
