@@ -63,7 +63,7 @@ const EditRecipe = () => {
                     `)
                     .eq("recipe_id", id);
 
-                console.log("Recipe Ingredients:", recipeIngredients);
+                // console.log("Recipe Ingredients:", recipeIngredients);
                 const { data: steps } = await supabase
                     .from("steps")
                     .select("*")

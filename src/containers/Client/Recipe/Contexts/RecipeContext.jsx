@@ -171,7 +171,7 @@ const fetchRecipes = async () => {
         if (error) {
             console.error("Error fetching recipe ingredients:", error);
         } else {
-            console.log("Recipe ingredients:", data);
+            // console.log("Recipe ingredients:", data);
             return data || [];
         }
     } catch (err) {
@@ -195,7 +195,7 @@ const fetchRecipes = async () => {
         if (error) {
             console.error("Error fetching recipe steps:", error);
         } else {
-            console.log("Recipe steps:", data);
+            // console.log("Recipe steps:", data);
             return data || [];
         }
     } catch (err) {
@@ -279,6 +279,72 @@ const fetchRecipes = async () => {
     }
   };
 
+  const fetchUserInventory = async (ingredientId) => {
+    try {
+      const { data, error } = await supabase
+        .from("inventory") // Replace with your inventory table name
+        // .select(`
+        //   id,
+        //   user_id,
+        //   ingredient_id,
+        //   quantity,
+        //   expiry_date_id,
+        //   freshness_status_id,
+        //   quantity_unit_id,
+        //   init_quantity,
+        //   days_left
+        // `)
+        .select(`
+          id,
+          user_id,
+          ingredient_id,
+          quantity,
+          expiry_date_id,
+          freshness_status_id,
+          quantity_unit_id,
+          init_quantity,
+          days_left,
+          expiry_date (
+            id, 
+            date
+          ),
+          freshness_status (
+            id, 
+            status_color
+          ),
+          unit:quantity_unit_id (
+            id,
+            unit_tag, 
+            unit_description
+          ),
+          ingredients (
+                id,
+                name,
+                nutritional_info,
+                unit:quantity_unit_id (
+                  unit_tag,
+                  unit_description,
+                  conversion_rate_to_grams 
+                )
+              )
+        `)
+        .eq("ingredient_id", ingredientId); // Filter by ingredient_id
+
+        console.log("User inventory:", data);
+  
+      if (error) {
+        console.error("Error fetching user inventory:", error);
+        return [];
+      }
+  
+      return data || [];
+    } catch (err) {
+      console.error("Unexpected error fetching user inventory:", err);
+      return [];
+    }
+  };
+  
+
 
   return (
     // <RecipeContext.Provider value={{ recipes, tags, filters, fetchRecipes, fetchTags, applyFilters, loading }}>
@@ -300,6 +366,7 @@ const fetchRecipes = async () => {
         fetchRecipeSteps,
         fetchMealPlansByDate,
         fetchRecipesByIds,
+        fetchUserInventory,
         applyFilters,
         loading,
       }}

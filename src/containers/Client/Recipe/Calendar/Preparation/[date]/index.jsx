@@ -14,6 +14,7 @@ const RecipePreparationPage = () => {
     fetchRecipesByIds,
     fetchRecipeIngredients,
     fetchRecipeSteps,
+    fetchUserInventory,
     mealTypes,
   } = useRecipeContext();
 
@@ -30,6 +31,11 @@ const RecipePreparationPage = () => {
   const [steps, setSteps] = useState([]);
   const [mergedIngredients, setMergedIngredients] = useState([]);
   const [isCombined, setIsCombined] = useState(true);
+
+  const [selectedIngredient, setSelectedIngredient] = useState(null);
+  const [inventoryItems, setInventoryItems] = useState([]);
+  const [selectedItems, setSelectedItems] = useState([]);
+  const [capped, setCapped] = useState(true); // To toggle capped/uncapped mode
 
   useEffect(() => {
     const loadData = async () => {
@@ -114,6 +120,82 @@ const RecipePreparationPage = () => {
   const closeModal = () => {
     setShowModal(false);
   };
+
+  const handleIngredientClick = async (ingredient) => {
+    try {
+      const inventory = await fetchUserInventory(ingredient.ingredients.id);
+      setSelectedIngredient(ingredient);
+      setInventoryItems(inventory);
+    } catch (error) {
+      console.error("Error fetching inventory for ingredient:", error.message);
+    }
+  };
+
+  const adjustQuantity = (itemId, delta) => {
+    setInventoryItems((prevItems) =>
+      prevItems.map((item) =>
+        item.id === itemId
+          ? { ...item, quantity: Math.max(0, item.quantity + delta) }
+          : item
+      )
+    );
+  };
+  
+  const getTotalQuantity = () =>
+    inventoryItems.reduce((sum, item) => sum + item.quantity, 0);
+
+  // const confirmInventorySelection = async () => {
+  //   try {
+  //     const updates = inventoryItems.map((item) => ({
+  //       ingredient_id: selectedIngredient.ingredients.id,
+  //       inventory_id: item.id,
+  //       used_quantity: item.quantity, // Adjusted quantity
+  //       meal_plan_id: /* Add logic to fetch meal_plan_id */,
+  //     }));
+  
+  //     const { data, error } = await supabase
+  //       .from("Inventory_meal_plan") // Replace with your table name
+  //       .insert(updates);
+  //     if (error) throw error;
+  
+  //     setSelectedIngredient(null);
+  //     console.log("Saved successfully:", data);
+  //   } catch (err) {
+  //     console.error("Error saving to Inventory_meal_plan:", err.message);
+  //   }
+  // };
+ 
+  const confirmInventorySelection = async () => {
+    try {
+      // Ensure `meal_plan_id` is defined. Replace this logic with your actual source of `meal_plan_id`.
+      const meal_plan_id = location.state?.meal_plan_id || "your_default_meal_plan_id";
+  
+      if (!meal_plan_id) {
+        console.error("Meal plan ID is missing");
+        return;
+      }
+  
+      const updates = inventoryItems.map((item) => ({
+        ingredient_id: selectedIngredient.ingredients.id,
+        inventory_id: item.id,
+        used_quantity: item.quantity, // Adjusted quantity
+        meal_plan_id, // Use the meal_plan_id
+      }));
+  
+      const { data, error } = await supabase
+        .from("Inventory_meal_plan") // Replace with your table name
+        .insert(updates); // Insert updates array
+  
+      if (error) throw error;
+  
+      setSelectedIngredient(null); // Close the modal
+      console.log("Saved successfully:", data);
+    } catch (err) {
+      console.error("Error saving to Inventory_meal_plan:", err.message);
+    }
+  };
+  
+  
   
 
   if (loading) {
@@ -153,7 +235,7 @@ const RecipePreparationPage = () => {
               </div>
             ))}
           </div>
-          <div>
+          {/* <div>
             <h3>Merged Ingredients</h3>
             <ul>
               {mergedIngredients.map((ingredient, index) => (
@@ -162,7 +244,23 @@ const RecipePreparationPage = () => {
                 </li>
               ))}
             </ul>
+          </div> */}
+          <div>
+            <h3>Merged Ingredients</h3>
+            <ul>
+              {mergedIngredients.map((ingredient, index) => (
+                <li
+                  key={index}
+                  onClick={() => handleIngredientClick(ingredient)}
+                  style={{ cursor: "pointer", color: "blue" }}
+                >
+                  {ingredient.ingredients.name} - {ingredient.quantity}{" "}
+                  {ingredient.ingredients.unit?.unit_tag || ""}
+                </li>
+              ))}
+            </ul>
           </div>
+
         </>
       ) : (
         recipes.map((recipe) => (
@@ -221,6 +319,45 @@ const RecipePreparationPage = () => {
       >
         Start Cooking
       </button>
+
+      {selectedIngredient && (
+        <div className="modal-overlay" onClick={() => setSelectedIngredient(null)}>
+          <div
+            className="modal-content"
+            onClick={(e) => e.stopPropagation()}
+            style={{ background: "white", padding: "20px", borderRadius: "10px" }}
+          >
+            <h3>Adjust Inventory for: {selectedIngredient.ingredients.name}</h3>
+            <ul>
+              {inventoryItems.map((item) => (
+                <li key={item.id}>
+                  {/* {item.quantity} {item.quantity_unit_id} (Expiry: {item.expiry_date}) */}
+                  {item.quantity} 
+                  {item.unit.unit_tag}
+                  (Expiry: {item.expiry_date.date})
+                  <button
+                    onClick={() => adjustQuantity(item.id, -1)}
+                    disabled={item.quantity <= 0 || (capped && getTotalQuantity() <= 0)}
+                  >
+                    -
+                  </button>
+                  <button
+                    onClick={() => adjustQuantity(item.id, 1)}
+                    disabled={capped && getTotalQuantity() >= selectedIngredient.quantity}
+                  >
+                    +
+                  </button>
+                </li>
+              ))}
+            </ul>
+            <button onClick={() => setCapped(!capped)}>
+              {capped ? "Uncap Quantities" : "Cap Quantities"}
+            </button>
+            <button onClick={confirmInventorySelection}>Confirm</button>
+          </div>
+        </div>
+      )}
+
 
       {showModal && (
         <div
