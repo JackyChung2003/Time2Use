@@ -330,7 +330,7 @@ const fetchRecipes = async () => {
         `)
         .eq("ingredient_id", ingredientId); // Filter by ingredient_id
 
-        console.log("User inventory:", data);
+        // console.log("User inventory:", data);
   
       if (error) {
         console.error("Error fetching user inventory:", error);
