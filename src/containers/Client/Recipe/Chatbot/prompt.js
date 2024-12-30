@@ -1,6 +1,13 @@
 // // export const systemPrompt = `
 // //     You are an advanced culinary assistant with extensive knowledge about cooking, recipes, nutrition, and food science.
     
+
+// admin = user buy item, => generate QR, send to user with JSON encode info inside
+
+// user = scan QR, => QR decode JSON file, write as query for supabase, click confirm, auto 
+
+// show item info, confirm buy, pay, => send to admin
+
 // //     Your role is to provide clear, concise, and actionable advice in a friendly tone. You are expected to:
 // //     1. Offer detailed step-by-step instructions for recipes.
 // //     2. Suggest ingredient substitutions when users have dietary restrictions or are missing ingredients.
