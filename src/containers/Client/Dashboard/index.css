@@ -65,15 +65,29 @@ h2 {
   background-color: #fff;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  width: 100%; /* Ensure the table card takes full width */
-  margin-bottom: 40px;
+  flex: 1 1 48%; /* Make each table card take up about 48% of the width */
+  max-width: 100%;
+  box-sizing: border-box;
+  margin-bottom: 20px;
 }
+
+/* Container for tables */
+.table-container {
+  display: flex;  /* Use flexbox for horizontal alignment */
+  flex-direction: row;  /* Align tables side by side */
+  justify-content: space-between; /* Add space between tables */
+  gap: 20px;  /* Adjust spacing between tables */
+  flex-wrap: wrap; /* Allow tables to wrap on smaller screens */
+  margin-bottom: 20px; /* Add spacing below the container */
+}
+
 
 .expiring-table {
   width: 100%; /* Make the table span the full width of its container */
   border-collapse: collapse;
   font-size: 14px; /* Adjust font size for better readability */
   margin-bottom: 10px;
+  table-layout: fixed; /* Ensure consistent column widths */
 }
 
 .expiring-table th,
@@ -88,9 +102,20 @@ h2 {
   font-weight: bold;
 }
 
+.expiring-table th:nth-child(1),
+.expiring-table td:nth-child(1) {
+  width: 50%; /* Set consistent width for the first column */
+}
+
+.expiring-table th:nth-child(2),
+.expiring-table td:nth-child(2) {
+  width: 50%; /* Set consistent width for the second column */
+}
+
 .expiring-table tr:hover {
   background-color: #f1f1f1;
 }
+
 
 .empty-state {
   display: flex;
@@ -139,12 +164,22 @@ h2 {
 
 /* Media Queries for Mobile Views */
 @media (max-width: 768px) {
+
+  .table-container {
+    flex-direction: column; /* Stack tables vertically */
+    gap:0px;
+  }
+
+  .table-card {
+    flex: 1 1 100%; /* Full width for table cards */
+  }
+
   .dashboard-container {
     padding: 10px;
   }
 
   .chart-container {
-    gap: 15px;
+    gap: 0px;
   }
 
   .chart-card {
