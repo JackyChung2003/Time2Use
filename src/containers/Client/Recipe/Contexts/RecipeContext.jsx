@@ -264,7 +264,7 @@ const fetchRecipes = async () => {
         // Fetch recipes based on an array of recipe IDs
         const { data, error } = await supabase
             .from("recipes")
-            .select("id, name, image_path, description")
+            .select("id, name, image_path, description, prep_time, cook_time")
             .in("id", recipeIds); // Only fetch recipes with specified IDs
 
         if (error) {

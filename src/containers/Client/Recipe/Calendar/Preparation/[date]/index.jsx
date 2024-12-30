@@ -7,7 +7,7 @@ import supabase from "../../../../../../config/supabaseClient";
 import SortableRecipeList from "../../../../../../components/SortableDragAndDrop/Recipes_List/SortableRecipeList";
 import "./index.css"; // Add custom styles if needed
 
-const RecipePreparationPage = () => {
+const RecipePreparationPage = () => { 
   // const { fetchRecipeIngredients, fetchRecipeSteps, mealTypes } = useRecipeContext();
   const {
     fetchMealPlansByDate,
@@ -30,76 +30,6 @@ const RecipePreparationPage = () => {
   const [steps, setSteps] = useState([]);
   const [mergedIngredients, setMergedIngredients] = useState([]);
   const [isCombined, setIsCombined] = useState(true);
-
-
-  // useEffect(() => {
-  //   const fetchDetails = async () => {
-  //     try {
-  //       setLoading(true);
-  
-  //       const { data: mealPlans, error: mealPlansError } = await supabase
-  //         .from("meal_plan")
-  //         .select("recipe_id, notes, planned_date")
-  //         .eq("planned_date", planned_date)
-  //         .eq("meal_type_id", meal_type_id);
-  
-  //       if (mealPlansError) throw new Error(mealPlansError.message);
-  
-  //       if (!mealPlans || mealPlans.length === 0) {
-  //         console.warn("No meal plans found for the given date and meal type.");
-  //         setRecipes([]);
-  //         return;
-  //       }
-
-  //       const recipeIds = mealPlans.map((meal) => meal.recipe_id);
-  
-  //       const { data: recipes, error: recipesError } = await supabase
-  //         .from("recipes")
-  //         .select("id, name, image_path, description, prep_time, cook_time")
-  //         .in("id", recipeIds);
-  
-  //       if (recipesError) throw new Error(recipesError.message);
-  
-  //       setRecipes(recipes);
-  
-  //       const allIngredients = [];
-  //       const allSteps = [];
-  //       for (const recipe of recipes) {
-  //         const ingredientsData = await fetchRecipeIngredients(recipe.id);
-  //         const stepsData = await fetchRecipeSteps(recipe.id);
-  //         allIngredients.push(
-  //           ...ingredientsData.map((ingredient) => ({
-  //             ...ingredient,
-  //             recipeId: recipe.id,
-  //           }))
-  //         );
-  //         allSteps.push(...stepsData);
-  //       }
-  
-  //       setIngredients(allIngredients);
-  //       setSteps(allSteps);
-  
-  //       const merged = allIngredients.reduce((acc, ingredient) => {
-  //         const existing = acc.find((item) => item.ingredients.name === ingredient.ingredients.name);
-  //         if (existing) {
-  //           existing.quantity += ingredient.quantity;
-  //         } else {
-  //           acc.push({ ...ingredient });
-  //         }
-  //         return acc;
-  //       }, []);
-  //       setMergedIngredients(merged);
-  //     } catch (error) {
-  //       console.error("Error fetching preparation details:", error.message);
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   };
-  
-  //   if (planned_date && meal_type_id) {
-  //     fetchDetails();
-  //   }
-  // }, [fetchRecipeIngredients, fetchRecipeSteps, planned_date, meal_type_id]);
 
   useEffect(() => {
     const loadData = async () => {
