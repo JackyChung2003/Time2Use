@@ -16,6 +16,7 @@ const RecipePreparationPage = () => {
     fetchRecipeSteps,
     fetchUserInventory,
     mealTypes,
+    getStatusIdByName,
   } = useRecipeContext();
 
   const navigate = useNavigate();
@@ -53,6 +54,10 @@ const RecipePreparationPage = () => {
 
         // Fetch meal plans for the given date
         const mealPlans = await fetchMealPlansByDate(planned_date);
+
+        // Log the fetched MealPlan details
+        console.log("Fetched MealPlans:", mealPlans);
+
         const relevantPlans = mealPlans.filter(
           (meal) => meal.meal_type_id === meal_type_id
         );
@@ -424,59 +429,264 @@ const RecipePreparationPage = () => {
   //   setAdjustingQuantity(false); // Exit adjusting mode
   // };
 
+  // const finalizeQuantities = async () => {
+  //   const total = selectedInventory.reduce(
+  //     (sum, item) => sum + item.selectedQuantity,
+  //     0
+  //   );
+  
+  //   if (capped && total !== selectedIngredient.quantity) {
+  //     alert(
+  //       `The total quantity must match the required amount (${selectedIngredient.quantity} ${
+  //         selectedIngredient.ingredients.unit?.unit_tag || ""
+  //       }). Adjust the quantities accordingly.`
+  //     );
+  //     return;
+  //   }
+  
+  //   console.log("Finalized Quantities:", selectedInventory);
+  
+  //   try {
+  //     // Construct the data to be inserted into `inventory_meal_plan`
+  //     const mealPlanId = location.state?.meal_plan_id; // Assuming this is available from your component's state
+  //     if (!mealPlanId) {
+  //       alert("Meal Plan ID is missing!");
+  //       return;
+  //     }
+  
+  //     const dataToInsert = selectedInventory.map((item) => ({
+  //       inventory_id: item.id,
+  //       meal_plan_id: mealPlanId,
+  //       used_quantity: item.selectedQuantity,
+  //       status_id: 1, // Assuming a default status ID of 1; update this if needed
+  //     }));
+  
+  //     // Insert data into the table using Supabase
+  //     const { data, error } = await supabase
+  //       .from("inventory_meal_plan")
+  //       .insert(dataToInsert);
+  
+  //     if (error) {
+  //       throw error;
+  //     }
+  
+  //     console.log("Inserted Data:", data);
+  
+  //     // Reset states after successful insertion
+  //     setSelectedIngredient(null); // Close modal
+  //     setSelectedInventory([]); // Reset inventory
+  //     setAdjustingQuantity(false); // Exit adjusting mode
+  //     alert("Quantities successfully saved to inventory_meal_plan!");
+  //   } catch (err) {
+  //     console.error("Error inserting data into inventory_meal_plan:", err.message);
+  //     alert("Failed to save quantities. Please try again.");
+  //   }
+  // };
+
+  // const finalizeQuantities = async () => {
+  //   const total = selectedInventory.reduce(
+  //     (sum, item) => sum + item.selectedQuantity,
+  //     0
+  //   );
+  
+  //   if (capped && total !== selectedIngredient.quantity) {
+  //     alert(
+  //       `The total quantity must match the required amount (${selectedIngredient.quantity} ${selectedIngredient.ingredients.unit?.unit_tag || ""
+  //       }). Adjust the quantities accordingly.`
+  //     );
+  //     return;
+  //   }
+  
+  //   console.log("Finalized Quantities:", selectedInventory);
+  
+  //   try {
+  //     // Construct the data to be inserted into `inventory_meal_plan`
+  //     const mealPlanId = location.state?.meal_plan_id; // Assuming this is available from your component's state
+  //     if (!mealPlanId) {
+  //       alert("Meal Plan ID is missing!");
+  //       return;
+  //     }
+  
+  //     // Prepare multiple rows for insertion, one for each inventory item used
+  //     const dataToInsert = selectedInventory
+  //       .filter((item) => item.selectedQuantity > 0) // Only include items with used quantities
+  //       .map((item) => ({
+  //         inventory_id: item.id,
+  //         meal_plan_id: mealPlanId,
+  //         used_quantity: item.selectedQuantity,
+  //         status_id: 1, // Assuming a default status ID of 1; update this if needed
+  //       }));
+  
+  //     if (dataToInsert.length === 0) {
+  //       alert("No inventory selected. Please select quantities to proceed.");
+  //       return;
+  //     }
+  
+  //     // Insert data into the table using Supabase
+  //     const { data, error } = await supabase
+  //       .from("inventory_meal_plan")
+  //       .insert(dataToInsert);
+  
+  //     if (error) {
+  //       throw error;
+  //     }
+  
+  //     console.log("Inserted Data:", data);
+  
+  //     // Reset states after successful insertion
+  //     setSelectedIngredient(null); // Close modal
+  //     setSelectedInventory([]); // Reset inventory
+  //     setAdjustingQuantity(false); // Exit adjusting mode
+  //     alert("Quantities successfully saved to inventory_meal_plan!");
+  //   } catch (err) {
+  //     console.error("Error inserting data into inventory_meal_plan:", err.message);
+  //     alert("Failed to save quantities. Please try again.");
+  //   }
+  // };
+  
+  // const finalizeQuantities = async () => {
+  //   try {
+  //     // Check if selectedIngredient and selectedInventory are valid
+  //     if (!selectedIngredient || !selectedInventory || selectedInventory.length === 0) {
+  //       console.warn("Ingredient or inventory selection is missing.");
+  //       return;
+  //     }
+  
+  //     // Build the data array for insertion
+  //     const dataToInsert = selectedInventory.map((inventoryItem) => ({
+  //       inventory_id: inventoryItem.id, // Inventory ID from the selected inventory
+  //       meal_plan_id: inventoryItem.meal_plan_id || null, // Use meal_plan_id from inventoryItem if available
+  //       recipe_id: selectedIngredient.recipes[0]?.recipeId || null, // Default to first recipe ID
+  //       ingredient_id: selectedIngredient.ingredients.id, // Ingredient ID
+  //       used_quantity: inventoryItem.selectedQuantity || 0, // Total used quantity
+  //       unit: selectedIngredient.ingredients.unit?.unit_tag || "", // Unit
+  //     }));
+  
+  //     if (dataToInsert.length === 0) {
+  //       alert("No valid data to insert. Please verify your selection.");
+  //       return;
+  //     }
+  
+  //     // Log the constructed data for debugging
+  //     console.log("Data to Insert for Meal Plans:", dataToInsert);
+  
+  //     // Simulate database insertion (e.g., send data to Supabase or other DB)
+  //     // Uncomment the following if Supabase or another API is used
+  //     /*
+  //     const { data, error } = await supabase
+  //       .from("inventory_meal_plan")
+  //       .insert(dataToInsert);
+  
+  //     if (error) {
+  //       throw error;
+  //     }
+  
+  //     console.log("Inserted Data:", data);
+  //     */
+  
+  //     // Reset states after processing
+  //     setSelectedIngredient(null); // Close modal
+  //     setSelectedInventory([]); // Reset inventory
+  //     setAdjustingQuantity(false); // Exit adjusting mode
+  
+  //     alert("Quantities successfully logged to the console!");
+  //   } catch (err) {
+  //     console.error("Error finalizing quantities:", err.message);
+  //     alert("Failed to finalize quantities. Please try again.");
+  //   }
+  // };
+  
   const finalizeQuantities = async () => {
-    const total = selectedInventory.reduce(
-      (sum, item) => sum + item.selectedQuantity,
-      0
-    );
-  
-    if (capped && total !== selectedIngredient.quantity) {
-      alert(
-        `The total quantity must match the required amount (${selectedIngredient.quantity} ${
-          selectedIngredient.ingredients.unit?.unit_tag || ""
-        }). Adjust the quantities accordingly.`
-      );
-      return;
-    }
-  
-    console.log("Finalized Quantities:", selectedInventory);
-  
     try {
-      // Construct the data to be inserted into `inventory_meal_plan`
-      const mealPlanId = location.state?.meal_plan_id; // Assuming this is available from your component's state
-      if (!mealPlanId) {
-        alert("Meal Plan ID is missing!");
+      // Check if selectedIngredient and selectedInventory are valid
+      if (!selectedIngredient || !selectedInventory || selectedInventory.length === 0) {
+        console.warn("Ingredient or inventory selection is missing.");
         return;
       }
   
-      const dataToInsert = selectedInventory.map((item) => ({
+      // Filter out entries with used_quantity === 0
+      const filteredInventory = selectedInventory.filter((item) => item.selectedQuantity > 0);
+  
+      if (filteredInventory.length === 0) {
+        alert("No valid inventory selected. Please select quantities to proceed.");
+        return;
+      }
+
+      // Fetch the `status_id` for "Planning"
+      const statusId = await getStatusIdByName("Planning");
+      if (!statusId) {
+        alert("Failed to fetch status ID for 'Planning'.");
+        return;
+      }
+  
+      // Fetch meal plan IDs if not already provided
+      const enrichedInventory = await Promise.all(
+        filteredInventory.map(async (item) => {
+          if (item.meal_plan_id) {
+            return item; // If meal_plan_id exists, return as is
+          }
+  
+          // Fetch meal plan ID for the ingredient and recipe
+          const { data: mealPlanData, error } = await supabase
+            .from("meal_plan")
+            .select("id")
+            .eq("planned_date", planned_date) // Use the planned_date context
+            .eq("recipe_id", selectedIngredient.recipes[0]?.recipeId || null)
+            .limit(1) // Assume one-to-one mapping
+            .single();
+  
+          if (error) {
+            console.warn(`Failed to fetch meal plan for inventory ID: ${item.id}`, error);
+            return { ...item, meal_plan_id: null }; // Return with null if not found
+          }
+  
+          return { ...item, meal_plan_id: mealPlanData?.id || null }; // Add the meal_plan_id
+        })
+      );
+      // inventory_id
+      // meal_plan_id
+      // used_quantity
+      // status_id
+      // created_at
+      // updated_at
+
+      
+      // Prepare the data for insertion
+      const dataToInsert = enrichedInventory.map((item) => ({
         inventory_id: item.id,
-        meal_plan_id: mealPlanId,
+        meal_plan_id: item.meal_plan_id,
+        // recipe_id: selectedIngredient.recipes[0]?.recipeId || null,
+        // ingredient_id: selectedIngredient.ingredients.id,
         used_quantity: item.selectedQuantity,
-        status_id: 1, // Assuming a default status ID of 1; update this if needed
+        status_id: statusId, // Use the dynamically fetched status_id
+        created_at: new Date().toISOString(), // Track when the entry was created
+        // unit: selectedIngredient.ingredients.unit?.unit_tag || "",
       }));
   
-      // Insert data into the table using Supabase
-      const { data, error } = await supabase
-        .from("inventory_meal_plan")
-        .insert(dataToInsert);
+      // Log data for debugging
+      console.log("Filtered and Enriched Data to Insert:", dataToInsert);
   
+      // Insert into the database (uncomment when using Supabase)
+
+      const { data, error } = await supabase.from("inventory_meal_plan").insert(dataToInsert);
       if (error) {
         throw error;
       }
-  
       console.log("Inserted Data:", data);
-  
-      // Reset states after successful insertion
+
+      // Reset states after processing
       setSelectedIngredient(null); // Close modal
       setSelectedInventory([]); // Reset inventory
       setAdjustingQuantity(false); // Exit adjusting mode
-      alert("Quantities successfully saved to inventory_meal_plan!");
+  
+      alert("Quantities successfully logged to the console!");
     } catch (err) {
-      console.error("Error inserting data into inventory_meal_plan:", err.message);
-      alert("Failed to save quantities. Please try again.");
+      console.error("Error finalizing quantities:", err.message);
+      alert("Failed to finalize quantities. Please try again.");
     }
   };
+  
+  
   
   const assignToRecipes = () => {
     const updatedMergedIngredients = mergedIngredients.map((ingredient) => {
@@ -1103,104 +1313,117 @@ const RecipePreparationPage = () => {
                 </button>
 
                 {/* Exceed Section */}
-  {!capped && (
-    <div style={{ marginTop: "20px" }}>
-      <h4>Exceed Amount:</h4>
-      <p>
-        {Math.max(
-          0,
-          selectedInventory.reduce((sum, item) => sum + item.selectedQuantity, 0) -
-            selectedIngredient.quantity
-        )}{" "}
-        {selectedIngredient.ingredients.unit?.unit_tag || ""}
-      </p>
+                {!capped && (
+                  <div style={{ marginTop: "20px" }}>
+                    <h4>Exceed Amount:</h4>
+                    <p>
+                      {Math.max(
+                        0,
+                        selectedInventory.reduce((sum, item) => sum + item.selectedQuantity, 0) -
+                          selectedIngredient.quantity
+                      )}{" "}
+                      {selectedIngredient.ingredients.unit?.unit_tag || ""}
+                    </p>
 
-      {/* Recipes Allocation for Exceed */}
-      <h4>Allocate Exceed Amount</h4>
-      <ul>
-        {selectedIngredient.recipes.map((recipe, index) => (
-          <li key={index} style={{ marginBottom: "10px" }}>
-            <div>
-              <strong>{getRecipeNameById(recipe.recipeId)}:</strong>{" "}
-              {recipe.quantity}{" "}
-              {selectedIngredient.ingredients.unit?.unit_tag || ""}
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-              <button
-                onClick={() =>
-                  adjustExceedAllocation(recipe.recipeId, -1)
-                }
-                disabled={recipe.exceedAllocation <= 0}
-                style={{
-                  background: "blue",
-                  color: "white",
-                  borderRadius: "5px",
-                }}
-              >
-                -
-              </button>
-              {/* <span>{recipe.exceedAllocation || 0}</span> */}
-              <input
-                type="number"
-                min="0"
-                max={Math.max(
-                  0,
-                  selectedInventory.reduce(
-                    (sum, item) => sum + item.selectedQuantity,
-                    0
-                  ) - selectedIngredient.quantity
+                    {/* Recipes Allocation for Exceed */}
+                    <h4>Allocate Exceed Amount</h4>
+                    <ul>
+                      {selectedIngredient.recipes.map((recipe, index) => (
+                        <li key={index} style={{ marginBottom: "10px" }}>
+                          <div>
+                            <strong>{getRecipeNameById(recipe.recipeId)}:</strong>{" "}
+                            <span>
+                              Original: {recipe.quantity}{" "}
+                              {selectedIngredient.ingredients.unit?.unit_tag || ""}
+                            </span>{" "}
+                            |{" "}
+                            <span>
+                              Exceed Allocated: {recipe.exceedAllocation || 0}{" "}
+                              {selectedIngredient.ingredients.unit?.unit_tag || ""}
+                            </span>{" "}
+                            |{" "}
+                            <span>
+                              <strong>
+                                Total:{" "}
+                                {recipe.quantity + (recipe.exceedAllocation || 0)}{" "}
+                                {selectedIngredient.ingredients.unit?.unit_tag || ""}
+                              </strong>
+                            </span>
+                          </div>
+                          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                            <button
+                              onClick={() => adjustExceedAllocation(recipe.recipeId, -1)}
+                              disabled={recipe.exceedAllocation <= 0}
+                              style={{
+                                background: "blue",
+                                color: "white",
+                                borderRadius: "5px",
+                              }}
+                            >
+                              -
+                            </button>
+                            <input
+                              type="number"
+                              min="0"
+                              max={Math.max(
+                                0,
+                                selectedInventory.reduce(
+                                  (sum, item) => sum + item.selectedQuantity,
+                                  0
+                                ) - selectedIngredient.quantity
+                              )}
+                              value={recipe.exceedAllocation || 0}
+                              onChange={(e) =>
+                                handleExceedInputChange(recipe.recipeId, e.target.value)
+                              }
+                              style={{
+                                width: "60px",
+                                textAlign: "center",
+                                borderRadius: "5px",
+                                border: "1px solid #ccc",
+                                padding: "5px",
+                              }}
+                            />
+                            <button
+                              onClick={() => adjustExceedAllocation(recipe.recipeId, 1)}
+                              disabled={
+                                recipe.exceedAllocation >=
+                                Math.max(
+                                  0,
+                                  selectedInventory.reduce(
+                                    (sum, item) => sum + item.selectedQuantity,
+                                    0
+                                  ) - selectedIngredient.quantity
+                                )
+                              }
+                              style={{
+                                background: "blue",
+                                color: "white",
+                                borderRadius: "5px",
+                              }}
+                            >
+                              +
+                            </button>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+
+                    <button
+                      onClick={autoAllocateExceed}
+                      style={{
+                        marginTop: "10px",
+                        padding: "10px 20px",
+                        background: "blue",
+                        color: "white",
+                        borderRadius: "5px",
+                      }}
+                    >
+                      Auto Adjust Exceed Quantities
+                    </button>
+                  </div>
                 )}
-                value={recipe.exceedAllocation || 0}
-                onChange={(e) => handleExceedInputChange(recipe.recipeId, e.target.value)}
-                style={{
-                  width: "60px",
-                  textAlign: "center",
-                  borderRadius: "5px",
-                  border: "1px solid #ccc",
-                  padding: "5px",
-                }}
-              />
-              <button
-                onClick={() =>
-                  adjustExceedAllocation(recipe.recipeId, 1)
-                }
-                disabled={
-                  recipe.exceedAllocation >=
-                  Math.max(
-                    0,
-                    selectedInventory.reduce(
-                      (sum, item) => sum + item.selectedQuantity,
-                      0
-                    ) - selectedIngredient.quantity
-                  )
-                }
-                style={{
-                  background: "blue",
-                  color: "white",
-                  borderRadius: "5px",
-                }}
-              >
-                +
-              </button>
-            </div>
-          </li>
-        ))}
-      </ul>
 
-      <button
-        onClick={autoAllocateExceed}
-        style={{
-          marginTop: "10px",
-          padding: "10px 20px",
-          background: "blue",
-          color: "white",
-          borderRadius: "5px",
-        }}
-      >
-        Auto Adjust Exceed Quantities
-      </button>
-    </div>
-  )}
               </>
             )}
           </div>

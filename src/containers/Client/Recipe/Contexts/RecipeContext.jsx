@@ -344,7 +344,70 @@ const fetchRecipes = async () => {
     }
   };
   
+  const fetchMealPlanIds = async (ingredientId, recipeId, plannedDate) => {
+    try {
+      const { data, error } = await supabase
+        .from("meal_plan")
+        .select("id, recipe_id")
+        .eq("planned_date", plannedDate)
+        .eq("recipe_id", recipeId);
 
+      if (error) {
+        console.error("Error fetching meal plan IDs:", error);
+        return [];
+      }
+
+      return data || [];
+    } catch (err) {
+      console.error("Unexpected error fetching meal plan IDs:", err);
+      return [];
+    }
+  };
+
+  const updateInventoryPlanStatus = async (inventoryMealPlanId, newStatusId) => {
+    try {
+      const { data, error } = await supabase
+        .from("inventory_meal_plan")
+        .update({
+          status_id: newStatusId,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", inventoryMealPlanId); // Match by inventory_meal_plan ID
+  
+      if (error) {
+        throw error;
+      }
+  
+      console.log(
+        `Status updated to ${newStatusId} for inventory_meal_plan_id: ${inventoryMealPlanId}`
+      );
+      return data;
+    } catch (err) {
+      console.error("Error updating inventory plan status:", err.message);
+      return null;
+    }
+  };
+
+  const getStatusIdByName = async (statusName) => {
+    try {
+      const { data, error } = await supabase
+        .from("inventory_meal_plan_status")
+        .select("id")
+        .eq("name", statusName)
+        .single();
+  
+      if (error || !data) {
+        console.error("Error fetching status ID:", error);
+        return null;
+      }
+  
+      return data.id; // Return the status ID
+    } catch (err) {
+      console.error("Unexpected error fetching status ID:", err.message);
+      return null;
+    }
+  };
+  
 
   return (
     // <RecipeContext.Provider value={{ recipes, tags, filters, fetchRecipes, fetchTags, applyFilters, loading }}>
@@ -367,6 +430,9 @@ const fetchRecipes = async () => {
         fetchMealPlansByDate,
         fetchRecipesByIds,
         fetchUserInventory,
+        // fetchMealPlanIds,
+        // updateInventoryPlanStatus,
+        getStatusIdByName,
         applyFilters,
         loading,
       }}
