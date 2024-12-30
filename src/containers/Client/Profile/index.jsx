@@ -1,73 +1,118 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom"; // Import useNavigate
-import defaultProfilePic from "../../../assets/images/default _propic.png";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import defaultProfilePic from "../../../assets/images/default_propic.png";
 import { FaUser, FaBirthdayCake, FaEnvelope, FaLock, FaBell, FaPen } from "react-icons/fa";
-import "./index.css"; // Import your CSS file
-import supabase from '../../../config/supabaseClient';
+import "./index.css";
+import supabase from "../../../config/supabaseClient";
 
 const Profile = () => {
-  const navigate = useNavigate(); // Initialize navigate
+  const navigate = useNavigate();
   const [isTouched, setIsTouched] = useState(false);
   const [profileImage, setProfileImage] = useState(null);
   const [notificationDays, setNotificationDays] = useState(7);
-  const [isEditing, setIsEditing] = useState({
-    username: false,
-    password: false,
-    notification: false,
-  });
   const [isEditingMode, setIsEditingMode] = useState(false);
+  const [profile, setProfile] = useState({
+    username: "",
+    birthday: "",
+    email: "",
+    password: "••••••••", // Default password display
+  });
 
-  const handleTouchStart = () => {
-    setIsTouched(true);
-  };
+  useEffect(() => {
+    const fetchProfile = async () => {
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError) {
+        console.error("Error fetching user:", userError);
+        return;
+      }
 
-  const handleTouchEnd = () => {
-    setIsTouched(false);
-  };
+      const { data, error } = await supabase
+        .from("profile")
+        .select("*")
+        .eq("user", user.id)
+        .single();
 
-  const handleNotificationChange = (event) => {
-    setNotificationDays(event.target.value);
-  };
+      if (error) {
+        console.error("Error fetching profile:", error);
+      } else {
+        setProfile({
+          username: data.username,
+          birthday: data.birthday,
+          email: user.email,
+          password: "••••••••", // Password hidden
+        });
+        setProfileImage(data.picture);
+        setNotificationDays(data.notification || 7);
+      }
+    };
 
-  const handleEditToggle = (field) => {
-    setIsEditing((prev) => ({ ...prev, [field]: !prev[field] }));
-  };
+    fetchProfile();
+  }, []);
 
-  const handleImageUpload = (event) => {
+  const handleTouchStart = () => setIsTouched(true);
+  const handleTouchEnd = () => setIsTouched(false);
+
+  const handleNotificationChange = (event) => setNotificationDays(event.target.value);
+
+  const handleImageUpload = async (event) => {
     const file = event.target.files[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        setProfileImage(reader.result); // Set the uploaded image as the profile picture
-      };
-      reader.readAsDataURL(file);
+      const fileName = `${Date.now()}-${file.name}`;
+      const { data, error } = await supabase.storage
+        .from("profile-picture")
+        .upload(fileName, file);
+
+      if (error) {
+        console.error("Error uploading image:", error.message);
+      } else {
+        const { data: urlData } = supabase.storage
+          .from("profile-picture")
+          .getPublicUrl(fileName);
+        setProfileImage(urlData?.publicUrl);
+      }
     }
   };
 
-  const handleEditProfile = () => {
-    setIsEditingMode((prev) => !prev); // Toggle edit mode
+  const handleEditProfile = async () => {
     if (isEditingMode) {
-      // Save changes (here you can add logic to save data, e.g., make an API call)
-      console.log("Changes saved");
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError) {
+        console.error("Error fetching user:", userError);
+        return;
+      }
+
+      const updates = {
+        username: profile.username,
+        birthday: profile.birthday,
+        notification: notificationDays,
+        picture: profileImage,
+      };
+
+      const { error } = await supabase
+        .from("profile")
+        .update(updates)
+        .eq("user", user.id);
+
+      if (error) {
+        console.error("Error updating profile:", error);
+      } else {
+        console.log("Profile updated successfully!");
+      }
     }
+    setIsEditingMode((prev) => !prev);
   };
 
   const handleSignOut = async () => {
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-          console.error('Sign-out error:', error.message);
-      } else {
-          // Simply navigate to the login page, no need to call setUser
-          navigate('/login');
-      }
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      console.error("Sign-out error:", error.message);
+    } else {
+      navigate("/login");
+    }
   };
-
-
-  
 
   return (
     <div className="profile-container">
-      {/* Profile Header Section */}
       <div className="profile-header">
         <div className="profile-avatar">
           <img
@@ -75,7 +120,6 @@ const Profile = () => {
             alt="Profile"
             className="avatar-image"
           />
-          {/* Edit Button */}
           {isEditingMode && (
             <label className="edit-icon">
               <FaPen />
@@ -88,138 +132,117 @@ const Profile = () => {
             </label>
           )}
         </div>
-        <h1>kejun_7219</h1>
+        <h1 className="profile-username">{profile.username}</h1>
       </div>
 
-      {/* Profile Details Section */}
       <div className="profile-details">
-        {/* Username Row */}
+        {/* Username */}
         <div className="profile-row">
-          <span className="icon">
-            <FaUser />
-          </span>
+          <span className="icon"><FaUser /></span>
           <span className="profile-label">Username</span>
           {isEditingMode ? (
-            isEditing.username ? (
-              <input type="text" defaultValue="kejun_7219" className="edit-input" />
-            ) : (
-              <span className="profile-value">kejun_7219</span>
-            )
+            <input
+              type="text"
+              value={profile.username}
+              onChange={(e) =>
+                setProfile((prev) => ({ ...prev, username: e.target.value }))
+              }
+              className="edit-input"
+            />
           ) : (
-            <span className="profile-value">kejun_7219</span>
+            <span className="profile-value">{profile.username}</span>
           )}
-          <button
-            className={`edit-button ${isEditingMode ? 'active' : ''}`}
-            onClick={() => handleEditToggle("username")}
-            disabled={!isEditingMode}
-          >
-            <FaPen />
-          </button>
+          {isEditingMode && (
+            <button className="edit-button"><FaPen /></button>
+          )}
         </div>
 
-        {/* Birthday Row */}
+        {/* Birthday */}
         <div className="profile-row">
-          <span className="icon">
-            <FaBirthdayCake />
-          </span>
+          <span className="icon"><FaBirthdayCake /></span>
           <span className="profile-label">Birthday</span>
-          <span className="profile-value">19 Feb 2003</span>
-          <span className="edit-placeholder" />
+          {isEditingMode ? (
+            <input
+              type="date"
+              value={profile.birthday}
+              onChange={(e) =>
+                setProfile((prev) => ({ ...prev, birthday: e.target.value }))
+              }
+              className="edit-input"
+            />
+          ) : (
+            <span className="profile-value">{profile.birthday}</span>
+          )}
+          {isEditingMode && (
+            <button className="edit-button"><FaPen /></button>
+          )}
         </div>
 
-        {/* Email Row */}
+        {/* Email */}
         <div className="profile-row">
-          <span className="icon">
-            <FaEnvelope />
-          </span>
+          <span className="icon"><FaEnvelope /></span>
           <span className="profile-label">Email</span>
-          <span className="profile-value">tkjun7559@gmail.com</span>
-          <span className="edit-placeholder" />
+          <span className="profile-value">{profile.email}</span>
         </div>
 
-        {/* Password Row */}
+        {/* Password */}
         <div className="profile-row">
-          <span className="icon">
-            <FaLock />
-          </span>
+          <span className="icon"><FaLock /></span>
           <span className="profile-label">Password</span>
           {isEditingMode ? (
-            isEditing.password ? (
-              <input type="password" defaultValue="••••••••" className="edit-input" />
-            ) : (
-              <span className="profile-value">••••••••</span>
-            )
+            <input
+              type="password"
+              value={profile.password}
+              onChange={(e) =>
+                setProfile((prev) => ({ ...prev, password: e.target.value }))
+              }
+              className="edit-input"
+            />
           ) : (
             <span className="profile-value">••••••••</span>
           )}
-          <button
-            className={`edit-button ${isEditingMode ? 'active' : ''}`}
-            onClick={() => handleEditToggle("password")}
-            disabled={!isEditingMode}
-          >
-            <FaPen />
-          </button>
+          {isEditingMode && (
+            <button className="edit-button"><FaPen /></button>
+          )}
         </div>
 
-        {/* Notification Preferences Row */}
+        {/* Notification */}
         <div className="profile-row">
-          <span className="icon">
-            <FaBell />
-          </span>
+          <span className="icon"><FaBell /></span>
           <span className="profile-label">Notification</span>
           {isEditingMode ? (
-            isEditing.notification ? (
-              <select
-                value={notificationDays}
-                onChange={handleNotificationChange}
-                className="notification-select"
-              >
-                <option value={1}>1 Day Before</option>
-                <option value={3}>3 Days Before</option>
-                <option value={7}>7 Days Before</option>
-                <option value={14}>14 Days Before</option>
-                <option value={30}>30 Days Before</option>
-              </select>
-            ) : (
-              <span className="profile-value">{notificationDays} Days Before</span>
-            )
+            <select
+              value={notificationDays}
+              onChange={handleNotificationChange}
+              className="notification-select"
+            >
+              <option value={1}>1 Day Before</option>
+              <option value={3}>3 Days Before</option>
+              <option value={7}>7 Days Before</option>
+              <option value={14}>14 Days Before</option>
+              <option value={30}>30 Days Before</option>
+            </select>
           ) : (
             <span className="profile-value">{notificationDays} Days Before</span>
           )}
-          <button
-            className={`edit-button ${isEditingMode ? 'active' : ''}`}
-            onClick={() => handleEditToggle("notification")}
-            disabled={!isEditingMode}
-          >
-            <FaPen />
-          </button>
+          {isEditingMode && (
+            <button className="edit-button"><FaPen /></button>
+          )}
         </div>
       </div>
 
-      {/* Edit/Done Button */}
+      {/* Buttons */}
       <div className="edit-profile">
-        <button
-          className={`profile-button ${isTouched ? "hover-effect" : ""}`}
-          onTouchStart={handleTouchStart}
-          onTouchEnd={handleTouchEnd}
-          onClick={handleEditProfile}
-        >
+        <button className="profile-button" onClick={handleEditProfile}>
           {isEditingMode ? "Done" : "Edit Profile"}
         </button>
       </div>
 
-      {/* Sign-Out Button */}
       <div className="edit-profile">
-        <button
-          className={`profile-button ${isTouched ? "hover-effect" : ""}`}
-          onTouchStart={handleTouchStart}
-          onTouchEnd={handleTouchEnd}
-          onClick={handleSignOut} // Attach handleSignOut
-        >
+        <button className="profile-button" onClick={handleSignOut}>
           Sign Out
         </button>
       </div>
-      
     </div>
   );
 };

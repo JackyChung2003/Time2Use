@@ -8,6 +8,10 @@ body {
     align-items: center;
 }
 
+.profile-username {
+    color: white;
+}
+
 /* Profile Container */
 .profile-container {
     background-color: white;
@@ -74,17 +78,12 @@ body {
 
 .profile-row input,
 .profile-row select {
-  margin-left: 10px;
   padding: 5px;
   border: 1px solid #ccc;
   height: 30px;
+  width: 45%; /* Ensure input and select fields stretch across the container */
+  
 }
-
-/* .profile-row .profile-value {
-    flex-grow: 1;
-    margin-right: 2px;
-    padding-right: 10px;
-} */
 
 .profile-row .icon {
     font-size: 15px;
@@ -94,19 +93,18 @@ body {
 }
 
 .profile-label {
-  flex: 1 1 10%;
-  text-align: left;
-  /* color: #333; */
-  font-size: 12px;
-  margin-right: 10px;
+    flex: 1 1 10%;
+    text-align: left;
+    font-size: 12px;
+    margin-right: 10px;
 }
 
 .profile-value {
-  flex: 1 1 40%;
-  text-align: left;
-  color: #333;
-  font-size: 12px;
-  margin-left: 5px ;
+    flex: 1 1 40%;
+    text-align: left;
+    color: #333;
+    font-size: 12px;
+    margin-left: 5px;
 }
 
 /* Edit Button Styling */
@@ -123,14 +121,16 @@ body {
     cursor: pointer;
 }
 
-.notification-select {
-    font-size: 12px;
+.notification-select,
+.edit-input {
     padding: 5px;
+    font-size: 12px;
     border-radius: 5px;
     border: 1px solid #ccc;
-    width: 150px;
+    width: 150px; /* Ensuring both have the same width */
+    height: 30px; /* Ensuring both have the same height */
+    margin-right: 15px; /* Optional: To maintain consistent spacing */
     text-align: left;
-    margin-right: 15px;
 }
 
 .edit-button {
