@@ -1,0 +1,310 @@
+import React, { useEffect, useState } from "react";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { useRecipeContext } from "../../../../../../containers/Client/Recipe/Contexts/RecipeContext";
+import BackButton from "../../../../../../components/Button/BackButton";
+import supabase from "../../../../../../config/supabaseClient";
+
+import SortableRecipeList from "../../../../../../components/SortableDragAndDrop/Recipes_List/SortableRecipeList";
+import "./index.css"; // Add custom styles if needed
+
+const RecipePreparationPage = () => { 
+  // const { fetchRecipeIngredients, fetchRecipeSteps, mealTypes } = useRecipeContext();
+  const {
+    fetchMealPlansByDate,
+    fetchRecipesByIds,
+    fetchRecipeIngredients,
+    fetchRecipeSteps,
+    mealTypes,
+  } = useRecipeContext();
+
+  const navigate = useNavigate();
+  const { date } = useParams(); // Get date from URL
+  const location = useLocation();
+  const { planned_date, meal_type_id } = location.state || {};
+
+  const [recipes, setRecipes] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showModal, setShowModal] = useState(false);
+
+  const [ingredients, setIngredients] = useState([]);
+  const [steps, setSteps] = useState([]);
+  const [mergedIngredients, setMergedIngredients] = useState([]);
+  const [isCombined, setIsCombined] = useState(true);
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setLoading(true);
+
+        // Fetch meal plans for the given date
+        const mealPlans = await fetchMealPlansByDate(planned_date);
+        const relevantPlans = mealPlans.filter(
+          (meal) => meal.meal_type_id === meal_type_id
+        );
+
+        if (relevantPlans.length === 0) {
+          console.warn("No meal plans found for the given date and meal type.");
+          setRecipes([]);
+          return;
+        }
+
+        // Extract recipe IDs and fetch recipes
+        const recipeIds = relevantPlans.map((meal) => meal.recipe_id);
+        const fetchedRecipes = await fetchRecipesByIds(recipeIds);
+        setRecipes(fetchedRecipes);
+
+        // Fetch ingredients and steps for each recipe
+        const allIngredients = [];
+        const allSteps = [];
+        for (const recipe of fetchedRecipes) {
+          const ingredientsData = await fetchRecipeIngredients(recipe.id);
+          const stepsData = await fetchRecipeSteps(recipe.id);
+
+          allIngredients.push(
+            ...ingredientsData.map((ingredient) => ({
+              ...ingredient,
+              recipeId: recipe.id,
+            }))
+          );
+          allSteps.push(...stepsData);
+        }
+
+        setIngredients(allIngredients);
+        setSteps(allSteps);
+
+        // Merge ingredients
+        const merged = allIngredients.reduce((acc, ingredient) => {
+          const existing = acc.find(
+            (item) => item.ingredients.name === ingredient.ingredients.name
+          );
+          if (existing) {
+            existing.quantity += ingredient.quantity;
+          } else {
+            acc.push({ ...ingredient });
+          }
+          return acc;
+        }, []);
+        setMergedIngredients(merged);
+      } catch (error) {
+        console.error("Error loading data:", error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (planned_date && meal_type_id) {
+      loadData();
+    }
+  }, [planned_date, meal_type_id, fetchMealPlansByDate, fetchRecipesByIds, fetchRecipeIngredients, fetchRecipeSteps]);
+
+  const toggleCombineIngredients = () => {
+    setIsCombined(!isCombined);
+  };
+
+  const startCooking = () => {
+    setShowModal(true);
+  };
+  
+  const confirmSequence = () => {
+    setShowModal(false);
+    console.log("Confirmed cooking sequence:", recipes);
+    // Proceed to cooking steps logic
+  };
+  
+  const closeModal = () => {
+    setShowModal(false);
+  };
+  
+
+  if (loading) {
+    return <div>Loading preparation details...</div>;
+  }
+
+  if (recipes.length === 0) {
+    return <div>No recipes found for this meal plan.</div>;
+  }
+
+  return (
+    <div className="recipe-preparation-page">
+      <BackButton onClick={() => navigate(-1)} />
+      <h1>Recipe Preparation</h1>
+      <h3>Date: {planned_date}</h3>
+      <h3>Meal Type: {mealTypes.find((type) => type.id === meal_type_id)?.name || "Unknown"}</h3>
+
+      {isCombined ? (
+        <>
+          <div>
+            <h3>Recipes</h3>
+            {recipes.map((recipe) => (
+              <div key={recipe.id} className="recipe-details">
+                <h2>{recipe.name}</h2>
+                <img
+                  src={`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/${recipe.image_path}`}
+                  alt={recipe.name}
+                  style={{ width: "300px", borderRadius: "10px" }}
+                  />
+                <p>{recipe.description}</p>
+                <p>
+                  <strong>Prep Time:</strong> {recipe.prep_time} mins
+                </p>
+                <p>
+                  <strong>Cook Time:</strong> {recipe.cook_time} mins
+                </p>
+              </div>
+            ))}
+          </div>
+          <div>
+            <h3>Merged Ingredients</h3>
+            <ul>
+              {mergedIngredients.map((ingredient, index) => (
+                <li key={index}>
+                  {ingredient.ingredients.name} - {ingredient.quantity} {ingredient.ingredients.unit?.unit_tag || ""}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </>
+      ) : (
+        recipes.map((recipe) => (
+          <div key={recipe.id} className="recipe-details">
+            <h2>{recipe.name}</h2>
+            <img
+              src={`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/${recipe.image_path}`}
+              alt={recipe.name}
+              style={{ width: "300px", borderRadius: "10px" }}
+            />
+            <p>{recipe.description}</p>
+            <p>
+              <strong>Prep Time:</strong> {recipe.prep_time} mins
+            </p>
+            <p>
+              <strong>Cook Time:</strong> {recipe.cook_time} mins
+            </p>
+            <div>
+              <h3>Ingredients</h3>
+              <ul>
+                {ingredients
+                  .filter((ingredient) => ingredient.recipeId === recipe.id)
+                  .map((ingredient, index) => (
+                    <li key={index}>
+                      {ingredient.ingredients.name} - {ingredient.quantity} {ingredient.ingredients.unit?.unit_tag || ""}
+                    </li>
+                  ))}
+              </ul>
+            </div>
+          </div>
+        ))
+      )}
+
+      <button
+        onClick={toggleCombineIngredients}
+        style={{
+          padding: "10px 20px",
+          background: isCombined ? "red" : "green",
+          color: "white",
+          borderRadius: "5px",
+          marginTop: "20px",
+        }}
+      >
+        {isCombined ? "Separate Ingredients" : "Combine Ingredients"}
+      </button>
+
+      <button
+        onClick={startCooking}
+        style={{
+          padding: "10px 20px",
+          background: "orange",
+          color: "white",
+          borderRadius: "5px",
+          marginTop: "20px",
+        }}
+      >
+        Start Cooking
+      </button>
+
+      {showModal && (
+        <div
+          className="modal-overlay"
+          onClick={closeModal}
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            background: "rgba(0, 0, 0, 0.5)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <div
+            className="modal-content"
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: "white",
+              padding: "20px",
+              borderRadius: "10px",
+              width: "400px",
+              maxHeight: "90vh",
+              overflowY: "auto",
+            }}
+          >
+            <h3>Arrange Cooking Sequence</h3>
+            {/* <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
+            >
+              <SortableContext
+                items={recipes.map((recipe) => recipe.id)}
+                strategy={verticalListSortingStrategy}
+              >
+                <ul style={{ listStyleType: "none", padding: 0 }}>
+                  {recipes.map((recipe) => (
+                    <SortableRecipe key={recipe.id} id={recipe.id} recipe={recipe} />
+                  ))}
+                </ul>
+              </SortableContext>
+            </DndContext> */}
+
+            <SortableRecipeList recipes={recipes} setRecipes={setRecipes} />
+            <div
+              style={{
+                marginTop: "20px",
+                display: "flex",
+                justifyContent: "space-between",
+              }}
+            >
+              <button
+                onClick={closeModal}
+                style={{
+                  background: "red",
+                  color: "white",
+                  padding: "10px 20px",
+                  borderRadius: "5px",
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmSequence}
+                style={{
+                  background: "green",
+                  color: "white",
+                  padding: "10px 20px",
+                  borderRadius: "5px",
+                }}
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+    </div>
+  );
+};
+
+export default RecipePreparationPage;
