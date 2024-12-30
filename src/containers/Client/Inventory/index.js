@@ -1,7 +1,7 @@
 import supabase from '../../../config/supabaseClient';
 import React, { useState } from 'react';
 
-export const fetchItems = async () => {
+export const fetchItems = async (userId) => {
   try {
     const { data, error } = await supabase
       .from('inventory')
@@ -26,7 +26,8 @@ export const fetchItems = async () => {
           status_color
         ),
         unit:unit (unit_tag)
-      `);
+      `)
+      .eq('user_id', userId); // filter by user id
 
     if (error) {
       throw error;
@@ -44,8 +45,6 @@ export const fetchItems = async () => {
         ? `${SUPABASE_STORAGE_URL}${item.ingredients.icon_path}`
         : '';
 
-      const quantityUnit = item.unit?.unit_tag || 'unit';
-
       return {
         id: item.id,
         name: item.ingredients?.name || 'Unknown',
@@ -54,7 +53,7 @@ export const fetchItems = async () => {
         category: categoryTag,
         pred_shelf_life: item.ingredients?.pred_shelf_life || 'No prediction available',
         quantity: item.quantity,
-        quantity_unit: quantityUnit,
+        quantity_unit: item.unit?.unit_tag || 'unit',
         statusColor: statusColor, 
         nutritionalInfo: item.ingredients?.nutritional_info || 'No information available',
         storageTips: item.ingredients?.storage_tips || 'No tips available',
