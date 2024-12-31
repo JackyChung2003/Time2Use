@@ -19,6 +19,7 @@ const RecipePreparationPage = () => {
     getStatusIdByName,
     fetchInventoryMealPlanData,
     fetchInventoryMealPlanByMealPlanId,
+    enrichInventory,
   } = useRecipeContext();
 
   const navigate = useNavigate();
@@ -265,11 +266,11 @@ const RecipePreparationPage = () => {
   
         // Fetch inventory meal plan data
         const mealPlanIds = relevantPlans.map((plan) => plan.id);
-        console.log("Meal Plan IDs:JJJJJJJJ", mealPlanIds);
+        // console.log("Meal Plan IDs:JJJJJJJJ", mealPlanIds);
         setMealPlanIds(mealPlanIds);
         const inventoryMealPlanData = await fetchInventoryMealPlanByMealPlanId(mealPlanIds);
   
-        console.log("Fetched Inventory Meal Plan Data:", inventoryMealPlanData);
+        // console.log("Fetched Inventory Meal Plan Data:", inventoryMealPlanData);
   
         // Map inventory to ingredients
         const merged = allIngredients.reduce((acc, ingredient) => {
@@ -278,13 +279,13 @@ const RecipePreparationPage = () => {
           );
   
           // Find related inventory data for this ingredient
-          console.log(`Ingredient ID for ${ingredient.ingredients.name}:`, ingredient.ingredients.id);
+          // console.log(`Ingredient ID for ${ingredient.ingredients.name}:`, ingredient.ingredients.id);
   
           const linkedInventory = inventoryMealPlanData.filter(
             (inv) => inv.inventory.ingredient_id === ingredient.ingredients.id
           );
   
-          console.log(`Linked Inventory for ${ingredient.ingredients.name}:`, linkedInventory);
+          // console.log(`Linked Inventory for ${ingredient.ingredients.name}:`, linkedInventory);
   
           if (existing) {
             existing.quantity += ingredient.quantity;
@@ -341,7 +342,7 @@ const RecipePreparationPage = () => {
   
   const confirmSequence = () => {
     setShowModal(false);
-    console.log("Confirmed cooking sequence:", recipes);
+    // console.log("Confirmed cooking sequence:", recipes);
     // Proceed to cooking steps logic
   };
   
@@ -351,7 +352,7 @@ const RecipePreparationPage = () => {
 
   const allocateInventoryFIFO = (ingredient, inventory) => {
     const target = ingredient.quantity;
-    console.log("Target Quantity Needed:", target);
+    // console.log("Target Quantity Needed:", target);
   
     // Step 1: Sort inventory by expiry date first, then by quantity
     const sortedInventory = [...inventory].sort((a, b) => {
@@ -363,7 +364,7 @@ const RecipePreparationPage = () => {
       return a.quantity - b.quantity; // Then by quantity
     });
   
-    console.log("Sorted Inventory by Expiry and Quantity:", sortedInventory);
+    // console.log("Sorted Inventory by Expiry and Quantity:", sortedInventory);
   
     // Step 2: Find the optimal combination of items
     let remainingRequired = target;
@@ -396,7 +397,7 @@ const RecipePreparationPage = () => {
       }
     }
   
-    console.log("Selected Items:", selectedItems);
+    // console.log("Selected Items:", selectedItems);
   
     // Step 3: Mark the remaining inventory as unselected
     const finalInventory = sortedInventory.map((item) => {
@@ -406,7 +407,7 @@ const RecipePreparationPage = () => {
         : { ...item, preselected: false, selectedQuantity: 0 }; // Mark unselected
     });
   
-    console.log("Final Allocated Inventory:", finalInventory);
+    // console.log("Final Allocated Inventory:", finalInventory);
   
     return finalInventory;
   };
@@ -434,8 +435,10 @@ const RecipePreparationPage = () => {
   
     // Map full inventory to match the linked IDs, deselecting others
     const updatedInventory = fullInventory.map((item) => {
-      const linkedItem = linkedInventory.find((linked) => linked.inventory_id === item.id);
-  
+    const linkedItem = linkedInventory.find((linked) => linked.inventory_id === item.id);
+    
+    console.log("Linked Item:", linkedItem);
+
       if (linkedItem) {
         return {
           ...item,
@@ -452,7 +455,7 @@ const RecipePreparationPage = () => {
       };
     });
   
-    console.log("Updated Inventory with Preselection:", updatedInventory);
+    // console.log("Updated Inventory with Preselection:", updatedInventory);
   
     return updatedInventory;
   };
@@ -481,58 +484,79 @@ const RecipePreparationPage = () => {
   // };
   const handleIngredientClick = async (ingredient) => {
     try {
-      setSelectedIngredient(null); // Clear previous selection
+      // setSelectedIngredient(null); // Clear previous selection
+
+      setSelectedIngredient(ingredient); // Set selected ingredient first
       setInventoryItems([]); // Reset inventory items
       setSelectedInventory([]); // Reset selected inventory
       setAdjustingQuantity(false); // Reset adjusting state
 
       const inventory = await fetchUserInventory(ingredient.ingredients.id);
-      console.log('ingredient:', ingredient);
-      console.log("Fetched Inventory:", inventory);
+      // console.log('ingredient:', ingredient);
+      // console.log("Fetched Inventory:", inventory);
 
       // Fetch linked inventory from the meal plan
       // const mealPlanIds = recipes.map((recipe) => recipe.id); // Assuming you can derive meal plan IDs from recipes
-      console.log("Meal Plan IDsHEREEEEE:", mealPlanIds);
+      // console.log("Meal Plan IDsHEREEEEE:", mealPlanIds);
       const inventoryMealPlanData = await fetchInventoryMealPlanByMealPlanId(mealPlanIds);
-      console.log("Fetched Inventory Meal Plan Data:", inventoryMealPlanData);
+      // console.log("Fetched Inventory Meal Plan Data:", inventoryMealPlanData);
 
       // Filter inventory meal plan data for the current ingredient
       const linkedInventory = inventoryMealPlanData.filter(
         (item) => item.inventory.ingredient_id === ingredient.ingredients.id
       );
 
-      console.log("Linked Inventory from Meal Plan:", linkedInventory);
+      // console.log("Linked Inventory from Meal Plan:", linkedInventory);
 
+      let allocatedInventory;
       if (linkedInventory.length > 0) {
-        // // Preselect linked inventory and proceed to adjust quantities
-        // const allocatedInventory = linkedInventory.map((item) => ({
-        //   ...item,
-        //   selectedQuantity: item.used_quantity, // Use the already-used quantity
-        //   preselected: true, // Mark as preselected
-        // }));
-
-        // Use the new function to preselect linked inventory
-        // const allocatedInventory = preselectLinkedInventory(linkedInventory);
-        const allocatedInventory = preselectLinkedInventory(linkedInventory, inventory);
-
-        console.log("Preselected Inventory:", allocatedInventory);
-
-        setSelectedIngredient(ingredient);
-        setInventoryItems(inventory); // Full inventory list
-        setSelectedInventory(allocatedInventory); // Preselected items
-        setRequiredQuantity(ingredient.quantity); // Set global requiredQuantity
-        setAdjustingQuantity(true); // Skip to adjust quantities
+        allocatedInventory = preselectLinkedInventory(linkedInventory, inventory);
       } else {
-        // If no linked inventory, proceed with FIFO allocation
-        const allocatedInventory = allocateInventoryFIFO(ingredient, inventory);
-
-        console.log("Allocated Inventory:", allocatedInventory);
-
-        setSelectedIngredient(ingredient);
-        setInventoryItems(inventory); // Full inventory list
-        setSelectedInventory(allocatedInventory); // Include preselected suggestions
-        setRequiredQuantity(ingredient.quantity); // Set global requiredQuantity
+        allocatedInventory = allocateInventoryFIFO(ingredient, inventory);
       }
+      // if (linkedInventory.length > 0) {
+      //   // // Preselect linked inventory and proceed to adjust quantities
+      //   // const allocatedInventory = linkedInventory.map((item) => ({
+      //   //   ...item,
+      //   //   selectedQuantity: item.used_quantity, // Use the already-used quantity
+      //   //   preselected: true, // Mark as preselected
+      //   // }));
+
+      //   // Use the new function to preselect linked inventory
+      //   // const allocatedInventory = preselectLinkedInventory(linkedInventory);
+      //   const allocatedInventory = preselectLinkedInventory(linkedInventory, inventory);
+
+      //   // console.log("Preselected Inventory:", allocatedInventory);
+
+      //   setSelectedIngredient(ingredient);
+      //   setInventoryItems(inventory); // Full inventory list
+      //   setSelectedInventory(allocatedInventory); // Preselected items
+      //   setRequiredQuantity(ingredient.quantity); // Set global requiredQuantity
+      //   setAdjustingQuantity(true); // Skip to adjust quantities
+      // } else {
+      //   // If no linked inventory, proceed with FIFO allocation
+      //   const allocatedInventory = allocateInventoryFIFO(ingredient, inventory);
+
+      //   // console.log("Allocated Inventory:", allocatedInventory);
+
+      //   setSelectedIngredient(ingredient);
+      //   setInventoryItems(inventory); // Full inventory list
+      //   setSelectedInventory(allocatedInventory); // Include preselected suggestions
+      //   setRequiredQuantity(ingredient.quantity); // Set global requiredQuantity
+      // }
+
+      // Merge previously selected quantities if already in state
+      const updatedInventory = allocatedInventory.map((item) => {
+        const existing = selectedInventory.find((selected) => selected.id === item.id);
+        return existing
+          ? { ...item, selectedQuantity: existing.selectedQuantity, preselected: existing.preselected }
+          : item;
+      });
+
+      setInventoryItems(inventory); // Full inventory list
+      setSelectedInventory(updatedInventory); // Maintain or update selected inventory
+      setRequiredQuantity(ingredient.quantity); // Set global requiredQuantity
+      setAdjustingQuantity(true); // Skip to adjust quantities
     } catch (error) {
       console.error("Error fetching inventory for ingredient:", error.message);
     }
@@ -541,6 +565,7 @@ const RecipePreparationPage = () => {
   
   
   const toggleInventorySelection = (item) => {
+    console.log("Before toggle:", selectedInventory);
     setSelectedInventory((prevSelected) => {
       const exists = prevSelected.find((selected) => selected.id === item.id);
   
@@ -551,6 +576,14 @@ const RecipePreparationPage = () => {
             ? { ...selected, preselected: !selected.preselected }
             : selected
         );
+        // If already selected, toggle off
+        // const updatedSelection = prevSelected.map((selected) =>
+        //   selected.id === item.id
+        //     ? { ...selected, preselected: !selected.preselected }
+        //     : selected
+        // );
+        // console.log("After toggle off:", updatedSelection);
+        // return updatedSelection;
       }
 
       // If not selected, add to selectedInventory
@@ -558,32 +591,49 @@ const RecipePreparationPage = () => {
         ...prevSelected,
        {
           ...item,
-          selectedQuantity: item.selectedQuantity || 0, // Default to a small quantity if none exists
+          // selectedQuantity: item.selectedQuantity || 0, // Default to a small quantity if none exists
+          selectedQuantity: item.selectedQuantity || 1, // Default to 1 if not set
           preselected: true, // Mark as preselected
         },
       ];
+       // If not selected, add to selectedInventory
+      // const newSelection = [
+      //   ...prevSelected,
+      //   {
+      //     ...item,
+      //     selectedQuantity: item.selectedQuantity || 0, // Default to a small quantity if none exists
+      //     preselected: true, // Mark as preselected
+      //   },
+      // ];
+      // console.log("After toggle on:", newSelection);
+      // return newSelection;
     });
   };
 
   const confirmSelection = () => {
     const currentlySelected = selectedInventory.filter((item) => item.preselected);
     const totalSelectedQuantity = currentlySelected.reduce(
-      (sum, item) => sum + (item.selectedQuantity || item.quantity),
+      // (sum, item) => sum + (item.selectedQuantity || item.quantity),
+      (sum, item) => sum + (item.quantity),
       0
     );
+
+    console.log("Currently Selected Inventory:", currentlySelected);
+    console.log("Total Selected Quantity:", totalSelectedQuantity);
   
     // Validation for capped and uncapped
     if ((!capped && currentlySelected.length === 0) || (capped && totalSelectedQuantity < selectedIngredient.quantity)) {
       alert(
         `You must select at least ${
           capped ? `${selectedIngredient.quantity} ${selectedIngredient.ingredients.unit?.unit_tag || ""}` : "one item"
-        } to proceed.`
+        } to proceed. Now you have selected ${totalSelectedQuantity} ${selectedIngredient.ingredients.unit?.unit_tag || ""}.`
+  
       );
       return;
     }
   
     // Proceed to adjustment
-    console.log("Confirmed Inventory Selection:", currentlySelected);
+    // console.log("Confirmed Inventory Selection:", currentlySelected);
   
     setSelectedInventory((prevSelected) =>
       prevSelected.map((item) =>
@@ -599,46 +649,77 @@ const RecipePreparationPage = () => {
     setAdjustingQuantity(true); // Proceed to adjustment step
   };
 
+  // const adjustQuantity = (itemId, delta) => {
+  //   setSelectedInventory((prevSelected) => {
+  //     const target = selectedIngredient.quantity;
+  
+  //     // Calculate the current total
+  //     const total = prevSelected.reduce((sum, item) => sum + item.selectedQuantity, 0);
+  
+  //     const updatedInventory = prevSelected.map((item) => {
+  //       if (item.id === itemId) {
+  //         // Adjust the selected item's quantity
+  //         const newQuantity = Math.max(1, item.selectedQuantity + delta); // Prevent quantity < 1
+  //         return { ...item, selectedQuantity: newQuantity };
+  //       }
+  //       return item;
+  //     });
+  
+  //     if (capped) {
+  //       if (delta > 0 && total === target) {
+  //         // Adding: Redistribute the excess to maintain the target
+  //         const excess = updatedInventory.reduce(
+  //           (sum, item) => sum + item.selectedQuantity,
+  //           0
+  //         ) - target;
+  //         return redistributeExcessToMaintainTarget(updatedInventory, itemId, excess);
+  //       }
+  
+  //       if (total < target || delta < 0) {
+  //         // Allow normal addition until the target is reached or subtraction
+  //         const newTotal = updatedInventory.reduce(
+  //           (sum, item) => sum + item.selectedQuantity,
+  //           0
+  //         );
+  //         return newTotal <= target ? updatedInventory : adjustToFitTarget(updatedInventory, target);
+  //       }
+  //     }
+  
+  //     // If uncapped, allow unrestricted changes
+  //     return updatedInventory;
+  //   });
+  // };
+
   const adjustQuantity = (itemId, delta) => {
     setSelectedInventory((prevSelected) => {
       const target = selectedIngredient.quantity;
   
       // Calculate the current total
-      const total = prevSelected.reduce((sum, item) => sum + item.selectedQuantity, 0);
+      let totalSelected = prevSelected.reduce((sum, item) => sum + item.selectedQuantity, 0);
   
+      // Map through inventory to adjust the quantity for the selected item
       const updatedInventory = prevSelected.map((item) => {
         if (item.id === itemId) {
-          // Adjust the selected item's quantity
-          const newQuantity = Math.max(1, item.selectedQuantity + delta); // Prevent quantity < 1
+          const newQuantity = Math.max(
+            1, // Ensure at least 1
+            Math.min(item.selectedQuantity + delta, item.quantity) // Don't exceed item's available quantity
+          );
+          totalSelected += newQuantity - item.selectedQuantity; // Update the total with the adjusted quantity
           return { ...item, selectedQuantity: newQuantity };
         }
         return item;
       });
   
-      if (capped) {
-        if (delta > 0 && total === target) {
-          // Adding: Redistribute the excess to maintain the target
-          const excess = updatedInventory.reduce(
-            (sum, item) => sum + item.selectedQuantity,
-            0
-          ) - target;
-          return redistributeExcessToMaintainTarget(updatedInventory, itemId, excess);
-        }
-  
-        if (total < target || delta < 0) {
-          // Allow normal addition until the target is reached or subtraction
-          const newTotal = updatedInventory.reduce(
-            (sum, item) => sum + item.selectedQuantity,
-            0
-          );
-          return newTotal <= target ? updatedInventory : adjustToFitTarget(updatedInventory, target);
-        }
+      if (capped && totalSelected > target) {
+        // If capped and total exceeds the target, redistribute excess
+        const excess = totalSelected - target;
+        return redistributeExcessToMaintainTarget(updatedInventory, itemId, excess);
       }
   
-      // If uncapped, allow unrestricted changes
+      // Return updated inventory for both capped and uncapped modes
       return updatedInventory;
     });
-  };
+  };  
   
   const handleQuantityInputChange = (itemId, newQuantity) => {
     setSelectedInventory((prevSelected) => {
@@ -725,28 +806,35 @@ const RecipePreparationPage = () => {
       }
   
       // Fetch meal plan IDs if not already provided
-      const enrichedInventory = await Promise.all(
-        filteredInventory.map(async (item) => {
-          if (item.meal_plan_id) {
-            return item; // If meal_plan_id exists, return as is
-          }
+      // const enrichedInventory = await Promise.all(
+      //   filteredInventory.map(async (item) => {
+      //     if (item.meal_plan_id) {
+      //       return item; // If meal_plan_id exists, return as is
+      //     }
   
-          // Fetch meal plan ID for the ingredient and recipe
-          const { data: mealPlanData, error } = await supabase
-            .from("meal_plan")
-            .select("id")
-            .eq("planned_date", planned_date) // Use the planned_date context
-            .eq("recipe_id", selectedIngredient.recipes[0]?.recipeId || null)
-            .limit(1) // Assume one-to-one mapping
-            .single();
+      //     // Fetch meal plan ID for the ingredient and recipe
+      //     const { data: mealPlanData, error } = await supabase
+      //       .from("meal_plan")
+      //       .select("id")
+      //       .eq("planned_date", planned_date) // Use the planned_date context
+      //       .eq("recipe_id", selectedIngredient.recipes[0]?.recipeId || null)
+      //       .limit(1) // Assume one-to-one mapping
+      //       .single();
   
-          if (error) {
-            console.warn(`Failed to fetch meal plan for inventory ID: ${item.id}`, error);
-            return { ...item, meal_plan_id: null }; // Return with null if not found
-          }
+      //     if (error) {
+      //       console.warn(`Failed to fetch meal plan for inventory ID: ${item.id}`, error);
+      //       return { ...item, meal_plan_id: null }; // Return with null if not found
+      //     }
   
-          return { ...item, meal_plan_id: mealPlanData?.id || null }; // Add the meal_plan_id
-        })
+      //     return { ...item, meal_plan_id: mealPlanData?.id || null }; // Add the meal_plan_id
+      //   })
+      // );
+
+       // Use the `enrichInventory` function to enrich the inventory
+      const enrichedInventory = await enrichInventory(
+        filteredInventory,
+        selectedIngredient,
+        planned_date
       );
       // inventory_id
       // meal_plan_id
@@ -772,19 +860,19 @@ const RecipePreparationPage = () => {
         used_quantity: item.selectedQuantity,
         status_id: statusId, // Use the dynamically fetched status_id
         created_at: new Date().toISOString(), // Track when the entry was created
-        required_quantity: item.quantity,
       }));
   
       // Log data for debugging
-      console.log("Filtered and Enriched Data to Insert:", dataToInsert);
+      // console.log("Filtered and Enriched Data to Insert:", dataToInsert);
   
       // Insert into the database (uncomment when using Supabase)
 
-      // const { data, error } = await supabase.from("inventory_meal_plan").insert(dataToInsert);
-      // if (error) {
-      //   throw error;
-      // }
+      const { data, error } = await supabase.from("inventory_meal_plan").insert(dataToInsert);
+      if (error) {
+        throw error;
+      }
       // console.log("Inserted Data:", data);
+      
       // Reset states after processing
       setSelectedIngredient(null); // Close modal
       setSelectedInventory([]); // Reset inventory
@@ -1221,7 +1309,10 @@ const RecipePreparationPage = () => {
                 </p>
                 <p>
                   <strong>Your Adjusted Total:</strong>{" "}
-                  {selectedInventory.reduce((sum, item) => sum + item.selectedQuantity, 0)}{" "}
+                  {/* {selectedInventory.reduce((sum, item) => sum + item.selectedQuantity, 0)}{" "} */}
+                  {selectedInventory
+                    .filter((item) => item.preselected) // Only include preselected items
+                    .reduce((sum, item) => sum + item.selectedQuantity, 0)}{" "}
                   {selectedIngredient.ingredients.unit?.unit_tag || ""}
                 </p>
 

@@ -504,6 +504,36 @@ const fetchRecipes = async () => {
     }
   };
   
+  const enrichInventory = async (filteredInventory, selectedIngredient, planned_date) => {
+    try {
+      return await Promise.all(
+        filteredInventory.map(async (item) => {
+          if (item.meal_plan_id) {
+            return item; // If meal_plan_id exists, return as is
+          }
+  
+          // Fetch meal plan ID for the ingredient and recipe
+          const { data: mealPlanData, error } = await supabase
+            .from("meal_plan")
+            .select("id")
+            .eq("planned_date", planned_date) // Use the planned_date context
+            .eq("recipe_id", selectedIngredient.recipes[0]?.recipeId || null)
+            .limit(1) // Assume one-to-one mapping
+            .single();
+  
+          if (error) {
+            console.warn(`Failed to fetch meal plan for inventory ID: ${item.id}`, error);
+            return { ...item, meal_plan_id: null }; // Return with null if not found
+          }
+  
+          return { ...item, meal_plan_id: mealPlanData?.id || null }; // Add the meal_plan_id
+        })
+      );
+    } catch (error) {
+      console.error("Error enriching inventory:", error.message);
+      return []; // Return an empty array in case of error
+    }
+  };
   
 
   return (
@@ -532,6 +562,7 @@ const fetchRecipes = async () => {
         getStatusIdByName,
         fetchInventoryMealPlanData,
         fetchInventoryMealPlanByMealPlanId,
+        enrichInventory,
         applyFilters,
         loading,
       }}
