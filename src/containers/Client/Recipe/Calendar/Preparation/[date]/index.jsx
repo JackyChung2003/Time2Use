@@ -48,7 +48,8 @@ const RecipePreparationPage = () => {
       (selectedIngredient?.quantity || 0) // Safeguard in case selectedIngredient is null
   );
 
-  const [mealPlanIds, setMealPlanIds] = useState([]);
+  const [mealPlanIds, setMealPlanIds] = useState([]);// Add a global state for requiredQuantity
+  const [requiredQuantity, setRequiredQuantity] = useState(null);
 
 
   // useEffect(() => {
@@ -512,13 +513,14 @@ const RecipePreparationPage = () => {
 
         // Use the new function to preselect linked inventory
         // const allocatedInventory = preselectLinkedInventory(linkedInventory);
-      const allocatedInventory = preselectLinkedInventory(linkedInventory, inventory);
+        const allocatedInventory = preselectLinkedInventory(linkedInventory, inventory);
 
         console.log("Preselected Inventory:", allocatedInventory);
 
         setSelectedIngredient(ingredient);
         setInventoryItems(inventory); // Full inventory list
         setSelectedInventory(allocatedInventory); // Preselected items
+        setRequiredQuantity(ingredient.quantity); // Set global requiredQuantity
         setAdjustingQuantity(true); // Skip to adjust quantities
       } else {
         // If no linked inventory, proceed with FIFO allocation
@@ -529,6 +531,7 @@ const RecipePreparationPage = () => {
         setSelectedIngredient(ingredient);
         setInventoryItems(inventory); // Full inventory list
         setSelectedInventory(allocatedInventory); // Include preselected suggestions
+        setRequiredQuantity(ingredient.quantity); // Set global requiredQuantity
       }
     } catch (error) {
       console.error("Error fetching inventory for ingredient:", error.message);
@@ -703,6 +706,8 @@ const RecipePreparationPage = () => {
         console.warn("Ingredient or inventory selection is missing.");
         return;
       }
+
+      
   
       // Filter out entries with used_quantity === 0
       const filteredInventory = selectedInventory.filter((item) => item.selectedQuantity > 0);
@@ -750,6 +755,16 @@ const RecipePreparationPage = () => {
       // created_at
       // updated_at
 
+      // Validate that no selectedQuantity exceeds the required cap
+      for (const item of enrichedInventory) {
+        if (item.selectedQuantity > requiredQuantity) {
+          alert(
+            `Selected quantity (${item.selectedQuantity}) exceeds the required cap (${requiredQuantity}) for inventory ID ${item.id}. Please adjust and try again.`
+          );
+          return; // Exit the function
+        }
+      }
+
       // Prepare the data for insertion
       const dataToInsert = enrichedInventory.map((item) => ({
         inventory_id: item.id,
@@ -757,6 +772,7 @@ const RecipePreparationPage = () => {
         used_quantity: item.selectedQuantity,
         status_id: statusId, // Use the dynamically fetched status_id
         created_at: new Date().toISOString(), // Track when the entry was created
+        required_quantity: item.quantity,
       }));
   
       // Log data for debugging
@@ -764,11 +780,11 @@ const RecipePreparationPage = () => {
   
       // Insert into the database (uncomment when using Supabase)
 
-      const { data, error } = await supabase.from("inventory_meal_plan").insert(dataToInsert);
-      if (error) {
-        throw error;
-      }
-      console.log("Inserted Data:", data);
+      // const { data, error } = await supabase.from("inventory_meal_plan").insert(dataToInsert);
+      // if (error) {
+      //   throw error;
+      // }
+      // console.log("Inserted Data:", data);
       // Reset states after processing
       setSelectedIngredient(null); // Close modal
       setSelectedInventory([]); // Reset inventory
@@ -1037,6 +1053,7 @@ const RecipePreparationPage = () => {
                             {inventory.inventory?.days_left || 0} days left
                           </li>
                         ))}
+
 
                       </ul>
                     </div>
