@@ -6,6 +6,7 @@ import supabase from "../../../../../../config/supabaseClient";
 
 import SortableRecipeList from "../../../../../../components/SortableDragAndDrop/Recipes_List/SortableRecipeList";
 import "./index.css"; 
+import { set } from "date-fns";
 
 const RecipePreparationPage = () => { 
   const {
@@ -46,6 +47,9 @@ const RecipePreparationPage = () => {
     selectedInventory.reduce((sum, item) => sum + item.selectedQuantity, 0) -
       (selectedIngredient?.quantity || 0) // Safeguard in case selectedIngredient is null
   );
+
+  const [mealPlanIds, setMealPlanIds] = useState([]);
+
 
   // useEffect(() => {
   //   const loadData = async () => {
@@ -260,6 +264,8 @@ const RecipePreparationPage = () => {
   
         // Fetch inventory meal plan data
         const mealPlanIds = relevantPlans.map((plan) => plan.id);
+        console.log("Meal Plan IDs:JJJJJJJJ", mealPlanIds);
+        setMealPlanIds(mealPlanIds);
         const inventoryMealPlanData = await fetchInventoryMealPlanByMealPlanId(mealPlanIds);
   
         console.log("Fetched Inventory Meal Plan Data:", inventoryMealPlanData);
@@ -404,6 +410,74 @@ const RecipePreparationPage = () => {
     return finalInventory;
   };
 
+  // const preselectLinkedInventory = (linkedInventory) => {
+  //   console.log("Processing Linked Inventory for Preselection:", linkedInventory);
+  
+  //   // Map linked inventory to the required format for preselection
+  //   const preselectedInventory = linkedInventory.map((item) => ({
+  //     ...item,
+  //     selectedQuantity: item.used_quantity, // Use the used quantity as the preselected value
+  //     preselected: true, // Mark as preselected
+  //   }));
+  
+  //   console.log("Preselected Inventory:", preselectedInventory);
+  
+  //   return preselectedInventory;
+  // };
+  
+  const preselectLinkedInventory = (linkedInventory, fullInventory) => {
+    console.log("Processing Linked Inventory for Preselection:", linkedInventory);
+  
+    // Get IDs of the linked inventory items
+    const linkedIds = linkedInventory.map((item) => item.inventory_id);
+  
+    // Map full inventory to match the linked IDs, deselecting others
+    const updatedInventory = fullInventory.map((item) => {
+      const linkedItem = linkedInventory.find((linked) => linked.inventory_id === item.id);
+  
+      if (linkedItem) {
+        return {
+          ...item,
+          selectedQuantity: linkedItem.used_quantity, // Use the already-used quantity
+          preselected: true, // Mark as preselected
+        };
+      }
+  
+      // Deselect items not in linked inventory
+      return {
+        ...item,
+        selectedQuantity: 0,
+        preselected: false,
+      };
+    });
+  
+    console.log("Updated Inventory with Preselection:", updatedInventory);
+  
+    return updatedInventory;
+  };
+  
+
+  // const handleIngredientClick = async (ingredient) => {
+  //   try {
+  //     setSelectedIngredient(null); // Clear previous selection
+  //     setInventoryItems([]); // Reset inventory items
+  //     setSelectedInventory([]); // Reset selected inventory
+  //     setAdjustingQuantity(false); // Reset adjusting state
+
+  //     const inventory = await fetchUserInventory(ingredient.ingredients.id);
+  //     console.log('ingredient:', ingredient);
+  //     console.log("Fetched Inventory:", inventory);
+  //     // Use FIFO Allocation for suggestions
+  //     const allocatedInventory = allocateInventoryFIFO(ingredient, inventory);
+      
+  //     console.log("Allocated Inventory:", allocatedInventory);
+  //     setSelectedIngredient(ingredient);
+  //     setInventoryItems(inventory); // Full inventory list
+  //     setSelectedInventory(allocatedInventory); // Include preselected suggestions
+  //   } catch (error) {
+  //     console.error("Error fetching inventory for ingredient:", error.message);
+  //   }
+  // };
   const handleIngredientClick = async (ingredient) => {
     try {
       setSelectedIngredient(null); // Clear previous selection
@@ -414,17 +488,54 @@ const RecipePreparationPage = () => {
       const inventory = await fetchUserInventory(ingredient.ingredients.id);
       console.log('ingredient:', ingredient);
       console.log("Fetched Inventory:", inventory);
-      // Use FIFO Allocation for suggestions
-      const allocatedInventory = allocateInventoryFIFO(ingredient, inventory);
-      
-      console.log("Allocated Inventory:", allocatedInventory);
-      setSelectedIngredient(ingredient);
-      setInventoryItems(inventory); // Full inventory list
-      setSelectedInventory(allocatedInventory); // Include preselected suggestions
+
+      // Fetch linked inventory from the meal plan
+      // const mealPlanIds = recipes.map((recipe) => recipe.id); // Assuming you can derive meal plan IDs from recipes
+      console.log("Meal Plan IDsHEREEEEE:", mealPlanIds);
+      const inventoryMealPlanData = await fetchInventoryMealPlanByMealPlanId(mealPlanIds);
+      console.log("Fetched Inventory Meal Plan Data:", inventoryMealPlanData);
+
+      // Filter inventory meal plan data for the current ingredient
+      const linkedInventory = inventoryMealPlanData.filter(
+        (item) => item.inventory.ingredient_id === ingredient.ingredients.id
+      );
+
+      console.log("Linked Inventory from Meal Plan:", linkedInventory);
+
+      if (linkedInventory.length > 0) {
+        // // Preselect linked inventory and proceed to adjust quantities
+        // const allocatedInventory = linkedInventory.map((item) => ({
+        //   ...item,
+        //   selectedQuantity: item.used_quantity, // Use the already-used quantity
+        //   preselected: true, // Mark as preselected
+        // }));
+
+        // Use the new function to preselect linked inventory
+        // const allocatedInventory = preselectLinkedInventory(linkedInventory);
+      const allocatedInventory = preselectLinkedInventory(linkedInventory, inventory);
+
+        console.log("Preselected Inventory:", allocatedInventory);
+
+        setSelectedIngredient(ingredient);
+        setInventoryItems(inventory); // Full inventory list
+        setSelectedInventory(allocatedInventory); // Preselected items
+        setAdjustingQuantity(true); // Skip to adjust quantities
+      } else {
+        // If no linked inventory, proceed with FIFO allocation
+        const allocatedInventory = allocateInventoryFIFO(ingredient, inventory);
+
+        console.log("Allocated Inventory:", allocatedInventory);
+
+        setSelectedIngredient(ingredient);
+        setInventoryItems(inventory); // Full inventory list
+        setSelectedInventory(allocatedInventory); // Include preselected suggestions
+      }
     } catch (error) {
       console.error("Error fetching inventory for ingredient:", error.message);
     }
   };
+
+  
   
   const toggleInventorySelection = (item) => {
     setSelectedInventory((prevSelected) => {
@@ -903,7 +1014,7 @@ const RecipePreparationPage = () => {
                     <div style={{ marginTop: "10px" }}>
                       <h4>Linked Inventory Items:</h4>
                       <ul>
-                        {ingredient.inventoryItems.map((inventory, idx) => (
+                        {/* {ingredient.inventoryItems.map((inventory, idx) => (
                           <li key={idx}>
                             Inventory ID: {inventory.inventory_id},
                             original quantity: {inventory.inventory.quantity} {inventory.ingredients.unit.unit_tag},
@@ -911,7 +1022,22 @@ const RecipePreparationPage = () => {
                             {inventory.used_quantity} {inventory.ingredients.unit.unit_tag}, Status ID: {inventory.status_id},  Status: {inventory.inventory_meal_plan_status.name}
                             expiry date: {inventory.inventory.expiry_date.date}, {inventory.inventory.days_left}days left
                           </li>
+                        ))} */}
+                        {ingredient.inventoryItems?.map((inventory, idx) => (
+                          <li key={idx}>
+                            Inventory ID: {inventory.inventory_id || "N/A"},
+                            original quantity: {inventory.inventory?.quantity || 0}{" "}
+                            {inventory.ingredients?.unit?.unit_tag || "unit not specified"},
+                            Used Quantity:{" "}
+                            {inventory.used_quantity || 0}{" "}
+                            {inventory.ingredients?.unit?.unit_tag || "unit not specified"},
+                            Status ID: {inventory.status_id || "N/A"}, 
+                            Status: {inventory.inventory_meal_plan_status?.name || "Unknown"},
+                            expiry date: {inventory.inventory?.expiry_date?.date || "No expiry date"}, 
+                            {inventory.inventory?.days_left || 0} days left
+                          </li>
                         ))}
+
                       </ul>
                     </div>
                   )}
@@ -1035,7 +1161,9 @@ const RecipePreparationPage = () => {
                           checked={selectedInventory.find((selected) => selected.id === item.id)?.preselected || false}
                           onChange={() => toggleInventorySelection(item)}
                         />
-                        {item.quantity} {item.unit?.unit_tag || ""} (Expiry:{" "}
+                        {/* {item.quantity} {item.unit?.unit_tag || ""} (Expiry:{" "}
+                        {item.expiry_date?.date || "No expiry date"}) */}
+                        {item.quantity || 0} {item.unit?.unit_tag || "unit not specified"} (Expiry:{" "}
                         {item.expiry_date?.date || "No expiry date"})
                       </label>
                     </li>
