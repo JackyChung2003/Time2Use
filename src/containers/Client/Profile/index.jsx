@@ -7,52 +7,71 @@ import supabase from "../../../config/supabaseClient";
 
 const Profile = () => {
   const navigate = useNavigate();
-  const [isTouched, setIsTouched] = useState(false);
-  const [profileImage, setProfileImage] = useState(null);
-  const [notificationDays, setNotificationDays] = useState(7);
   const [isEditingMode, setIsEditingMode] = useState(false);
+  const [profileImage, setProfileImage] = useState(null);
+  const [notificationOptions, setNotificationOptions] = useState([3]);
   const [profile, setProfile] = useState({
     username: "",
     birthday: "",
     email: "",
     password: "••••••••", // Default password display
+    notificationDay: 3, // Default notification
   });
+  const [editingUsername, setEditingUsername] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+
+  // Format date to dd / mm / yyyy
+  const formatDate = (dateString) => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = date.getFullYear();
+    return `${day} / ${month} / ${year}`;
+  };
 
   useEffect(() => {
-    const fetchProfile = async () => {
+    const fetchData = async () => {
       const { data: { user }, error: userError } = await supabase.auth.getUser();
       if (userError) {
         console.error("Error fetching user:", userError);
         return;
       }
 
-      const { data, error } = await supabase
+      // Fetch profile data
+      const { data: profileData, error: profileError } = await supabase
         .from("profile")
-        .select("*")
+        .select("username, birthday, picture, notification_day(id, day)")
         .eq("user", user.id)
         .single();
 
-      if (error) {
-        console.error("Error fetching profile:", error);
+      if (profileError) {
+        console.error("Error fetching profile:", profileError);
       } else {
         setProfile({
-          username: data.username,
-          birthday: data.birthday,
+          username: profileData.username,
+          birthday: profileData.birthday,
           email: user.email,
-          password: "••••••••", // Password hidden
+          password: "••••••••",
+          notificationDay: profileData.notification_day?.id || 7,
         });
-        setProfileImage(data.picture);
-        setNotificationDays(data.notification || 7);
+        setProfileImage(profileData.picture);
+      }
+
+      // Fetch notification options
+      const { data: notificationData, error: notificationError } = await supabase
+        .from("notification_day")
+        .select("*");
+
+      if (notificationError) {
+        console.error("Error fetching notification options:", notificationError);
+      } else {
+        setNotificationOptions(notificationData);
       }
     };
 
-    fetchProfile();
+    fetchData();
   }, []);
-
-  const handleTouchStart = () => setIsTouched(true);
-  const handleTouchEnd = () => setIsTouched(false);
-
-  const handleNotificationChange = (event) => setNotificationDays(event.target.value);
 
   const handleImageUpload = async (event) => {
     const file = event.target.files[0];
@@ -82,22 +101,42 @@ const Profile = () => {
       }
 
       const updates = {
-        username: profile.username,
+        username: editingUsername,
         birthday: profile.birthday,
-        notification: notificationDays,
         picture: profileImage,
+        notification_day: profile.notificationDay,
       };
 
-      const { error } = await supabase
+      const { error: profileError } = await supabase
         .from("profile")
         .update(updates)
         .eq("user", user.id);
 
-      if (error) {
-        console.error("Error updating profile:", error);
-      } else {
-        console.log("Profile updated successfully!");
+        if (profileError) {
+          console.error("Error updating profile:", profileError);
+        } else {
+          console.log("Profile updated successfully!");
+          setProfile((prev) => ({
+            ...prev,
+            username: editingUsername,
+          }));
+        }
+  
+      // Update password if changed
+      if (newPassword) {
+        const { error: passwordError } = await supabase.auth.updateUser({
+          password: newPassword,
+        });
+
+        if (passwordError) {
+          console.error("Error updating password:", passwordError);
+        } else {
+          console.log("Password updated successfully!");
+          setNewPassword(""); // Clear the password field
+        }
       }
+    } else {
+      setEditingUsername(profile.username); // Initialize editing username
     }
     setIsEditingMode((prev) => !prev);
   };
@@ -112,7 +151,9 @@ const Profile = () => {
   };
 
   return (
-    <div className="profile-container">
+    <div
+  className={`profile-container ${isEditingMode ? "edit-mode" : ""}`}
+>
       <div className="profile-header">
         <div className="profile-avatar">
           <img
@@ -143,17 +184,12 @@ const Profile = () => {
           {isEditingMode ? (
             <input
               type="text"
-              value={profile.username}
-              onChange={(e) =>
-                setProfile((prev) => ({ ...prev, username: e.target.value }))
-              }
+              value={editingUsername}
+              onChange={(e) => setEditingUsername(e.target.value)}
               className="edit-input"
             />
           ) : (
             <span className="profile-value">{profile.username}</span>
-          )}
-          {isEditingMode && (
-            <button className="edit-button"><FaPen /></button>
           )}
         </div>
 
@@ -171,10 +207,7 @@ const Profile = () => {
               className="edit-input"
             />
           ) : (
-            <span className="profile-value">{profile.birthday}</span>
-          )}
-          {isEditingMode && (
-            <button className="edit-button"><FaPen /></button>
+            <span className="profile-value">{formatDate(profile.birthday)}</span>
           )}
         </div>
 
@@ -192,17 +225,13 @@ const Profile = () => {
           {isEditingMode ? (
             <input
               type="password"
-              value={profile.password}
-              onChange={(e) =>
-                setProfile((prev) => ({ ...prev, password: e.target.value }))
-              }
+              value={newPassword}
+              placeholder="New Password"
+              onChange={(e) => setNewPassword(e.target.value)}
               className="edit-input"
             />
           ) : (
             <span className="profile-value">••••••••</span>
-          )}
-          {isEditingMode && (
-            <button className="edit-button"><FaPen /></button>
           )}
         </div>
 
@@ -212,21 +241,25 @@ const Profile = () => {
           <span className="profile-label">Notification</span>
           {isEditingMode ? (
             <select
-              value={notificationDays}
-              onChange={handleNotificationChange}
+              value={profile.notificationDay}
+              onChange={(e) =>
+                setProfile((prev) => ({
+                  ...prev,
+                  notificationDay: parseInt(e.target.value, 10),
+                }))
+              }
               className="notification-select"
             >
-              <option value={1}>1 Day Before</option>
-              <option value={3}>3 Days Before</option>
-              <option value={7}>7 Days Before</option>
-              <option value={14}>14 Days Before</option>
-              <option value={30}>30 Days Before</option>
+              {notificationOptions.map((option) => (
+                <option key={option.id} value={option.id}>
+                  {option.day} Day(s) Before
+                </option>
+              ))}
             </select>
           ) : (
-            <span className="profile-value">{notificationDays} Days Before</span>
-          )}
-          {isEditingMode && (
-            <button className="edit-button"><FaPen /></button>
+            <span className="profile-value">
+              {notificationOptions.find((opt) => opt.id === profile.notificationDay)?.day || 7} Day(s) Before
+            </span>
           )}
         </div>
       </div>
@@ -234,7 +267,7 @@ const Profile = () => {
       {/* Buttons */}
       <div className="edit-profile">
         <button className="profile-button" onClick={handleEditProfile}>
-          {isEditingMode ? "Done" : "Edit Profile"}
+          {isEditingMode ? "Save" : "Edit Profile"}
         </button>
       </div>
 

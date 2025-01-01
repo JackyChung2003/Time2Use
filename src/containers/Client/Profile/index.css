@@ -19,6 +19,7 @@ body {
     text-align: center;
 }
 
+
 /* Header Section */
 .profile-header {
     background: linear-gradient(135deg, #7a889f, #000209);
@@ -127,11 +128,16 @@ body {
     font-size: 12px;
     border-radius: 5px;
     border: 1px solid #ccc;
-    width: 150px; /* Ensuring both have the same width */
+    width: 100px; /* Ensuring both have the same width */
     height: 30px; /* Ensuring both have the same height */
     margin-right: 15px; /* Optional: To maintain consistent spacing */
     text-align: left;
 }
+
+.profile-container.edit-mode .edit-input, 
+.profile-container.edit-mode  .notification-select  {
+    width: 53%; /* Make inputs larger in edit mode */
+  }
 
 .edit-button {
     background-color: transparent;
