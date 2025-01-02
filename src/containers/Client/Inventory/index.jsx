@@ -162,7 +162,6 @@ const Inventory = () => {
     setPendingSwipe({ id: item.id, action });  // Store pending swipe action
   };
   
-
   return (
     <div className="inventory-container">
       <input
@@ -325,17 +324,29 @@ const Item = ({
           </div>
           <div className="text-section">
             <div className="item-name">{item.name}</div>
-            <div className={item.daysLeft == null ? 'item-days shelf-life' : 'item-days'}>
-              {item.daysLeft != null ? `${item.daysLeft}d left` : null}
+            <div className="item-days">
+              {item.expiryDate == null ? (
+                <>
+                  {/* Display predicted shelf life when expiryDate is null */}
+                  <div
+                    className={`shelf-life ${expandedItems[item.id] ? 'full-text' : ''}`}
+                    onClick={() => handleClick(item.id)}
+                  >
+                    {expandedItems[item.id] ? item.pred_shelf_life : `${item.pred_shelf_life.slice(0, 20)}...`}
+                  </div>
+                  {/* Display days left for items without expiry date */}
+                  {item.daysLeft != null && (
+                    <div className="days-left">
+                      {item.daysLeft}d left
+                    </div>
+                  )}
+                </>
+              ) : (
+                // Display days left if expiryDate is not null
+                <div>{item.daysLeft}d left</div>
+              )}
             </div>
-            {item.daysLeft == null && (
-              <div
-                className={`item-days shelf-life ${expandedItems[item.id] ? 'full-text' : ''}`}
-                onClick={() => handleClick(item.id)}
-              >
-                {expandedItems[item.id] ? item.pred_shelf_life : `${item.pred_shelf_life.slice(0, 20)}...`}
-              </div>
-            )}
+
           </div>
         </div>
   
