@@ -332,7 +332,7 @@ const Item = ({
                     className={`shelf-life ${expandedItems[item.id] ? 'full-text' : ''}`}
                     onClick={() => handleClick(item.id)}
                   >
-                    {expandedItems[item.id] ? item.pred_shelf_life : `${item.pred_shelf_life.slice(0, 20)}...`}
+                    {expandedItems[item.id] ? item.pred_shelf_life : `${item.pred_shelf_life.slice(0, 20)}`}
                   </div>
                   {/* Display days left for items without expiry date */}
                   {item.daysLeft != null && (
@@ -343,7 +343,9 @@ const Item = ({
                 </>
               ) : (
                 // Display days left if expiryDate is not null
-                <div>{item.daysLeft}d left</div>
+                <div className="days-left">
+                      {item.daysLeft}d left
+                </div>
               )}
             </div>
 

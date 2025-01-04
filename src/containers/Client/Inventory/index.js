@@ -13,6 +13,7 @@ export const fetchItems = async (userId) => {
         created_at,
         condition_id,
         expiry_date_id,
+        expiry_date:expiry_date (date),
         ingredients (
           name,
           icon_path,
@@ -28,7 +29,6 @@ export const fetchItems = async (userId) => {
         ),
         unit:unit (unit_tag),
         condition:condition (condition)
-        expiry_date:expiry_date (date)
       `)
       .eq('user_id', userId); // filter by user id
 

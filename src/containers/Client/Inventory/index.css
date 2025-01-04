@@ -246,6 +246,9 @@
   
   .item-days {
     font-size: 12px;
+  }
+
+  .days-left {
     color: grey;
   }
 
