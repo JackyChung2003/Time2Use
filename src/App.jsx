@@ -110,7 +110,6 @@ const App = () => {
             {userRole === "client" ? (
                 <>
                     <HorizontalNavbar />
-                    <Notification /> {/* Notification Component for clients */}
                     <div className="stickyBottom">
                         <BottomNavBar />
                     </div>

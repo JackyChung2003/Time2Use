@@ -250,7 +250,9 @@ const Profile = () => {
               }
               className="notification-select"
             >
-              {notificationOptions.map((option) => (
+              {notificationOptions
+              .sort((a, b) => a.day - b.day) // Sort by day in ascending order
+              .map((option) => (
                 <option key={option.id} value={option.id}>
                   {option.day} Day(s) Before
                 </option>
