@@ -12,6 +12,10 @@ import HorizontalNavbar from './containers/Client/Navigation/HorizontalNavBar';
 import BottomNavBar from './containers/Client/Navigation/BottomNavBar';
 import Dashboard from './containers/Client/Dashboard';
 import Inventory from './containers/Client/Inventory/index.jsx';
+
+// Notification Component
+import Notification from './containers/Client/Notification';
+
 import Scan from './containers/Client/Scan';
 // import Recipe from './containers/Client/Recipe';
 import RecipeNavigation from './containers/Client/Recipe/RecipeNavigation';
@@ -106,6 +110,7 @@ const App = () => {
             {userRole === "client" ? (
                 <>
                     <HorizontalNavbar />
+                    <Notification /> {/* Notification Component for clients */}
                     <div className="stickyBottom">
                         <BottomNavBar />
                     </div>
