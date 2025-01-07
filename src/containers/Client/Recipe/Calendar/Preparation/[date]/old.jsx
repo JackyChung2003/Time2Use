@@ -52,6 +52,183 @@ const RecipePreparationPage = () => {
   const [mealPlanIds, setMealPlanIds] = useState([]);// Add a global state for requiredQuantity
   const [requiredQuantity, setRequiredQuantity] = useState(null);
 
+
+  // useEffect(() => {
+  //   const loadData = async () => {
+  //     try {
+  //       setLoading(true);
+
+  //       // Fetch meal plans for the given date
+  //       const mealPlans = await fetchMealPlansByDate(planned_date);
+
+  //       // Log the fetched MealPlan details
+  //       console.log("Fetched MealPlans:", mealPlans);
+
+  //       const relevantPlans = mealPlans.filter(
+  //         (meal) => meal.meal_type_id === meal_type_id
+  //       );
+
+  //       if (relevantPlans.length === 0) {
+  //         console.warn("No meal plans found for the given date and meal type.");
+  //         setRecipes([]);
+  //         return;
+  //       }
+
+  //       // Extract recipe IDs and fetch recipes
+  //       const recipeIds = relevantPlans.map((meal) => meal.recipe_id);
+  //       const fetchedRecipes = await fetchRecipesByIds(recipeIds);
+  //       setRecipes(fetchedRecipes);
+
+  //       // Fetch ingredients and steps for each recipe
+  //       const allIngredients = [];
+  //       const allSteps = [];
+  //       for (const recipe of fetchedRecipes) {
+  //         const ingredientsData = await fetchRecipeIngredients(recipe.id);
+  //         const stepsData = await fetchRecipeSteps(recipe.id);
+
+  //         allIngredients.push(
+  //           ...ingredientsData.map((ingredient) => ({
+  //             ...ingredient,
+  //             recipeId: recipe.id,
+  //           }))
+  //         );
+  //         allSteps.push(...stepsData);
+  //       }
+
+  //       setIngredients(allIngredients);
+  //       setSteps(allSteps);
+
+  //       const merged = allIngredients.reduce((acc, ingredient) => {
+  //         const existing = acc.find(
+  //           (item) => item.ingredients.name === ingredient.ingredients.name
+  //         );
+  //         if (existing) {
+  //           existing.quantity += ingredient.quantity;
+        
+  //           // Add the recipe-specific quantity
+  //           existing.recipes.push({
+  //             recipeId: ingredient.recipeId,
+  //             quantity: ingredient.quantity,
+  //           });
+  //         } else {
+  //           acc.push({
+  //             ...ingredient,
+  //             recipes: [
+  //               {
+  //                 recipeId: ingredient.recipeId,
+  //                 quantity: ingredient.quantity,
+  //               },
+  //             ],
+  //           });
+  //         }
+  //         return acc;
+  //       }, []);
+  //       setMergedIngredients(merged);
+  //     } catch (error) {
+  //       console.error("Error loading data:", error.message);
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
+
+  //   if (planned_date && meal_type_id) {
+  //     loadData();
+  //   }
+  // }, [planned_date, meal_type_id, fetchMealPlansByDate, fetchRecipesByIds, fetchRecipeIngredients, fetchRecipeSteps]);
+
+  // useEffect(() => {
+  //   const loadData = async () => {
+  //     try {
+  //       setLoading(true);
+  
+  //       // Fetch meal plans
+  //       const mealPlans = await fetchMealPlansByDate(planned_date);
+  //       const relevantPlans = mealPlans.filter(
+  //         (meal) => meal.meal_type_id === meal_type_id
+  //       );
+  
+  //       if (relevantPlans.length === 0) {
+  //         console.warn("No meal plans found for the given date and meal type.");
+  //         setRecipes([]);
+  //         setMergedIngredients([]);
+  //         return;
+  //       }
+  
+  //       // Fetch recipes
+  //       const recipeIds = relevantPlans.map((meal) => meal.recipe_id);
+  //       const fetchedRecipes = await fetchRecipesByIds(recipeIds);
+  //       setRecipes(fetchedRecipes);
+  
+  //       // Fetch ingredients for each recipe
+  //       const allIngredients = [];
+  //       for (const recipe of fetchedRecipes) {
+  //         const ingredientsData = await fetchRecipeIngredients(recipe.id);
+  //         allIngredients.push(
+  //           ...ingredientsData.map((ingredient) => ({
+  //             ...ingredient,
+  //             recipeId: recipe.id,
+  //           }))
+  //         );
+  //       }
+  
+  //       // Fetch inventory meal plan data
+  //       const mealPlanIds = relevantPlans.map((plan) => plan.id);
+  //       // console.log("Meal Plan IDs:", mealPlanIds);
+  //       // console.log("Relevant Plans:", relevantPlans);
+  //       const inventoryMealPlanData = await fetchInventoryMealPlanByMealPlanId(mealPlanIds);
+  //       console.log("Fetched Inventory Meal Plan Data:", inventoryMealPlanData);
+  
+  //       // Link ingredients with inventory items
+  //       const merged = allIngredients.reduce((acc, ingredient) => {
+  //         const existing = acc.find(
+  //           (item) => item.ingredients.name === ingredient.ingredients.name
+  //         );
+        
+  //         // Link inventory items to ingredients
+  //         const linkedInventory = inventoryMealPlanData.filter(
+  //           (inv) => inv.inventory_id === ingredient.ingredients.id
+  //         );
+        
+  //         if (existing) {
+  //           existing.quantity += ingredient.quantity;
+  //           existing.recipes.push({
+  //             recipeId: ingredient.recipeId,
+  //             quantity: ingredient.quantity,
+  //           });
+  //           existing.inventoryItems = [
+  //             ...(existing.inventoryItems || []),
+  //             ...linkedInventory,
+  //           ];
+  //         } else {
+  //           acc.push({
+  //             ...ingredient,
+  //             recipes: [
+  //               {
+  //                 recipeId: ingredient.recipeId,
+  //                 quantity: ingredient.quantity,
+  //               },
+  //             ],
+  //             inventoryItems: linkedInventory,
+  //           });
+  //         }
+  //         return acc;
+  //       }, []);
+        
+        
+  //     console.log("Merged Ingredients:", merged); // Log mergedIngredients
+  //       setMergedIngredients(merged);
+  //     } catch (error) {
+  //       console.error("Error loading data:", error.message);
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
+  
+  //   if (planned_date && meal_type_id) {
+  //     loadData();
+  //   }
+  // }, [planned_date, meal_type_id, fetchMealPlansByDate, fetchRecipesByIds, fetchRecipeIngredients]);
+  
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -234,6 +411,21 @@ const RecipePreparationPage = () => {
   
     return finalInventory;
   };
+
+  // const preselectLinkedInventory = (linkedInventory) => {
+  //   console.log("Processing Linked Inventory for Preselection:", linkedInventory);
+  
+  //   // Map linked inventory to the required format for preselection
+  //   const preselectedInventory = linkedInventory.map((item) => ({
+  //     ...item,
+  //     selectedQuantity: item.used_quantity, // Use the used quantity as the preselected value
+  //     preselected: true, // Mark as preselected
+  //   }));
+  
+  //   console.log("Preselected Inventory:", preselectedInventory);
+  
+  //   return preselectedInventory;
+  // };
   
   const preselectLinkedInventory = (linkedInventory, fullInventory) => {
     console.log("Processing Linked Inventory for Preselection:", linkedInventory);
@@ -268,6 +460,28 @@ const RecipePreparationPage = () => {
     return updatedInventory;
   };
   
+
+  // const handleIngredientClick = async (ingredient) => {
+  //   try {
+  //     setSelectedIngredient(null); // Clear previous selection
+  //     setInventoryItems([]); // Reset inventory items
+  //     setSelectedInventory([]); // Reset selected inventory
+  //     setAdjustingQuantity(false); // Reset adjusting state
+
+  //     const inventory = await fetchUserInventory(ingredient.ingredients.id);
+  //     console.log('ingredient:', ingredient);
+  //     console.log("Fetched Inventory:", inventory);
+  //     // Use FIFO Allocation for suggestions
+  //     const allocatedInventory = allocateInventoryFIFO(ingredient, inventory);
+      
+  //     console.log("Allocated Inventory:", allocatedInventory);
+  //     setSelectedIngredient(ingredient);
+  //     setInventoryItems(inventory); // Full inventory list
+  //     setSelectedInventory(allocatedInventory); // Include preselected suggestions
+  //   } catch (error) {
+  //     console.error("Error fetching inventory for ingredient:", error.message);
+  //   }
+  // };
   const handleIngredientClick = async (ingredient) => {
     try {
       // setSelectedIngredient(null); // Clear previous selection
@@ -434,7 +648,48 @@ const RecipePreparationPage = () => {
   
     setAdjustingQuantity(true); // Proceed to adjustment step
   };
+
+  // const adjustQuantity = (itemId, delta) => {
+  //   setSelectedInventory((prevSelected) => {
+  //     const target = selectedIngredient.quantity;
   
+  //     // Calculate the current total
+  //     const total = prevSelected.reduce((sum, item) => sum + item.selectedQuantity, 0);
+  
+  //     const updatedInventory = prevSelected.map((item) => {
+  //       if (item.id === itemId) {
+  //         // Adjust the selected item's quantity
+  //         const newQuantity = Math.max(1, item.selectedQuantity + delta); // Prevent quantity < 1
+  //         return { ...item, selectedQuantity: newQuantity };
+  //       }
+  //       return item;
+  //     });
+  
+  //     if (capped) {
+  //       if (delta > 0 && total === target) {
+  //         // Adding: Redistribute the excess to maintain the target
+  //         const excess = updatedInventory.reduce(
+  //           (sum, item) => sum + item.selectedQuantity,
+  //           0
+  //         ) - target;
+  //         return redistributeExcessToMaintainTarget(updatedInventory, itemId, excess);
+  //       }
+  
+  //       if (total < target || delta < 0) {
+  //         // Allow normal addition until the target is reached or subtraction
+  //         const newTotal = updatedInventory.reduce(
+  //           (sum, item) => sum + item.selectedQuantity,
+  //           0
+  //         );
+  //         return newTotal <= target ? updatedInventory : adjustToFitTarget(updatedInventory, target);
+  //       }
+  //     }
+  
+  //     // If uncapped, allow unrestricted changes
+  //     return updatedInventory;
+  //   });
+  // };
+
   const adjustQuantity = (itemId, delta) => {
     setSelectedInventory((prevSelected) => {
       const target = selectedIngredient.quantity;
@@ -549,6 +804,31 @@ const RecipePreparationPage = () => {
         alert("Failed to fetch status ID for 'Planning'.");
         return;
       }
+  
+      // Fetch meal plan IDs if not already provided
+      // const enrichedInventory = await Promise.all(
+      //   filteredInventory.map(async (item) => {
+      //     if (item.meal_plan_id) {
+      //       return item; // If meal_plan_id exists, return as is
+      //     }
+  
+      //     // Fetch meal plan ID for the ingredient and recipe
+      //     const { data: mealPlanData, error } = await supabase
+      //       .from("meal_plan")
+      //       .select("id")
+      //       .eq("planned_date", planned_date) // Use the planned_date context
+      //       .eq("recipe_id", selectedIngredient.recipes[0]?.recipeId || null)
+      //       .limit(1) // Assume one-to-one mapping
+      //       .single();
+  
+      //     if (error) {
+      //       console.warn(`Failed to fetch meal plan for inventory ID: ${item.id}`, error);
+      //       return { ...item, meal_plan_id: null }; // Return with null if not found
+      //     }
+  
+      //     return { ...item, meal_plan_id: mealPlanData?.id || null }; // Add the meal_plan_id
+      //   })
+      // );
 
        // Use the `enrichInventory` function to enrich the inventory
       const enrichedInventory = await enrichInventory(
@@ -580,11 +860,10 @@ const RecipePreparationPage = () => {
         used_quantity: item.selectedQuantity,
         status_id: statusId, // Use the dynamically fetched status_id
         created_at: new Date().toISOString(), // Track when the entry was created
-        ingredient_id: selectedIngredient.ingredients.id,
       }));
   
       // Log data for debugging
-      console.log("Filtered and Enriched Data to Insert:", dataToInsert);
+      // console.log("Filtered and Enriched Data to Insert:", dataToInsert);
   
       // Insert into the database (uncomment when using Supabase)
 
@@ -784,31 +1063,34 @@ const RecipePreparationPage = () => {
       <h3>Date: {planned_date}</h3>
       <h3>Meal Type: {mealTypes.find((type) => type.id === meal_type_id)?.name || "Unknown"}</h3>
 
-      {recipes.map((recipe) => (
-        <div key={recipe.id} className="recipe-details">
-          <h2>{recipe.name}</h2>
-          <img
-            src={`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/${recipe.image_path}`}
-            alt={recipe.name}
-            style={{ width: "300px", borderRadius: "10px" }}
-          />
-          <p>{recipe.description}</p>
-          <p>
-            <strong>Prep Time:</strong> {recipe.prep_time} mins
-          </p>
-          <p>
-            <strong>Cook Time:</strong> {recipe.cook_time} mins
-          </p>
+      {isCombined ? (
+        <>
           <div>
-            <h3>Ingredients</h3>
+            <h3>Recipes</h3>
+            {recipes.map((recipe) => (
+              <div key={recipe.id} className="recipe-details">
+                <h2>{recipe.name}</h2>
+                <img
+                  src={`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/${recipe.image_path}`}
+                  alt={recipe.name}
+                  style={{ width: "300px", borderRadius: "10px" }}
+                  />
+                <p>{recipe.description}</p>
+                <p>
+                  <strong>Prep Time:</strong> {recipe.prep_time} mins
+                </p>
+                <p>
+                  <strong>Cook Time:</strong> {recipe.cook_time} mins
+                </p>
+              </div>
+            ))}
+          </div>
+          <div>
+            <h3>Merged Ingredients</h3>
             <ul>
-              {mergedIngredients
-                .filter((ingredient) => 
-                  ingredient.recipes.some((r) => r.recipeId === recipe.id)
-                )
-                .map((ingredient, index) => (
-                  <li
-                    key={index}
+              {mergedIngredients.map((ingredient, index) => (
+                <li key={index} style={{ marginBottom: "15px" }}>
+                  <div
                     onClick={() => handleIngredientClick(ingredient)}
                     style={{
                       cursor: "pointer",
@@ -819,28 +1101,90 @@ const RecipePreparationPage = () => {
                   >
                     {ingredient.ingredients.name} - {ingredient.quantity}{" "}
                     {ingredient.ingredients.unit?.unit_tag || ""}
-                    {ingredient.recipes.length > 1 && (
-                      <ul style={{ paddingLeft: "20px", marginTop: "5px", fontSize: "14px" }}>
-                        {ingredient.recipes.map((recipeDetail) => (
-                          <li key={recipeDetail.recipeId}>
-                            Needed in {getRecipeNameById(recipeDetail.recipeId)}:{" "}
-                            <strong>
-                              {recipeDetail.quantity} {ingredient.ingredients.unit?.unit_tag || ""}
-                            </strong>
+                  </div>
+                  {ingredient.recipes.length > 1 && (
+                    <ul style={{ paddingLeft: "20px", marginTop: "5px", fontSize: "14px" }}>
+                      {ingredient.recipes.map((recipe) => (
+                        <li key={recipe.recipeId}>
+                          Needed in {getRecipeNameById(recipe.recipeId)}:{" "}
+                          <strong>
+                            {recipe.quantity} {ingredient.ingredients.unit?.unit_tag || ""}
+                          </strong>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  {ingredient.inventoryItems?.length > 0 && (
+                    <div style={{ marginTop: "10px" }}>
+                      <h4>Linked Inventory Items:</h4>
+                      <ul>
+                        {/* {ingredient.inventoryItems.map((inventory, idx) => (
+                          <li key={idx}>
+                            Inventory ID: {inventory.inventory_id},
+                            original quantity: {inventory.inventory.quantity} {inventory.ingredients.unit.unit_tag},
+                             Used Quantity:{" "}
+                            {inventory.used_quantity} {inventory.ingredients.unit.unit_tag}, Status ID: {inventory.status_id},  Status: {inventory.inventory_meal_plan_status.name}
+                            expiry date: {inventory.inventory.expiry_date.date}, {inventory.inventory.days_left}days left
+                          </li>
+                        ))} */}
+                        {ingredient.inventoryItems?.map((inventory, idx) => (
+                          <li key={idx}>
+                            Inventory ID: {inventory.inventory_id || "N/A"},
+                            original quantity: {inventory.inventory?.quantity || 0}{" "}
+                            {inventory.ingredients?.unit?.unit_tag || "unit not specified"},
+                            Used Quantity:{" "}
+                            {inventory.used_quantity || 0}{" "}
+                            {inventory.ingredients?.unit?.unit_tag || "unit not specified"},
+                            Status ID: {inventory.status_id || "N/A"}, 
+                            Status: {inventory.inventory_meal_plan_status?.name || "Unknown"},
+                            expiry date: {inventory.inventory?.expiry_date?.date || "No expiry date"}, 
+                            {inventory.inventory?.days_left || 0} days left
                           </li>
                         ))}
+
+
                       </ul>
-                    )}
-                  </li>
-                ))}
+                    </div>
+                  )}
+                </li>
+              ))}
             </ul>
           </div>
-        </div>
-      ))}
-
+        </>
+      ) : (
+        recipes.map((recipe) => (
+          <div key={recipe.id} className="recipe-details">
+            <h2>{recipe.name}</h2>
+            <img
+              src={`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/${recipe.image_path}`}
+              alt={recipe.name}
+              style={{ width: "300px", borderRadius: "10px" }}
+            />
+            <p>{recipe.description}</p>
+            <p>
+              <strong>Prep Time:</strong> {recipe.prep_time} mins
+            </p>
+            <p>
+              <strong>Cook Time:</strong> {recipe.cook_time} mins
+            </p>
+            <div>
+              <h3>Ingredients</h3>
+              <ul>
+                {ingredients
+                  .filter((ingredient) => ingredient.recipeId === recipe.id)
+                  .map((ingredient, index) => (
+                    <li key={index}>
+                      {ingredient.ingredients.name} - {ingredient.quantity} {ingredient.ingredients.unit?.unit_tag || ""}
+                    </li>
+                  ))}
+              </ul>
+            </div>
+          </div>
+        ))
+      )}
 
       <button
-        // onClick={toggleCombineIngredients}
+        onClick={toggleCombineIngredients}
         style={{
           padding: "10px 20px",
           background: isCombined ? "red" : "green",
