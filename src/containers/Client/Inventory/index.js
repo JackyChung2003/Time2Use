@@ -1,5 +1,4 @@
 import supabase from '../../../config/supabaseClient';
-import React, { useState } from 'react';
 
 export const fetchItems = async (userId) => {
   try {
@@ -12,6 +11,7 @@ export const fetchItems = async (userId) => {
         quantity_unit_id,
         freshness_status_id,
         created_at,
+        condition_id,
         ingredients (
           name,
           icon_path,
@@ -25,7 +25,8 @@ export const fetchItems = async (userId) => {
         freshness_status (
           status_color
         ),
-        unit:unit (unit_tag)
+        unit:unit (unit_tag),
+        condition:condition (condition)
       `)
       .eq('user_id', userId); // filter by user id
 
@@ -57,6 +58,7 @@ export const fetchItems = async (userId) => {
         statusColor: statusColor, 
         nutritionalInfo: item.ingredients?.nutritional_info || 'No information available',
         storageTips: item.ingredients?.storage_tips || 'No tips available',
+        condition_id: item.condition_id,
         created_at: item.created_at,
       };
       });
@@ -135,11 +137,37 @@ export const handleQuantityChange = async (item, newQuantity, setItems) => {
   }
 };
 
+export const updateItemCondition = async (itemId, conditionId) => {
+  console.log('Attempting to update item condition...');
+  console.log('Item ID:', itemId);
+  console.log('Condition ID:', conditionId);
+
+  try {
+    const response = await supabase
+      .from('inventory') // Ensure table name matches
+      .update({ condition_id: conditionId })
+      .eq('ingredient_id', itemId) // Use the correct column name
+      .select('*', { count: 'exact' }); // Include count to verify matched rows
+
+    // Return a standardized structure
+    if (response.error) {
+      throw new Error(response.error.message);
+    }
+
+    return { data: response.data, error: null, count: response.count }; // Return a standard response object
+  } catch (error) {
+    console.error('Error updating condition:', error.message);
+    return { data: null, error: error.message, count: 0 }; // Return error details in a structured format
+  }
+};
+
+
 const inventoryUtils = {
   fetchItems,
   updateQuantityInDatabase,
   handlePortionClick,
   handleQuantityChange,
+  updateItemCondition,
 };
 
 export default inventoryUtils;

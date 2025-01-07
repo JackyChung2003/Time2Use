@@ -4,14 +4,17 @@ import { useNavigate } from "react-router-dom";
 import { Chart as ChartJS, registerables } from "chart.js";
 import { Pie, Doughnut } from "react-chartjs-2";
 import "./index.css";
+import Notification from '../Notification';
 
 // Register all Chart.js components
 ChartJS.register(...registerables);
 
 const Dashboard = () => {
   const [user, setUser] = useState(null);
+  const [username, setUsername] = useState("");
   const [ingredientData, setIngredientData] = useState([]);
   const [expiringItems, setExpiringItems] = useState([]);
+  const [expiredItems, setExpiredItems] = useState([]);
   const [nutritionSummary, setNutritionSummary] = useState({});
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -30,30 +33,51 @@ const Dashboard = () => {
     fetchUser();
   }, [navigate]);
 
-  // Fetch data once user is authenticated
+  // Fetch username from profile table
+  useEffect(() => {
+    const fetchUsername = async () => {
+      if (!user) return;
+
+      const { data: profileData, error: profileError } = await supabase
+        .from("profile")
+        .select("username")
+        .eq("user", user.id)
+        .single();
+
+      if (profileError) {
+        console.error("Error fetching username:", profileError.message);
+      } else {
+        setUsername(profileData?.username || "User");
+      }
+    };
+
+    if (user) fetchUsername();
+  }, [user]);
+
+  
+  // Fetch dashboard data once user is authenticated
   useEffect(() => {
     const fetchData = async () => {
+      if (!user) return;
       setLoading(true);
+
       try {
-        // Fetch inventory data for category chart
+        // Fetch inventory for category chart
         const { data: inventory, error: inventoryError } = await supabase
           .from("inventory")
           .select(
             `ingredient_id, ingredients(name, ingredients_category(category_name))`
           )
-          .eq("user_id", user?.id);
+          .eq("user_id", user.id)
+          .eq("condition_id", 1);
 
         if (inventoryError) {
           console.error("Error fetching inventory:", inventoryError.message);
         } else {
-          // Group data by category
           const groupedData = inventory.reduce((acc, item) => {
             const categoryName =
               item.ingredients?.ingredients_category?.category_name || "Unknown";
-            if (!acc[categoryName]) {
-              acc[categoryName] = 0;
-            }
-            acc[categoryName]++;
+            acc[categoryName] = (acc[categoryName] || 0) + 1;
             return acc;
           }, {});
 
@@ -69,7 +93,8 @@ const Dashboard = () => {
         const { data: inventoryForNutrition, error: nutritionError } = await supabase
           .from("inventory")
           .select(`ingredients(nutritional_info)`)
-          .eq("user_id", user?.id);
+          .eq("user_id", user.id)
+          .eq("condition_id", 1);
 
         if (nutritionError) {
           console.error("Error fetching nutritional info:", nutritionError.message);
@@ -78,7 +103,7 @@ const Dashboard = () => {
             try {
               const nutrition =
                 typeof item.ingredients?.nutritional_info === "string"
-                  ? JSON.parse(item.ingredients?.nutritional_info)
+                  ? JSON.parse(item.ingredients.nutritional_info)
                   : item.ingredients?.nutritional_info;
 
               if (nutrition && typeof nutrition === "object") {
@@ -101,17 +126,32 @@ const Dashboard = () => {
           setNutritionSummary(nutritionSummary);
         }
 
-        // Fetch expiring items
-        if (user?.id) {
-          const { data: expiring, error: expiringError } = await supabase
-            .from("inventory")
-            .select(`days_left, ingredients(name)`)
-            .eq("user_id", user.id)
-            .lt("days_left", 3);
+        // Fetch expiring items (days_left <= 5 and > 0)
+        const { data: expiring, error: expiringError } = await supabase
+          .from("inventory")
+          .select(`days_left, ingredients(name)`)
+          .eq("user_id", user?.id)
+          .eq("condition_id", 1) // Only fetch available items
+          .gt("days_left", 0)
+          .lte("days_left", 5);
 
-          if (expiringError) throw expiringError;
-          setExpiringItems(expiring);
-        }
+        if (expiringError) throw expiringError;
+        
+        // Sort by days_left in descending order
+        setExpiringItems(expiring.sort((a, b) => b.days_left - a.days_left));
+
+        // Fetch expired items (days_left <= 0)
+        const { data: expired, error: expiredError } = await supabase
+          .from("inventory")
+          .select(`days_left, ingredients(name)`)
+          .eq("user_id", user?.id)
+          .eq("condition_id", 1) // Only fetch available items
+          .lte("days_left", 0);
+
+        if (expiredError) throw expiredError;
+        // Sort by days_left in descending order
+        setExpiredItems(expired.sort((b, a) => b.days_left - a.days_left));
+      
       } catch (error) {
         console.error("Error fetching data:", error.message);
       } finally {
@@ -127,85 +167,85 @@ const Dashboard = () => {
     return <div>Loading...</div>;
   }
 
-  // If there's no data, check if the user is new
-  const isNewUser = ingredientData.length === 0 && expiringItems.length === 0;
+  // Check if user is new
+  const isNewUser =
+    ingredientData.length === 0 && expiringItems.length === 0 && expiredItems.length === 0;
 
   return (
+    <div>
+    <Notification />
     <div className="dashboard-container">
       <div className="dashboard-header">
-        {user && <h1>Hi, {user.email}!</h1>}
+        {username && <h1>Welcome, {username}!</h1>}
       </div>
 
       {isNewUser ? (
         <div className="empty-state">
-          <p>To get started, scan a receipt to load your inventory and explore insights about your kitchen.</p>
+          <p>
+            To get started, scan a receipt to load your inventory and explore insights
+            about your kitchen.
+          </p>
         </div>
       ) : (
         <>
           <div className="chart-container">
-            {/* Chart Card: Total Items in Your Inventory */}
+            {/* Pie Chart: Inventory by Category */}
             <div className="chart-card">
-              <h2 className="chart-title">Total Ingredients in Your Inventory</h2>
+              <h2>Total Ingredients in Your Inventory</h2>
               <Pie
                 data={{
-                  labels: ingredientData.map((item) => item.category_name || "Unknown"),
+                  labels: ingredientData.map((item) => item.category_name),
                   datasets: [
                     {
-                      label: "Ingredients",
-                      data: ingredientData.map((item) => item.total || 0),
+                      data: ingredientData.map((item) => item.total),
                       backgroundColor: [
-                        "#caabd5", // Condiments
-                        "#f58a78", // Meat
                         "#84e2ca", // Vegetables
+                        "#caabd5", // Condiments
                         "#fbdd94", // Dairy
+                        "#f58a78", // Meat
                         "#f2cec2", // Protein
                       ],
                     },
                   ],
                 }}
-                options={{
-                  plugins: {
-                    title: {
-                      display: false,
-                    },
-                  },
-                }}
               />
             </div>
 
-            {/* Doughnut Chart: Nutritional Overview */}
-            <div className="chart-card">
-              <h2 className="chart-title">Nutritional Overview</h2>
-              <Doughnut
-                data={{
-                  labels: Object.keys(nutritionSummary),
-                  datasets: [
-                    {
-                      label: "Nutritional Values",
-                      data: Object.values(nutritionSummary),
-                      backgroundColor: [
-                        "#ffc98b", // Fat
-                        "#e79796", // Protein
-                        "#f5cec7", // Calories
-                        "#b6dce7", // Carbohydrate
-                        "#a5cf8c", // Green
-                        "#faae83", // Orange
-                      ],
-                    },
-                  ],
-                }}
-                options={{
-                  plugins: {
-                    title: {
-                      display: false,
-                    },
+          {/* Doughnut Chart: Nutritional Overview */}
+          <div className="chart-card">
+            <h2 className="chart-title">Nutritional Overview</h2>
+            <Doughnut
+              data={{
+                labels: Object.keys(nutritionSummary),
+                datasets: [
+                  {
+                    label: "Nutritional Values",
+                    data: Object.values(nutritionSummary),
+                    backgroundColor: [
+                      "#ffc98b", // Fat
+                      "#e79796", // Protein
+                      "#f5cec7", // Calories
+                      "#b6dce7", // Carbohydrate
+                      "#a5cf8c", // Green
+                      "#faae83", // Orange
+                    ],
                   },
-                }}
-              />
-            </div>
+                ],
+              }}
+              options={{
+                plugins: {
+                  title: {
+                    display: false,
+                  },
+                },
+              }}
+            />
           </div>
+        </div>
 
-          {/* Table: Expiring Items */}
+        {/* Tables for expiring and expired items */}
+        <div className="table-container">
+          {/* Expiring Items Table */}
           <div className="table-card">
             <h2>Expiring Ingredients</h2>
             <table className="expiring-table">
@@ -219,20 +259,40 @@ const Dashboard = () => {
                 {expiringItems.map((item, index) => (
                   <tr key={index}>
                     <td>{item.ingredients.name}</td>
-                    <td>
-                      {item.days_left >= 0
-                        ? `${item.days_left} days left`
-                        : `Already expired for ${Math.abs(item.days_left)} days`}
-                    </td>
+                    <td>{`${Math.abs(item.days_left)} days left`}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
+
+          {/* Expired Items Table */}
+          <div className="table-card">
+            <h2>Expired Ingredients</h2>
+            <table className="expiring-table">
+              <thead>
+                <tr>
+                  <th>Ingredient</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {expiredItems.map((item, index) => (
+                  <tr key={index}>
+                    <td>{item.ingredients.name}</td>
+                    <td>{`Expired ${Math.abs(item.days_left)} days ago`}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
         </>
       )}
+    </div>
     </div>
   );
 };
 
 export default Dashboard;
+
