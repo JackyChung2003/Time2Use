@@ -1,0 +1,83 @@
+/* Container for the notification popup */
+.notification-popup {
+  position: fixed;
+  top: 20%;
+  left: 50%;
+  transform: translate(-50%, -20%);
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+  width: 90%;
+  max-width: 400px;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease-in-out;
+  overflow-y: auto; /* Allows scrolling if there are many items */
+}
+
+/* Notification content styling */
+.notification-content {
+  padding: 20px;
+  text-align: left;
+  font-family: "Arial", sans-serif;
+  color: #333;
+  padding-bottom: 55px; /* Add space for the button at the bottom */
+}
+
+/* Title for the notification */
+.notification-content h3 {
+  text-align: center;
+  font-size: 20px;
+  font-weight: bold;
+  color: #f44336; /* Red for expiration warnings */
+  margin-bottom: 15px;
+}
+
+/* Message styling */
+.notification-content p {
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 10px 0;
+}
+
+/* Expired notifications styling */
+.notification-popup.expired .notification-content {
+  background-color: #ffe6e6; /* Light red background for expired items */
+  color: #d32f2f; /* Dark red for expired messages */
+}
+
+/* Soon to expire notifications styling */
+.notification-popup .notification-content {
+  background-color: #fff3e0; /* Light orange background for soon to expire items */
+  color: #f57c00; /* Dark orange for soon-to-expire messages */
+}
+
+/* Close button styling */
+.close-button {
+  position: absolute;
+  bottom: 20px; /* Position the button at the bottom */
+  left: 50%;
+  transform: translateX(-50%); /* Center the button horizontally */
+  padding: 10px 20px;
+  background-color: #f44336;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.close-button:hover {
+  background-color: #d32f2f;
+}
+
+/* Fade-in animation */
+@keyframes fadeIn {
+  from {
+      opacity: 0;
+      transform: translate(-50%, -30%);
+  }
+  to {
+      opacity: 1;
+      transform: translate(-50%, -20%);
+  }
+}
