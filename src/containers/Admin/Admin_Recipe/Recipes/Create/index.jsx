@@ -168,7 +168,7 @@ const CreateRecipe = () => {
                         quantity: parseFloat(ingredient.quantity), // Ensure quantity is numeric
                     }));
     
-                console.log("Recipe Ingredients to save:", recipeIngredients);
+                // console.log("Recipe Ingredients to save:", recipeIngredients);
     
                 if (recipeIngredients.length === 0) {
                     console.error("No valid ingredients to save");
@@ -178,7 +178,7 @@ const CreateRecipe = () => {
                 const { error } = await supabase.from("recipe_ingredients").insert(recipeIngredients);
                 if (error) throw error;
     
-                console.log("Recipe ingredients saved successfully!");
+                // console.log("Recipe ingredients saved successfully!");
             }
         } catch (error) {
             console.error("Error saving recipe ingredients:", error.message);
@@ -216,7 +216,7 @@ const CreateRecipe = () => {
                 const { error } = await supabase.from("steps").insert(recipeSteps);
                 if (error) throw error;
     
-                console.log("Recipe steps saved successfully!");
+                // console.log("Recipe steps saved successfully!");
             }
         } catch (error) {
             console.error("Error saving recipe steps:", error.message);

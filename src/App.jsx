@@ -12,6 +12,10 @@ import HorizontalNavbar from './containers/Client/Navigation/HorizontalNavBar';
 import BottomNavBar from './containers/Client/Navigation/BottomNavBar';
 import Dashboard from './containers/Client/Dashboard';
 import Inventory from './containers/Client/Inventory/index.jsx';
+
+// Notification Component
+import Notification from './containers/Client/Notification';
+
 import Scan from './containers/Client/Scan';
 // import Recipe from './containers/Client/Recipe';
 import RecipeNavigation from './containers/Client/Recipe/RecipeNavigation';
@@ -27,6 +31,17 @@ const App = () => {
     const [userRole, setUserRole] = useState(null);
     const [loading, setLoading] = useState(true);
     const [isCollapsed, setIsCollapsed] = useState(false); // Sidebar collapse state
+
+    // Service Worker Update Prompt
+  useEffect(() => {
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.addEventListener("controllerchange", () => {
+        if (window.confirm("New version available. Refresh to update?")) {
+          window.location.reload();
+        }
+      });
+    }
+  }, []);
 
     useEffect(() => {
         const fetchUser = async () => {

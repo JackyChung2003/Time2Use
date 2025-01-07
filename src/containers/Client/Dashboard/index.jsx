@@ -4,12 +4,14 @@ import { useNavigate } from "react-router-dom";
 import { Chart as ChartJS, registerables } from "chart.js";
 import { Pie, Doughnut } from "react-chartjs-2";
 import "./index.css";
+import Notification from '../Notification';
 
 // Register all Chart.js components
 ChartJS.register(...registerables);
 
 const Dashboard = () => {
   const [user, setUser] = useState(null);
+  const [username, setUsername] = useState("");
   const [ingredientData, setIngredientData] = useState([]);
   const [expiringItems, setExpiringItems] = useState([]);
   const [expiredItems, setExpiredItems] = useState([]);
@@ -31,6 +33,28 @@ const Dashboard = () => {
     fetchUser();
   }, [navigate]);
 
+  // Fetch username from profile table
+  useEffect(() => {
+    const fetchUsername = async () => {
+      if (!user) return;
+
+      const { data: profileData, error: profileError } = await supabase
+        .from("profile")
+        .select("username")
+        .eq("user", user.id)
+        .single();
+
+      if (profileError) {
+        console.error("Error fetching username:", profileError.message);
+      } else {
+        setUsername(profileData?.username || "User");
+      }
+    };
+
+    if (user) fetchUsername();
+  }, [user]);
+
+  
   // Fetch dashboard data once user is authenticated
   useEffect(() => {
     const fetchData = async () => {
@@ -148,9 +172,11 @@ const Dashboard = () => {
     ingredientData.length === 0 && expiringItems.length === 0 && expiredItems.length === 0;
 
   return (
+    <div>
+    <Notification />
     <div className="dashboard-container">
       <div className="dashboard-header">
-        {user && <h1>Welcome, {user.email}!</h1>}
+        {username && <h1>Welcome, {username}!</h1>}
       </div>
 
       {isNewUser ? (
@@ -264,7 +290,9 @@ const Dashboard = () => {
         </>
       )}
     </div>
+    </div>
   );
 };
 
 export default Dashboard;
+

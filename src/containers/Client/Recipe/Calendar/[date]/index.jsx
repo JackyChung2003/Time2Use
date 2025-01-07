@@ -132,110 +132,125 @@ const MealPlannerPage = () => {
       </header>
 
       {mealTypes.map((mealType) => {
-        // Filter meal plans for the current meal type
-        const mealsForType = mealPlans.filter(
-          (meal) => meal.meal_type_name === mealType.name
-        );
+  // Filter meal plans for the current meal type
+  const mealsForType = mealPlans.filter(
+    (meal) => meal.meal_type_name === mealType.name
+  );
 
-        return (
-          <div key={mealType.id} className="meal-section">
-            <div className="meal-section-header">
-              <div className="meal-header-image">
-                {mergedImages[mealType.name] &&
-                Array.isArray(mergedImages[mealType.name]) ? (
-                  <div className="merged-images">
-                    <img
-                      src={mergedImages[mealType.name][0]}
-                      alt="Meal 1"
-                      className="meal-merged-image"
-                    />
-                    <img
-                      src={mergedImages[mealType.name][1]}
-                      alt="Meal 2"
-                      className="meal-merged-image"
-                    />
-                  </div>
-                ) : (
-                  <img
-                    src={mergedImages[mealType.name]}
-                    alt="Single Meal"
-                    className="meal-merged-image"
-                  />
-                )}
+  const hasMeals = mealsForType.length > 0; // Check if there are meals
+
+  return (
+    <div key={mealType.id} className="meal-section">
+      <div className="meal-section-header">
+        <div className="meal-header-image">
+          {hasMeals ? (
+            mergedImages[mealType.name] &&
+            Array.isArray(mergedImages[mealType.name]) ? (
+              <div className="merged-images">
+                <img
+                  src={mergedImages[mealType.name][0]}
+                  alt="Meal 1"
+                  className="meal-merged-image"
+                />
+                <img
+                  src={mergedImages[mealType.name][1]}
+                  alt="Meal 2"
+                  className="meal-merged-image"
+                />
               </div>
-              <div className="meal-section-controls">
-                {/* <button onClick={() => console.log("View Meal Plan")}>View details</button> */}
+            ) : (
+              <img
+                src={mergedImages[mealType.name]}
+                alt="Single Meal"
+                className="meal-merged-image"
+              />
+            )
+          ) : (
+            <div className="no-meal-placeholder">
+              <p>No meals planned for {mealType.name}.</p>
+              {/* Optionally, add an icon or illustration */}
+            </div>
+          )}
+        </div>
+        <div className="meal-section-controls">
+          <button
+            onClick={() =>
+              navigate(`/recipes/calendar/preparation/${date}`, {
+                state: {
+                  planned_date: date,
+                  meal_type_id: mealType.id,
+                },
+              })
+            }
+          >
+            {hasMeals ? "View Details" : "Add Meal"}
+          </button>
+          {hasMeals && (
+            <button onClick={() => console.log("Start Cooking")}>
+              Start Cooking
+            </button>
+          )}
+        </div>
+        <h2>{mealType.name}</h2>
+        <span
+          onClick={() => toggleSection(mealType.name)}
+          style={{ cursor: "pointer" }}
+        >
+          {expandedSections[mealType.name] ? "▲" : "▼"}
+        </span>
+      </div>
+
+      {expandedSections[mealType.name] && hasMeals && (
+        <div className="meal-list">
+          {mealsForType.map((meal, idx) => (
+            <div key={idx} className="meal-item">
+              <img
+                src={`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/${meal.recipe?.image_path || "path/to/default/image.jpg"}`}
+                alt={meal.recipe?.name || "Meal Image"}
+                className="meal-image"
+                onClick={() =>
+                  navigate(`/recipes/recipe/${meal.recipe?.id || ""}`, {
+                    state: {
+                      planned_date: meal.planned_date,
+                      meal_type_id: meal.meal_type_id,
+                      recipe_id: meal.recipe_id,
+                    },
+                  })
+                }
+              />
+              <div className="meal-overlay">
+                <span className="meal-name">
+                  {meal.recipe?.name || "Unknown Recipe"}
+                </span>
+                <p className="meal-notes">{meal.notes}</p>
                 <button
                   onClick={() =>
-                    navigate(`/recipes/calendar/preparation/${date}`, {
-                      state: {
-                        planned_date: date, // Include the formatted date in the state
-                        meal_type_id: mealType.id, 
-                      },
-                    })
+                    handleCancelMeal(
+                      meal.planned_date,
+                      meal.recipe_id,
+                      meal.meal_type_id
+                    )
                   }
+                  className="cancel-meal-button"
                 >
-                  View Details
-                </button>
-                <button onClick={() => console.log("Start Cooking")}>
-                  Start Cooking
+                  Cancel
                 </button>
               </div>
-              <h2>{mealType.name}</h2>
-              <span
-                onClick={() => toggleSection(mealType.name)}
-                style={{ cursor: "pointer" }}
-              >
-                {expandedSections[mealType.name] ? "▲" : "▼"}
-              </span>
             </div>
+          ))}
+        </div>
+      )}
 
-            {expandedSections[mealType.name] && (
-              <div className="meal-list">
-                {mealsForType.map((meal, idx) => (
-                  <div key={idx} className="meal-item">
-                    <img
-                      src={`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/${meal.recipe?.image_path || "path/to/default/image.jpg"}`}
-                      alt={meal.recipe?.name || "Meal Image"}
-                      className="meal-image"
-                      onClick={() =>
-                        // navigate(`/recipes/${meal.recipe?.id || ""}`)
-                        // console.log("Meal Image Clicked")
-                        navigate(`/recipes/recipe/${meal.recipe?.id || ""}`, {
-                        // navigate(`/recipes/${meal.recipe?.id || ""}`, {
-                            state: {
-                                planned_date: meal.planned_date,
-                                meal_type_id: meal.meal_type_id,
-                                recipe_id: meal.recipe_id,
-                            },
-                        })
-                        // navigate(`/recipes/recipe/${meal.recipe?.id || ""}`)
-                      }
-                    />
-                    <div className="meal-overlay">
-                      <span className="meal-name">
-                        {meal.recipe?.name || "Unknown Recipe"}
-                      </span>
-                      <p className="meal-notes">{meal.notes}</p>
-                      <button
-                        // onClick={() => handleCancelMeal(meal.recipe?.id)}
-                        onClick={() =>
-                            handleCancelMeal(meal.planned_date, meal.recipe_id, meal.meal_type_id)
-                        }
-                        className="cancel-meal-button"
-                      >
-                        Cancel
-                        {/* {meal.planned_date} - {meal.recipe_id} - {meal.meal_type_id} */}
-                        {/* {meal.recipe?.id} */}
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        );
-      })}
+      {/* Show a message if the section is expanded but there are no meals */}
+      {expandedSections[mealType.name] && !hasMeals && (
+        <div className="no-meal-message">
+          <p>No meals added for {mealType.name}. Click "Add Meal" to start planning!</p>
+        </div>
+      )}
+    </div>
+  );
+})}
+
     </div>
   );
 };
