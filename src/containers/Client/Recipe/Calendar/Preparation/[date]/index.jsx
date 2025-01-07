@@ -34,7 +34,24 @@ const RecipePreparationPage = () => {
   const [ingredients, setIngredients] = useState([]);
   const [steps, setSteps] = useState([]);
   const [mergedIngredients, setMergedIngredients] = useState([]);
-  const [isCombined, setIsCombined] = useState(true);
+  // const [isCombined, setIsCombined] = useState(true);
+  
+
+  const [selectedIngredient, setSelectedIngredient] = useState(null);
+  const [inventoryItems, setInventoryItems] = useState([]);
+  const [capped, setCapped] = useState(true); // To toggle capped/uncapped mode
+
+  const [selectedInventory, setSelectedInventory] = useState([]); // State to track selected inventory items
+  const [adjustingQuantity, setAdjustingQuantity] = useState(false); // Add this state
+
+  const exceedAmount = Math.max(
+    0,
+    selectedInventory.reduce((sum, item) => sum + item.selectedQuantity, 0) -
+      (selectedIngredient?.quantity || 0) // Safeguard in case selectedIngredient is null
+  );
+
+  const [mealPlanIds, setMealPlanIds] = useState([]);// Add a global state for requiredQuantity
+  const [requiredQuantity, setRequiredQuantity] = useState(null);
 
   const [selectedIngredient, setSelectedIngredient] = useState(null);
   const [inventoryItems, setInventoryItems] = useState([]);
