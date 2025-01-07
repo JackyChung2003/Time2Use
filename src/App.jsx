@@ -32,6 +32,17 @@ const App = () => {
     const [loading, setLoading] = useState(true);
     const [isCollapsed, setIsCollapsed] = useState(false); // Sidebar collapse state
 
+    // Service Worker Update Prompt
+  useEffect(() => {
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.addEventListener("controllerchange", () => {
+        if (window.confirm("New version available. Refresh to update?")) {
+          window.location.reload();
+        }
+      });
+    }
+  }, []);
+
     useEffect(() => {
         const fetchUser = async () => {
             const { data: userData, error: userError } = await supabase.auth.getUser();
