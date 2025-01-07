@@ -46,10 +46,11 @@ const RecipePreparationPage = () => {
 
   const exceedAmount = Math.max(
     0,
-    selectedInventory.reduce((sum, item) => sum + item.selectedQuantity, 0) -
-      (selectedIngredient?.quantity || 0) // Safeguard in case selectedIngredient is null
+    (selectedInventory || []).reduce((sum, item) => sum + item.selectedQuantity, 0) -
+      (selectedIngredient?.quantity || 0)
   );
-
+  
+  
   const [mealPlanIds, setMealPlanIds] = useState([]);// Add a global state for requiredQuantity
   const [requiredQuantity, setRequiredQuantity] = useState(null);
 
@@ -67,7 +68,8 @@ const RecipePreparationPage = () => {
         if (relevantPlans.length === 0) {
           console.warn("No meal plans found for the given date and meal type.");
           setRecipes([]);
-          setMergedIngredients([]);
+          // setMergedIngredients([]);
+          setIngredients([]);
           return;
         }
   
@@ -77,16 +79,24 @@ const RecipePreparationPage = () => {
         setRecipes(fetchedRecipes);
   
         // Fetch ingredients for each recipe
-        const allIngredients = [];
-        for (const recipe of fetchedRecipes) {
-          const ingredientsData = await fetchRecipeIngredients(recipe.id);
-          allIngredients.push(
-            ...ingredientsData.map((ingredient) => ({
-              ...ingredient,
-              recipeId: recipe.id,
-            }))
-          );
-        }
+        // const allIngredients = [];
+        // for (const recipe of fetchedRecipes) {
+        //   const ingredientsData = await fetchRecipeIngredients(recipe.id);
+        //   allIngredients.push(
+        //     ...ingredientsData.map((ingredient) => ({
+        //       ...ingredient,
+        //       recipeId: recipe.id,
+        //     }))
+        //   );
+        // }
+
+        // Fetch ingredients for each recipe
+        const recipeIngredients = await Promise.all(
+          fetchedRecipes.map(async (recipe) => {
+            const ingredientsData = await fetchRecipeIngredients(recipe.id);
+            return { recipeId: recipe.id, ingredients: ingredientsData };
+          })
+        );
   
         // Fetch inventory meal plan data
         const mealPlanIds = relevantPlans.map((plan) => plan.id);
@@ -96,47 +106,7 @@ const RecipePreparationPage = () => {
   
         // console.log("Fetched Inventory Meal Plan Data:", inventoryMealPlanData);
   
-        // Map inventory to ingredients
-        const merged = allIngredients.reduce((acc, ingredient) => {
-          const existing = acc.find(
-            (item) => item.ingredients.id === ingredient.ingredients.id
-          );
-  
-          // Find related inventory data for this ingredient
-          // console.log(`Ingredient ID for ${ingredient.ingredients.name}:`, ingredient.ingredients.id);
-  
-          const linkedInventory = inventoryMealPlanData.filter(
-            (inv) => inv.inventory.ingredient_id === ingredient.ingredients.id
-          );
-  
-          // console.log(`Linked Inventory for ${ingredient.ingredients.name}:`, linkedInventory);
-  
-          if (existing) {
-            existing.quantity += ingredient.quantity;
-            existing.recipes.push({
-              recipeId: ingredient.recipeId,
-              quantity: ingredient.quantity,
-            });
-            existing.inventoryItems = [
-              ...(existing.inventoryItems || []),
-              ...linkedInventory,
-            ];
-          } else {
-            acc.push({
-              ...ingredient,
-              recipes: [
-                {
-                  recipeId: ingredient.recipeId,
-                  quantity: ingredient.quantity,
-                },
-              ],
-              inventoryItems: linkedInventory,
-            });
-          }
-          return acc;
-        }, []);
-  
-        setMergedIngredients(merged);
+        setIngredients(recipeIngredients);
       } catch (error) {
         console.error("Error loading data:", error.message);
       } finally {
@@ -438,13 +408,16 @@ const RecipePreparationPage = () => {
   
   const adjustQuantity = (itemId, delta) => {
     setSelectedInventory((prevSelected) => {
+    const inventory = prevSelected || [];
       const target = selectedIngredient.quantity;
   
       // Calculate the current total
-      let totalSelected = prevSelected.reduce((sum, item) => sum + item.selectedQuantity, 0);
-  
+      // let totalSelected = prevSelected.reduce((sum, item) => sum + item.selectedQuantity, 0);
+      let totalSelected = inventory.reduce((sum, item) => sum + item.selectedQuantity, 0);
+      
+    
       // Map through inventory to adjust the quantity for the selected item
-      const updatedInventory = prevSelected.map((item) => {
+      const updatedInventory = inventory.map((item) => {
         if (item.id === itemId) {
           const newQuantity = Math.max(
             1, // Ensure at least 1
@@ -640,6 +613,13 @@ const RecipePreparationPage = () => {
       autoAllocateExceed(); // Automatically allocate exceed amount
     }
   }, [exceedAmount]); // Dependency array includes exceedAmount
+
+  const handleToggleCapped = () => {
+    setCapped((prevCapped) => {
+      console.log("Previous capped value:", prevCapped);
+      return !prevCapped;
+    });
+  };
   
   if (loading) {
     return <div>Loading preparation details...</div>;
@@ -652,7 +632,7 @@ const RecipePreparationPage = () => {
   const autoAdjustQuantities = () => {
     let remainingRequired = selectedIngredient.quantity;
   
-    const adjustedInventory = selectedInventory.map((item) => {
+    const adjustedInventory = (selectedInventory || []).map((item) => {
       if (!item.preselected || remainingRequired <= 0) {
         // Skip items not selected or when no more is required
         return { ...item, selectedQuantity: 0 };
@@ -738,7 +718,8 @@ const RecipePreparationPage = () => {
 
   const autoAllocateExceed = () => {
     setSelectedIngredient((prev) => {
-      const totalRecipes = prev.recipes.length;
+      const totalRecipes = prev.quantity;
+      // const totalRecipes = prev.recipes.length;
       const allocationPerRecipe = Math.floor(exceedAmount / totalRecipes);
 
       const updatedRecipes = prev.recipes.map((recipe, index) => {
@@ -784,8 +765,10 @@ const RecipePreparationPage = () => {
       <h1>Recipe Preparation</h1>
       <h3>Date: {planned_date}</h3>
       <h3>Meal Type: {mealTypes.find((type) => type.id === meal_type_id)?.name || "Unknown"}</h3>
-
-      {recipes.map((recipe) => (
+      
+      {recipes.map((recipe) => {
+      const recipeIngredients = ingredients.find((ri) => ri.recipeId === recipe.id)?.ingredients || [];
+      return (
         <div key={recipe.id} className="recipe-details">
           <h2>{recipe.name}</h2>
           <img
@@ -803,44 +786,28 @@ const RecipePreparationPage = () => {
           <div>
             <h3>Ingredients</h3>
             <ul>
-              {mergedIngredients
-                .filter((ingredient) => 
-                  ingredient.recipes.some((r) => r.recipeId === recipe.id)
-                )
-                .map((ingredient, index) => (
-                  <li
-                    key={index}
-                    onClick={() => handleIngredientClick(ingredient)}
-                    style={{
-                      cursor: "pointer",
-                      color: "blue",
-                      fontWeight: "bold",
-                      fontSize: "16px",
-                    }}
-                  >
-                    {ingredient.ingredients.name} - {ingredient.quantity}{" "}
-                    {ingredient.ingredients.unit?.unit_tag || ""}
-                    {ingredient.recipes.length > 1 && (
-                      <ul style={{ paddingLeft: "20px", marginTop: "5px", fontSize: "14px" }}>
-                        {ingredient.recipes.map((recipeDetail) => (
-                          <li key={recipeDetail.recipeId}>
-                            Needed in {getRecipeNameById(recipeDetail.recipeId)}:{" "}
-                            <strong>
-                              {recipeDetail.quantity} {ingredient.ingredients.unit?.unit_tag || ""}
-                            </strong>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </li>
-                ))}
+              {recipeIngredients.map((ingredient, index) => (
+                <li
+                  key={index}
+                  onClick={() => handleIngredientClick(ingredient)}
+                  style={{
+                    cursor: "pointer",
+                    color: "blue",
+                    fontWeight: "bold",
+                    fontSize: "16px",
+                  }}
+                >
+                  {ingredient.ingredients.name} - {ingredient.quantity}{" "}
+                  {ingredient.ingredients.unit?.unit_tag || ""}
+                </li>
+              ))}
             </ul>
           </div>
         </div>
-      ))}
+      );
+    })}
 
-
-      <button
+      {/* <button
         // onClick={toggleCombineIngredients}
         style={{
           padding: "10px 20px",
@@ -851,7 +818,7 @@ const RecipePreparationPage = () => {
         }}
       >
         {isCombined ? "Separate Ingredients" : "Combine Ingredients"}
-      </button>
+      </button> */}
 
       <button
         onClick={startCooking}
@@ -887,23 +854,6 @@ const RecipePreparationPage = () => {
                     .reduce((sum, item) => sum + item.quantity, 0)}{" "}
                   {selectedIngredient.ingredients.unit?.unit_tag || ""}
                 </p>
-
-                {/* Add associated recipes */}
-                {selectedIngredient.recipes.length > 0 && (
-                  <div style={{ marginTop: "15px" }}>
-                    <h4>Used in Recipes:</h4>
-                    <ul style={{ paddingLeft: "20px", fontSize: "14px" }}>
-                      {selectedIngredient.recipes.map((recipe) => (
-                        <li key={recipe.recipeId}>
-                          {getRecipeNameById(recipe.recipeId)}:{" "}
-                          <strong>
-                            {recipe.quantity} {selectedIngredient.ingredients.unit?.unit_tag || ""}
-                          </strong>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
 
                 {/* Inventory selection */}
                 <ul>
@@ -978,7 +928,7 @@ const RecipePreparationPage = () => {
                     <input
                       type="checkbox"
                       checked={capped}
-                      onChange={() => setCapped(!capped)}
+                      onChange={handleToggleCapped}
                     />
                     Cap total to match required quantity
                   </label>
