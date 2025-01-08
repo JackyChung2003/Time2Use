@@ -1,0 +1,26 @@
+/*Scan module css*/
+.scanContainer {
+    padding: 20px;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.scanCard {
+    margin-bottom: 20px;
+}
+
+.scannerContainer {
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto;
+    overflow: hidden;
+}
+
+.loadingContainer {
+    text-align: center;
+    padding: 20px;
+}
+
+.instructionText {
+    text-align: center;
+}
