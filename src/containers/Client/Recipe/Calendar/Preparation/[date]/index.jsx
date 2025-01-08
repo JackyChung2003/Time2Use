@@ -20,6 +20,7 @@ const RecipePreparationPage = () => {
     fetchInventoryMealPlanData,
     fetchInventoryMealPlanByMealPlanId,
     enrichInventory,
+    fetchInventoryData
   } = useRecipeContext();
 
   const navigate = useNavigate();
@@ -53,6 +54,8 @@ const RecipePreparationPage = () => {
   
   const [mealPlanIds, setMealPlanIds] = useState([]);// Add a global state for requiredQuantity
   const [requiredQuantity, setRequiredQuantity] = useState(null);
+  const [mealPlans, setMealPlans] = useState([]); // Store meal plans
+  const [inventoryData, setInventoryData] = useState([]); // Store inventory data
 
   useEffect(() => {
     const loadData = async () => {
@@ -61,9 +64,13 @@ const RecipePreparationPage = () => {
   
         // Fetch meal plans for the given date
         const mealPlans = await fetchMealPlansByDate(planned_date);
+
         const relevantPlans = mealPlans.filter(
           (meal) => meal.meal_type_id === meal_type_id
         );
+
+        console.log("Relevant Meal Plans:", relevantPlans);
+        setMealPlans(relevantPlans); // Store meal plans in state
   
         if (relevantPlans.length === 0) {
           console.warn("No meal plans found for the given date and meal type.");
@@ -533,12 +540,6 @@ const RecipePreparationPage = () => {
         return;
       }
 
-      console.log("Status ID for 'Planning':", statusId);
-      console.log("Filtered Inventory:", filteredInventory);
-      console.log("Selected Ingredient:", selectedIngredient);
-      console.log("Planned Date:", planned_date);
-      console.log("Meal Plan IDs:", mealPlanIds);
-
        // Use the `enrichInventory` function to enrich the inventory
       const enrichedInventory = await enrichInventory(
         filteredInventory,
@@ -628,6 +629,19 @@ const RecipePreparationPage = () => {
       autoAllocateExceed(); // Automatically allocate exceed amount
     }
   }, [exceedAmount]); // Dependency array includes exceedAmount
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const inventoryData = await fetchInventoryData({
+        plannedDate: planned_date, // Or mealPlanIds if available
+      });
+      setInventoryData(inventoryData);
+      console.log("Inventory Data:", inventoryData);
+    };
+  
+    fetchData();
+  }, [planned_date]);
+  
 
   // const handleToggleCapped = () => {
   //   setCapped((prevCapped) => {
@@ -851,7 +865,7 @@ const RecipePreparationPage = () => {
           </p>
           <div>
             <h3>Ingredients</h3>
-            <ul>
+            {/* <ul>
               {recipeIngredients.map((ingredient, index) => (
                 <li
                   key={index}
@@ -867,7 +881,113 @@ const RecipePreparationPage = () => {
                   {ingredient.ingredients.unit?.unit_tag || ""}
                 </li>
               ))}
-            </ul>
+            </ul> */}
+
+<ul>
+  {recipeIngredients.map((ingredient, index) => {
+    // Map `mealPlanId` to the corresponding ingredient
+    const linkedInventory = inventoryData.filter(
+      (item) =>
+        item.inventory.ingredient_id === ingredient.ingredients.id &&
+        mealPlans.some((mealPlan) => mealPlan.id === item.meal_plan_id)
+    );
+
+    // Log the ingredient and linked inventory for debugging
+    console.log(`Ingredient: ${ingredient.ingredients.name}`, ingredient);
+    console.log(`Linked Inventory for ${ingredient.ingredients.name}:`, linkedInventory);
+
+    return (
+      <li
+        key={index}
+        onClick={() => handleIngredientClick(ingredient)}
+        style={{
+          cursor: "pointer",
+          color: "blue",
+          fontWeight: "bold",
+          fontSize: "16px",
+        }}
+      >
+        {/* Display ingredient details */}
+        {ingredient.ingredients.name} - {ingredient.quantity}{" "}
+        {ingredient.ingredients.unit?.unit_tag || ""}
+
+        {/* Check and display inventory data if exists */}
+        {linkedInventory.length > 0 && (
+          <div
+            style={{
+              marginTop: "10px",
+              padding: "10px",
+              backgroundColor: "#f8f9fa",
+              border: "1px solid #ccc",
+              borderRadius: "5px",
+            }}
+          >
+            <h4>Linked Inventory Data</h4>
+            {linkedInventory.map((inventory) => (
+              <div
+                key={inventory.id}
+                style={{
+                  marginBottom: "10px",
+                  padding: "10px",
+                  border: "1px solid #ccc",
+                  borderRadius: "5px",
+                }}
+              >
+                <p>
+                  <strong>Quantity:</strong> {inventory.quantity}{" "}
+                  {inventory.ingredients.unit?.unit_tag || ""}
+                </p>
+                <p>
+                  <strong>Expiry Date:</strong>{" "}
+                  {inventory.expiry_date?.date || "No expiry date"}
+                </p>
+                <p>
+                  <strong>Status:</strong> {inventory.status_id}
+                </p>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation(); // Prevent triggering the parent onClick
+                    navigate(`/inventory/edit/${inventory.id}`);
+                  }}
+                  style={{
+                    padding: "5px 10px",
+                    backgroundColor: "#007bff",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "5px",
+                    cursor: "pointer",
+                    marginRight: "5px",
+                  }}
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation(); // Prevent triggering the parent onClick
+                    // handleDeleteInventory(inventory.id);
+                  }}
+                  style={{
+                    padding: "5px 10px",
+                    backgroundColor: "red",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "5px",
+                    cursor: "pointer",
+                  }}
+                >
+                  Delete
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </li>
+    );
+  })}
+</ul>
+
+
+
           </div>
         </div>
       );

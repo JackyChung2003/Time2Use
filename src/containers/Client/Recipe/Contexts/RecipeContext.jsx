@@ -537,6 +537,74 @@ const fetchRecipes = async () => {
       return []; // Return an empty array in case of error
     }
   };
+
+  const fetchInventoryData = async ({ mealPlanIds  = null, plannedDate = null }) => {
+    try {
+      // Build the query based on the provided parameters
+      let query = supabase.from("inventory_meal_plan").select(`
+        inventory_id,
+        meal_plan_id,
+        used_quantity,
+        status_id,
+        inventory_meal_plan_status (name, description),
+        inventory (
+          ingredient_id,
+          quantity,
+          expiry_date:expiry_date_id (date),
+          days_left,
+          freshness_status_id,
+          quantity_unit_id,
+          init_quantity,
+          condition:condition_id (condition)
+        ),
+        ingredients (
+          id,
+          name,
+          nutritional_info,
+          unit:quantity_unit_id (unit_tag, unit_description, conversion_rate_to_grams)
+        )
+      `);
+  
+      // Apply filters dynamically
+      if (mealPlanIds ) {
+        query = query.in("meal_plan_id", mealPlanIds);
+      }
+  
+      // If plannedDate is provided and mealPlanIds are not, fetch meal plan IDs for the date
+    if (plannedDate && !mealPlanIds) {
+      const { data: mealPlans, error: mealPlansError } = await supabase
+        .from("meal_plan")
+        .select("id")
+        .eq("planned_date", plannedDate);
+
+      if (mealPlansError) {
+        console.error("Error fetching meal plans by planned date:", mealPlansError.message);
+        return [];
+      }
+
+      const fetchedMealPlanIds = mealPlans?.map((plan) => plan.id) || [];
+      if (fetchedMealPlanIds.length > 0) {
+        query = query.in("meal_plan_id", fetchedMealPlanIds);
+      } else {
+        console.warn("No meal plans found for the given date.");
+        return [];
+      }
+    }
+  
+      const { data, error } = await query;
+  
+      if (error) {
+        console.error("Error fetching inventory data:", error.message);
+        return [];
+      }
+  
+      return data || [];
+    } catch (err) {
+      console.error("Unexpected error fetching inventory data:", err.message);
+      return [];
+    }
+  };
+  
   
 
   return (
@@ -566,6 +634,7 @@ const fetchRecipes = async () => {
         fetchInventoryMealPlanData,
         fetchInventoryMealPlanByMealPlanId,
         enrichInventory,
+        fetchInventoryData,
         applyFilters,
         loading,
       }}
