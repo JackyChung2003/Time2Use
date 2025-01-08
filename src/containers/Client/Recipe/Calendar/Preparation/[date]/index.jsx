@@ -28,6 +28,8 @@ const RecipePreparationPage = () => {
   const location = useLocation();
   const { planned_date, meal_type_id } = location.state || {};
 
+  const [refreshCounter, setRefreshCounter] = useState(0);
+
   const [recipes, setRecipes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -60,26 +62,131 @@ const RecipePreparationPage = () => {
   const [linkedInventory, setLinkedInventory] = useState([]); // For storing the inventory
   const [isUpdateMode, setIsUpdateMode] = useState(false); // Track if Update or Finalize mode
 
+  // useEffect(() => {
+  //   const loadData = async () => {
+  //     try {
+  //       setLoading(true);
+  
+  //       // Fetch meal plans for the given date
+  //       const mealPlans = await fetchMealPlansByDate(planned_date);
+
+  //       const relevantPlans = mealPlans.filter(
+  //         (meal) => meal.meal_type_id === meal_type_id
+  //       );
+
+  //       console.log("Relevant Meal Plans:", relevantPlans);
+  //       setMealPlans(relevantPlans); // Store meal plans in state
+  
+  //       if (relevantPlans.length === 0) {
+  //         console.warn("No meal plans found for the given date and meal type.");
+  //         setRecipes([]);
+  //         // setMergedIngredients([]);
+  //         setIngredients([]);
+  //         return;
+  //       }
+  
+  //       // Fetch recipes by IDs
+  //       const recipeIds = relevantPlans.map((meal) => meal.recipe_id);
+  //       const fetchedRecipes = await fetchRecipesByIds(recipeIds);
+  //       setRecipes(fetchedRecipes);
+  
+  //       // Fetch ingredients for each recipe
+  //       // const allIngredients = [];
+  //       // for (const recipe of fetchedRecipes) {
+  //       //   const ingredientsData = await fetchRecipeIngredients(recipe.id);
+  //       //   allIngredients.push(
+  //       //     ...ingredientsData.map((ingredient) => ({
+  //       //       ...ingredient,
+  //       //       recipeId: recipe.id,
+  //       //     }))
+  //       //   );
+  //       // }
+
+  //       // Fetch ingredients for each recipe
+  //       const recipeIngredients = await Promise.all(
+  //         fetchedRecipes.map(async (recipe) => {
+  //           const ingredientsData = await fetchRecipeIngredients(recipe.id);
+  //           return { recipeId: recipe.id, ingredients: ingredientsData };
+  //         })
+  //       );
+  
+  //       // Fetch inventory meal plan data
+  //       const mealPlanIds = relevantPlans.map((plan) => plan.id);
+  //       // console.log("Meal Plan IDs:JJJJJJJJ", mealPlanIds);
+  //       setMealPlanIds(mealPlanIds);
+  //       const inventoryMealPlanData = await fetchInventoryMealPlanByMealPlanId(mealPlanIds);
+  
+  //       // console.log("Fetched Inventory Meal Plan Data:", inventoryMealPlanData);
+  
+  //       setIngredients(recipeIngredients);
+  //     } catch (error) {
+  //       console.error("Error loading data:", error.message);
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
+  
+  //   if (planned_date && meal_type_id) {
+  //     loadData();
+  //   }
+  // }, [
+  //   planned_date,
+  //   meal_type_id,
+  //   fetchMealPlansByDate,
+  //   fetchRecipesByIds,
+  //   fetchRecipeIngredients,
+  //   fetchInventoryMealPlanByMealPlanId,
+  //   refreshCounter, // Trigger re-fetch when refreshCounter changes
+  // ]);
+
+  // useEffect(() => {
+  //   if (selectedInventory.length > 0) {
+  //     assignToRecipes();
+  //   }
+  // }, [selectedInventory]);
+  
+  // useEffect(() => {
+  //   if (exceedAmount > 0) {
+  //     autoAllocateExceed(); // Automatically allocate exceed amount
+  //   }
+  // }, [exceedAmount]); // Dependency array includes exceedAmount
+
+  // useEffect(() => {
+  //   const fetchData = async () => {
+  //     const inventoryData = await fetchInventoryData({
+  //       plannedDate: planned_date, // Or mealPlanIds if available
+  //     });
+  //     setInventoryData(inventoryData);
+  //     console.log("Inventory Data:", inventoryData);
+  //   };
+  
+  //   fetchData();
+  // }, [planned_date]);
+  
   useEffect(() => {
     const loadData = async () => {
       try {
         setLoading(true);
   
-        // Fetch meal plans for the given date
-        const mealPlans = await fetchMealPlansByDate(planned_date);
-
+        // Fetch meal plans and inventory data
+        const [mealPlans, inventoryData] = await Promise.all([
+          fetchMealPlansByDate(planned_date),
+          fetchInventoryData({ plannedDate: planned_date }),
+        ]);
+  
+        // Filter relevant meal plans
         const relevantPlans = mealPlans.filter(
           (meal) => meal.meal_type_id === meal_type_id
         );
-
         console.log("Relevant Meal Plans:", relevantPlans);
-        setMealPlans(relevantPlans); // Store meal plans in state
+        setMealPlans(relevantPlans);
   
         if (relevantPlans.length === 0) {
           console.warn("No meal plans found for the given date and meal type.");
           setRecipes([]);
           // setMergedIngredients([]);
           setIngredients([]);
+          setInventoryData(inventoryData);
           return;
         }
   
@@ -88,35 +195,24 @@ const RecipePreparationPage = () => {
         const fetchedRecipes = await fetchRecipesByIds(recipeIds);
         setRecipes(fetchedRecipes);
   
-        // Fetch ingredients for each recipe
-        // const allIngredients = [];
-        // for (const recipe of fetchedRecipes) {
-        //   const ingredientsData = await fetchRecipeIngredients(recipe.id);
-        //   allIngredients.push(
-        //     ...ingredientsData.map((ingredient) => ({
-        //       ...ingredient,
-        //       recipeId: recipe.id,
-        //     }))
-        //   );
-        // }
-
-        // Fetch ingredients for each recipe
+        // Fetch ingredients for recipes
         const recipeIngredients = await Promise.all(
           fetchedRecipes.map(async (recipe) => {
             const ingredientsData = await fetchRecipeIngredients(recipe.id);
             return { recipeId: recipe.id, ingredients: ingredientsData };
           })
         );
-  
+        setIngredients(recipeIngredients);
+        
         // Fetch inventory meal plan data
         const mealPlanIds = relevantPlans.map((plan) => plan.id);
-        // console.log("Meal Plan IDs:JJJJJJJJ", mealPlanIds);
+        console.log("Meal Plan IDs:", mealPlanIds);
         setMealPlanIds(mealPlanIds);
+
         const inventoryMealPlanData = await fetchInventoryMealPlanByMealPlanId(mealPlanIds);
-  
-        // console.log("Fetched Inventory Meal Plan Data:", inventoryMealPlanData);
-  
-        setIngredients(recipeIngredients);
+        console.log("Inventory Meal Plan Data:", inventoryMealPlanData);
+
+        setInventoryData(inventoryData);
       } catch (error) {
         console.error("Error loading data:", error.message);
       } finally {
@@ -133,8 +229,23 @@ const RecipePreparationPage = () => {
     fetchMealPlansByDate,
     fetchRecipesByIds,
     fetchRecipeIngredients,
-    fetchInventoryMealPlanByMealPlanId,
+    fetchInventoryData,
+    refreshCounter,
   ]);
+  
+  // Handle selected inventory changes
+  useEffect(() => {
+    if (selectedInventory.length > 0) {
+      assignToRecipes();
+    }
+  }, [selectedInventory]);
+  
+  // Handle exceed amount changes
+  useEffect(() => {
+    if (exceedAmount > 0) {
+      autoAllocateExceed();
+    }
+  }, [exceedAmount]);
   
   const toggleCombineIngredients = () => {
     setIsCombined(!isCombined);
@@ -249,11 +360,13 @@ const RecipePreparationPage = () => {
     return updatedInventory;
   };
   
-  const handleIngredientClick = async (ingredient) => {
+  const handleIngredientClick = async (ingredient, recipeId) => {
     try {
       // setSelectedIngredient(null); // Clear previous selection
+      console.log("recipe id",recipeId )
 
       setSelectedIngredient(ingredient); // Set selected ingredient first
+      // setSelectedIngredient({ ...ingredient, recipeId }); // Store recipeId in state
       setInventoryItems([]); // Reset inventory items
       setSelectedInventory([]); // Reset selected inventory
       setAdjustingQuantity(false); // Reset adjusting state
@@ -270,9 +383,12 @@ const RecipePreparationPage = () => {
 
       // Filter inventory meal plan data for the current ingredient
       const linkedInventory = inventoryMealPlanData.filter(
-        (item) => item.inventory.ingredient_id === ingredient.ingredients.id
+        (item) =>
+          item.inventory.ingredient_id === ingredient.ingredients.id &&
+          item.meal_plan?.recipe_id === recipeId // Safely access recipe_id
+          // item.inventory.ingredient_id === ingredient.ingredients.id &&
+          // item.meal_plan?.recipe_id === recipeId // Safely access recipe_id
       );
-
 
       // console.log("Linked Inventory from Meal Plan:", linkedInventory);
 
@@ -390,11 +506,9 @@ const RecipePreparationPage = () => {
     console.log("Total Selected Quantity:", totalSelectedQuantity);
   
     // Validation for capped and uncapped
-    if ((!capped && currentlySelected.length === 0) || (capped && totalSelectedQuantity < selectedIngredient.quantity)) {
+    if ((currentlySelected.length === 0) || (totalSelectedQuantity < selectedIngredient.quantity)) {
       alert(
-        `You must select at least ${
-          capped ? `${selectedIngredient.quantity} ${selectedIngredient.ingredients.unit?.unit_tag || ""}` : "one item"
-        } to proceed. Now you have selected ${totalSelectedQuantity} ${selectedIngredient.ingredients.unit?.unit_tag || ""}.`
+        `You must select at least ${ "one item"} to proceed. Now you have selected ${totalSelectedQuantity} ${selectedIngredient.ingredients.unit?.unit_tag || ""}.`
   
       );
       return;
@@ -440,7 +554,7 @@ const RecipePreparationPage = () => {
         return item;
       });
   
-      if (capped && totalSelected > target) {
+      if (totalSelected > target) {
         // If capped and total exceeds the target, redistribute excess
         const excess = totalSelected - target;
         // alert(
@@ -479,16 +593,16 @@ const RecipePreparationPage = () => {
         return item;
       });
   
-      if (capped) {
-        const total = updatedInventory.reduce((sum, item) => sum + item.selectedQuantity, 0);
+      // if (capped) {
+      //   const total = updatedInventory.reduce((sum, item) => sum + item.selectedQuantity, 0);
   
-        if (total > target) {
-          const excess = total - target;
-          return redistributeExcessToMaintainTarget(updatedInventory, itemId, excess);
-        }
+      //   if (total > target) {
+      //     const excess = total - target;
+      //     return redistributeExcessToMaintainTarget(updatedInventory, itemId, excess);
+      //   }
   
-        return updatedInventory; // Allow setting when within or exactly at the target
-      }
+      //   return updatedInventory; // Allow setting when within or exactly at the target
+      // }
   
       // Allow unrestricted input in uncapped mode
       return updatedInventory;
@@ -591,7 +705,8 @@ const RecipePreparationPage = () => {
       setSelectedInventory([]); // Reset inventory
       setAdjustingQuantity(false); // Exit adjusting mode
   
-      alert("Quantities successfully logged to the console!");
+      // alert("Quantities successfully logged to the console!");
+      setRefreshCounter((prev) => prev + 1);
     } catch (err) {
       console.error("Error finalizing quantities:", err.message);
       alert("Failed to finalize quantities. Please try again.");
@@ -673,7 +788,8 @@ const RecipePreparationPage = () => {
       setSelectedInventory([]); // Reset inventory
       setAdjustingQuantity(false); // Exit adjusting mode
   
-      alert("Quantities successfully updated!");
+      // alert("Quantities successfully updated!");
+      setRefreshCounter((prev) => prev + 1);
     } catch (err) {
       console.error("Error updating quantities:", err.message);
       alert("Failed to update quantities. Please try again.");
@@ -696,7 +812,7 @@ const RecipePreparationPage = () => {
       }
   
       console.log("Deleted inventory:", data);
-      alert("Inventory item deleted successfully!");
+      // alert("Inventory item deleted successfully!");
   
       // Optionally, refresh the data or update the UI
       const updatedLinkedInventory = linkedInventory.filter(
@@ -706,6 +822,7 @@ const RecipePreparationPage = () => {
           item.ingredient_id !== ingredientId
       );
       setLinkedInventory(updatedLinkedInventory);
+      setRefreshCounter((prev) => prev + 1);
     } catch (err) {
       console.error("Unexpected error deleting inventory:", err.message);
       alert("Failed to delete the inventory item. Please try again.");
@@ -736,29 +853,7 @@ const RecipePreparationPage = () => {
     setMergedIngredients(updatedMergedIngredients);
   };
   
-  useEffect(() => {
-    if (selectedInventory.length > 0) {
-      assignToRecipes();
-    }
-  }, [selectedInventory]);
-  
-  useEffect(() => {
-    if (exceedAmount > 0) {
-      autoAllocateExceed(); // Automatically allocate exceed amount
-    }
-  }, [exceedAmount]); // Dependency array includes exceedAmount
 
-  useEffect(() => {
-    const fetchData = async () => {
-      const inventoryData = await fetchInventoryData({
-        plannedDate: planned_date, // Or mealPlanIds if available
-      });
-      setInventoryData(inventoryData);
-      console.log("Inventory Data:", inventoryData);
-    };
-  
-    fetchData();
-  }, [planned_date]);
   
 
   // const handleToggleCapped = () => {
@@ -983,24 +1078,6 @@ const RecipePreparationPage = () => {
           </p>
           <div>
             <h3>Ingredients</h3>
-            {/* <ul>
-              {recipeIngredients.map((ingredient, index) => (
-                <li
-                  key={index}
-                  onClick={() => handleIngredientClick(ingredient)}
-                  style={{
-                    cursor: "pointer",
-                    color: "blue",
-                    fontWeight: "bold",
-                    fontSize: "16px",
-                  }}
-                >
-                  {ingredient.ingredients.name} - {ingredient.quantity}{" "}
-                  {ingredient.ingredients.unit?.unit_tag || ""}
-                </li>
-              ))}
-            </ul> */}
-
             <ul>
               {recipeIngredients.map((ingredient, index) => {
                 // Map `mealPlanId` to the corresponding ingredient
@@ -1022,7 +1099,8 @@ const RecipePreparationPage = () => {
                 return (
                   <li
                     key={index}
-                    onClick={() => handleIngredientClick(ingredient)}
+                    // onClick={() => handleIngredientClick(ingredient)}
+                    onClick={() => handleIngredientClick(ingredient, recipe.id)}
                     style={{
                       cursor: "pointer",
                       color: "blue",
@@ -1035,7 +1113,9 @@ const RecipePreparationPage = () => {
                     {ingredient.ingredients.unit?.unit_tag || ""}
 
                     {/* Check and display inventory data if exists */}
-                    {linkedInventory.length > 0 && (
+                    {/* {linkedInventory.length > 0 && ( */}
+                    {linkedInventory
+                    .filter((inventory) => inventory.meal_plan.recipe_id === recipe.id).length > 0 && (
                       <div
                         style={{
                           marginTop: "10px",
@@ -1086,7 +1166,9 @@ const RecipePreparationPage = () => {
                             Delete All
                           </button>
                         </h4>
-                        {linkedInventory.map((inventory) => (
+                        {linkedInventory
+                        .filter((inventory) => inventory.meal_plan.recipe_id === recipe.id) 
+                        .map((inventory) => (
                           <div
                             key={inventory.id}
                             style={{
@@ -1405,7 +1487,7 @@ const RecipePreparationPage = () => {
                 )}
 
                 {/* Exceed Section */}
-                {!capped && (
+                {/* {!capped && (
                   <div style={{ marginTop: "20px" }}>
                     <h4>Exceed Amount:</h4>
                     <p>
@@ -1417,7 +1499,6 @@ const RecipePreparationPage = () => {
                       {selectedIngredient.ingredients.unit?.unit_tag || ""}
                     </p>
 
-                    {/* Recipes Allocation for Exceed */}
                     <h4>Allocate Exceed Amount</h4>
                     <ul>
                       {selectedIngredient.recipes.map((recipe, index) => (
@@ -1514,7 +1595,7 @@ const RecipePreparationPage = () => {
                       Auto Adjust Exceed Quantities
                     </button>
                   </div>
-                )}
+                )} */}
 
               </>
             )}

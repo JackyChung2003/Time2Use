@@ -460,6 +460,11 @@ const fetchRecipes = async () => {
         .select(`
           inventory_id, 
           meal_plan_id, 
+          meal_plan (
+            recipe_id,
+            meal_type_id,
+            planned_date
+          ),
           used_quantity, 
           status_id, 
           inventory_meal_plan_status (
@@ -544,6 +549,11 @@ const fetchRecipes = async () => {
       let query = supabase.from("inventory_meal_plan").select(`
         inventory_id,
         meal_plan_id,
+        meal_plan (
+          recipe_id,
+          meal_type_id,
+          planned_date
+        ),
         used_quantity,
         status_id,
         inventory_meal_plan_status (name, description),
