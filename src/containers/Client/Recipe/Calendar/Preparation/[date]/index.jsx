@@ -57,6 +57,9 @@ const RecipePreparationPage = () => {
   const [mealPlans, setMealPlans] = useState([]); // Store meal plans
   const [inventoryData, setInventoryData] = useState([]); // Store inventory data
 
+  const [linkedInventory, setLinkedInventory] = useState([]); // For storing the inventory
+  const [isUpdateMode, setIsUpdateMode] = useState(false); // Track if Update or Finalize mode
+
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -270,13 +273,16 @@ const RecipePreparationPage = () => {
         (item) => item.inventory.ingredient_id === ingredient.ingredients.id
       );
 
+
       // console.log("Linked Inventory from Meal Plan:", linkedInventory);
 
       let allocatedInventory;
       if (linkedInventory.length > 0) {
         allocatedInventory = preselectLinkedInventory(linkedInventory, inventory);
+        setIsUpdateMode(true); // Set update mode
       } else {
         allocatedInventory = allocateInventoryFIFO(ingredient, inventory);
+        setIsUpdateMode(false); // Set finalize mode
       }
       // if (linkedInventory.length > 0) {
       //   // // Preselect linked inventory and proceed to adjust quantities
@@ -515,7 +521,7 @@ const RecipePreparationPage = () => {
     });
   };
   
-  const finalizeQuantities = async () => {
+  const handleFinalizeQuantities = async () => {
     try {
       // Check if selectedIngredient and selectedInventory are valid
       if (!selectedIngredient || !selectedInventory || selectedInventory.length === 0) {
@@ -523,8 +529,6 @@ const RecipePreparationPage = () => {
         return;
       }
 
-      
-  
       // Filter out entries with used_quantity === 0
       const filteredInventory = selectedInventory.filter((item) => item.selectedQuantity > 0);
   
@@ -593,6 +597,88 @@ const RecipePreparationPage = () => {
     } catch (err) {
       console.error("Error finalizing quantities:", err.message);
       alert("Failed to finalize quantities. Please try again.");
+    }
+  };
+
+  const handleUpdateQuantities = async () => {
+    try {
+      // Check if selectedIngredient and selectedInventory are valid
+      if (!selectedIngredient || !selectedInventory || selectedInventory.length === 0) {
+        console.warn("Ingredient or inventory selection is missing.");
+        return;
+      }
+  
+      // Filter out entries with used_quantity === 0
+      const filteredInventory = selectedInventory.filter((item) => item.selectedQuantity > 0);
+  
+      if (filteredInventory.length === 0) {
+        alert("No valid inventory selected. Please select quantities to proceed.");
+        return;
+      }
+  
+      // Log filtered inventory
+      console.log("Filtered Inventory:", filteredInventory);
+  
+      // Use the `enrichInventory` function to enrich the inventory
+      const enrichedInventory = await enrichInventory(
+        filteredInventory,
+        selectedIngredient,
+        planned_date
+      );
+  
+      // Log enriched inventory for debugging
+      console.log("Enriched Inventory for Update:", enrichedInventory);
+  
+      // Log other key details
+      console.log("Selected Ingredient for Update:", selectedIngredient);
+      console.log("Meal Plan IDs for Update:", mealPlanIds);
+      console.log("Selected Inventory for Update:", selectedInventory);
+      console.log("Ingredient ID for Update:", selectedIngredient.ingredients.id);
+  
+      // Update rows based on `meal_plan_id`, `inventory_id`, and `ingredient_id`
+      const updatePromises = enrichedInventory.map((item) => {
+        console.log("Updating row with the following details:", {
+          meal_plan_id: item.meal_plan_id,
+          inventory_id: item.inventory_id,
+          ingredient_id: selectedIngredient.ingredients.id,
+          used_quantity: item.selectedQuantity,
+        });
+  
+        return supabase
+          .from("inventory_meal_plan")
+          .update({
+            used_quantity: item.selectedQuantity,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("meal_plan_id", item.meal_plan_id) // Match meal_plan_id
+          .eq("inventory_id", item.id) // Match inventory_id
+          .eq("ingredient_id", selectedIngredient.ingredients.id); // Match ingredient_id
+      });
+  
+      // Execute all update promises
+      const results = await Promise.all(updatePromises);
+  
+      // Log results of the updates
+      results.forEach(({ data, error }, index) => {
+        if (error) {
+          console.error(`Error updating row ${index + 1}:`, error.message);
+        } else {
+          console.log(`Update successful for row ${index + 1}:`, data);
+        }
+      });
+  
+      // Log success message
+      console.log("Updated Quantities Successfully using meal_plan_id, inventory_id, and ingredient_id!");
+  
+      // Reset states after processing
+      setSelectedIngredient(null); // Close modal
+      setSelectedInventory([]); // Reset inventory
+      setAdjustingQuantity(false); // Exit adjusting mode
+  
+      alert("Quantities successfully updated!");
+    } catch (err) {
+      console.error("Error updating quantities:", err.message);
+      alert("Failed to update quantities. Please try again.");
     }
   };
   
@@ -974,25 +1060,6 @@ const RecipePreparationPage = () => {
                             <button
                               onClick={(e) => {
                                 e.stopPropagation(); // Prevent triggering the parent onClick
-
-                                // Call a function to handle the edit action
-                                handleEditInventory(inventory);
-                              }}
-                              style={{
-                                padding: "5px 10px",
-                                backgroundColor: "#007bff",
-                                color: "white",
-                                border: "none",
-                                borderRadius: "5px",
-                                cursor: "pointer",
-                                marginRight: "5px",
-                              }}
-                            >
-                              Edit
-                            </button>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation(); // Prevent triggering the parent onClick
                                 // handleDeleteInventory(inventory.id);
                               }}
                               style={{
@@ -1224,7 +1291,7 @@ const RecipePreparationPage = () => {
                   Auto Adjust Quantities
                 </button>
 
-                <button
+                {/* <button
                   onClick={finalizeQuantities}
                   style={{
                     marginTop: "10px",
@@ -1235,7 +1302,34 @@ const RecipePreparationPage = () => {
                   }}
                 >
                   Finalize Quantities
-                </button>
+                </button> */}
+                {isUpdateMode ? (
+                  <button
+                    onClick={handleUpdateQuantities}
+                    style={{
+                      padding: "10px 20px",
+                      background: "blue",
+                      color: "white",
+                      borderRadius: "5px",
+                      marginTop: "20px",
+                    }}
+                  >
+                    Update Quantities
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleFinalizeQuantities}
+                    style={{
+                      padding: "10px 20px",
+                      background: "green",
+                      color: "white",
+                      borderRadius: "5px",
+                      marginTop: "20px",
+                    }}
+                  >
+                    Finalize Quantities
+                  </button>
+                )}
 
                 {/* Exceed Section */}
                 {!capped && (
