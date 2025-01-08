@@ -161,7 +161,8 @@ const fetchRecipes = async () => {
                   conversion_rate_to_grams 
                 )
               ),
-              quantity
+              quantity,
+              recipe_id
             `)
             .eq("recipe_id", recipeId);
             
@@ -517,7 +518,9 @@ const fetchRecipes = async () => {
             .from("meal_plan")
             .select("id")
             .eq("planned_date", planned_date) // Use the planned_date context
-            .eq("recipe_id", selectedIngredient.recipes[0]?.recipeId || null)
+            // .eq("recipe_id", selectedIngredient.recipes[0]?.recipeId || null)
+            // .eq("recipe_id", recipeId)
+            .eq("recipe_id", selectedIngredient.recipe_id)
             .limit(1) // Assume one-to-one mapping
             .single();
   
