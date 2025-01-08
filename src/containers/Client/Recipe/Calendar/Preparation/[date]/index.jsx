@@ -35,14 +35,12 @@ const RecipePreparationPage = () => {
   const [showModal, setShowModal] = useState(false);
 
   const [ingredients, setIngredients] = useState([]);
-  const [steps, setSteps] = useState([]);
   const [mergedIngredients, setMergedIngredients] = useState([]);
   // const [isCombined, setIsCombined] = useState(true);
 
 
   const [selectedIngredient, setSelectedIngredient] = useState(null);
   const [inventoryItems, setInventoryItems] = useState([]);
-  const [capped, setCapped] = useState(true); // To toggle capped/uncapped mode
 
   const [selectedInventory, setSelectedInventory] = useState([]); // State to track selected inventory items
   const [adjustingQuantity, setAdjustingQuantity] = useState(false); // Add this state
@@ -53,7 +51,6 @@ const RecipePreparationPage = () => {
       (selectedIngredient?.quantity || 0)
   );
   
-  
   const [mealPlanIds, setMealPlanIds] = useState([]);// Add a global state for requiredQuantity
   const [requiredQuantity, setRequiredQuantity] = useState(null);
   const [mealPlans, setMealPlans] = useState([]); // Store meal plans
@@ -61,107 +58,6 @@ const RecipePreparationPage = () => {
 
   const [linkedInventory, setLinkedInventory] = useState([]); // For storing the inventory
   const [isUpdateMode, setIsUpdateMode] = useState(false); // Track if Update or Finalize mode
-
-  // useEffect(() => {
-  //   const loadData = async () => {
-  //     try {
-  //       setLoading(true);
-  
-  //       // Fetch meal plans for the given date
-  //       const mealPlans = await fetchMealPlansByDate(planned_date);
-
-  //       const relevantPlans = mealPlans.filter(
-  //         (meal) => meal.meal_type_id === meal_type_id
-  //       );
-
-  //       console.log("Relevant Meal Plans:", relevantPlans);
-  //       setMealPlans(relevantPlans); // Store meal plans in state
-  
-  //       if (relevantPlans.length === 0) {
-  //         console.warn("No meal plans found for the given date and meal type.");
-  //         setRecipes([]);
-  //         // setMergedIngredients([]);
-  //         setIngredients([]);
-  //         return;
-  //       }
-  
-  //       // Fetch recipes by IDs
-  //       const recipeIds = relevantPlans.map((meal) => meal.recipe_id);
-  //       const fetchedRecipes = await fetchRecipesByIds(recipeIds);
-  //       setRecipes(fetchedRecipes);
-  
-  //       // Fetch ingredients for each recipe
-  //       // const allIngredients = [];
-  //       // for (const recipe of fetchedRecipes) {
-  //       //   const ingredientsData = await fetchRecipeIngredients(recipe.id);
-  //       //   allIngredients.push(
-  //       //     ...ingredientsData.map((ingredient) => ({
-  //       //       ...ingredient,
-  //       //       recipeId: recipe.id,
-  //       //     }))
-  //       //   );
-  //       // }
-
-  //       // Fetch ingredients for each recipe
-  //       const recipeIngredients = await Promise.all(
-  //         fetchedRecipes.map(async (recipe) => {
-  //           const ingredientsData = await fetchRecipeIngredients(recipe.id);
-  //           return { recipeId: recipe.id, ingredients: ingredientsData };
-  //         })
-  //       );
-  
-  //       // Fetch inventory meal plan data
-  //       const mealPlanIds = relevantPlans.map((plan) => plan.id);
-  //       // console.log("Meal Plan IDs:JJJJJJJJ", mealPlanIds);
-  //       setMealPlanIds(mealPlanIds);
-  //       const inventoryMealPlanData = await fetchInventoryMealPlanByMealPlanId(mealPlanIds);
-  
-  //       // console.log("Fetched Inventory Meal Plan Data:", inventoryMealPlanData);
-  
-  //       setIngredients(recipeIngredients);
-  //     } catch (error) {
-  //       console.error("Error loading data:", error.message);
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   };
-  
-  //   if (planned_date && meal_type_id) {
-  //     loadData();
-  //   }
-  // }, [
-  //   planned_date,
-  //   meal_type_id,
-  //   fetchMealPlansByDate,
-  //   fetchRecipesByIds,
-  //   fetchRecipeIngredients,
-  //   fetchInventoryMealPlanByMealPlanId,
-  //   refreshCounter, // Trigger re-fetch when refreshCounter changes
-  // ]);
-
-  // useEffect(() => {
-  //   if (selectedInventory.length > 0) {
-  //     assignToRecipes();
-  //   }
-  // }, [selectedInventory]);
-  
-  // useEffect(() => {
-  //   if (exceedAmount > 0) {
-  //     autoAllocateExceed(); // Automatically allocate exceed amount
-  //   }
-  // }, [exceedAmount]); // Dependency array includes exceedAmount
-
-  // useEffect(() => {
-  //   const fetchData = async () => {
-  //     const inventoryData = await fetchInventoryData({
-  //       plannedDate: planned_date, // Or mealPlanIds if available
-  //     });
-  //     setInventoryData(inventoryData);
-  //     console.log("Inventory Data:", inventoryData);
-  //   };
-  
-  //   fetchData();
-  // }, [planned_date]);
   
   useEffect(() => {
     const loadData = async () => {
@@ -247,10 +143,6 @@ const RecipePreparationPage = () => {
     }
   }, [exceedAmount]);
   
-  const toggleCombineIngredients = () => {
-    setIsCombined(!isCombined);
-  };
-
   const startCooking = () => {
     setShowModal(true);
   };
@@ -400,36 +292,6 @@ const RecipePreparationPage = () => {
         allocatedInventory = allocateInventoryFIFO(ingredient, inventory);
         setIsUpdateMode(false); // Set finalize mode
       }
-      // if (linkedInventory.length > 0) {
-      //   // // Preselect linked inventory and proceed to adjust quantities
-      //   // const allocatedInventory = linkedInventory.map((item) => ({
-      //   //   ...item,
-      //   //   selectedQuantity: item.used_quantity, // Use the already-used quantity
-      //   //   preselected: true, // Mark as preselected
-      //   // }));
-
-      //   // Use the new function to preselect linked inventory
-      //   // const allocatedInventory = preselectLinkedInventory(linkedInventory);
-      //   const allocatedInventory = preselectLinkedInventory(linkedInventory, inventory);
-
-      //   // console.log("Preselected Inventory:", allocatedInventory);
-
-      //   setSelectedIngredient(ingredient);
-      //   setInventoryItems(inventory); // Full inventory list
-      //   setSelectedInventory(allocatedInventory); // Preselected items
-      //   setRequiredQuantity(ingredient.quantity); // Set global requiredQuantity
-      //   setAdjustingQuantity(true); // Skip to adjust quantities
-      // } else {
-      //   // If no linked inventory, proceed with FIFO allocation
-      //   const allocatedInventory = allocateInventoryFIFO(ingredient, inventory);
-
-      //   // console.log("Allocated Inventory:", allocatedInventory);
-
-      //   setSelectedIngredient(ingredient);
-      //   setInventoryItems(inventory); // Full inventory list
-      //   setSelectedInventory(allocatedInventory); // Include preselected suggestions
-      //   setRequiredQuantity(ingredient.quantity); // Set global requiredQuantity
-      // }
 
       // Merge previously selected quantities if already in state
       const updatedInventory = allocatedInventory.map((item) => {
@@ -480,17 +342,6 @@ const RecipePreparationPage = () => {
           preselected: true, // Mark as preselected
         },
       ];
-       // If not selected, add to selectedInventory
-      // const newSelection = [
-      //   ...prevSelected,
-      //   {
-      //     ...item,
-      //     selectedQuantity: item.selectedQuantity || 0, // Default to a small quantity if none exists
-      //     preselected: true, // Mark as preselected
-      //   },
-      // ];
-      // console.log("After toggle on:", newSelection);
-      // return newSelection;
     });
   };
 
