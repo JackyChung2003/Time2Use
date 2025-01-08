@@ -1052,12 +1052,146 @@ const RecipePreparationPage = () => {
     });
   };
 
+  const handleAutoDistribute = async () => {
+    try {
+      // Iterate through all recipes and their respective ingredients
+      for (const recipe of recipes) {
+        const recipeIngredients = ingredients.find((ri) => ri.recipeId === recipe.id)?.ingredients || [];
+  
+        for (const ingredient of recipeIngredients) {
+          // Simulate handleIngredientClick
+          const inventory = await fetchUserInventory(ingredient.ingredients.id);
+          const linkedInventory = (await fetchInventoryMealPlanByMealPlanId(mealPlanIds)).filter(
+            (item) =>
+              item.inventory.ingredient_id === ingredient.ingredients.id &&
+              item.meal_plan?.recipe_id === recipe.id
+          );
+  
+          let allocatedInventory;
+          if (linkedInventory.length > 0) {
+            allocatedInventory = preselectLinkedInventory(linkedInventory, inventory);
+          } else {
+            allocatedInventory = allocateInventoryFIFO(ingredient, inventory);
+          }
+  
+          // Prepare the selected inventory and finalize
+          const enrichedInventory = allocatedInventory.map((item) => ({
+            ...item,
+            selectedQuantity: item.selectedQuantity || 0, // Ensure proper quantity
+            preselected: true,
+          }));
+  
+          setSelectedIngredient(ingredient); // Track the current ingredient for updates
+          setSelectedInventory(enrichedInventory); // Update the selected inventory
+  
+          // Simulate handleFinalizeQuantities for this ingredient
+          const filteredInventory = enrichedInventory.filter((item) => item.selectedQuantity > 0);
+  
+          if (filteredInventory.length > 0) {
+            const statusId = await getStatusIdByName("Planning");
+            const enrichedData = await enrichInventory(
+              filteredInventory,
+              ingredient,
+              planned_date
+            );
+  
+            const dataToInsert = enrichedData.map((item) => ({
+              inventory_id: item.id,
+              meal_plan_id: item.meal_plan_id,
+              used_quantity: item.selectedQuantity,
+              status_id: statusId,
+              created_at: new Date().toISOString(),
+              ingredient_id: ingredient.ingredients.id,
+            }));
+  
+            const { error } = await supabase.from("inventory_meal_plan").insert(dataToInsert);
+            if (error) {
+              throw error;
+            }
+          }
+        }
+      }
+  
+      // Refresh the page after all distributions
+      setRefreshCounter((prev) => prev + 1);
+      alert("All ingredients have been auto-distributed!");
+    } catch (error) {
+      console.error("Error during auto distribution:", error.message);
+      alert("Failed to auto-distribute inventory. Please try again.");
+    }
+  };
+
+  const handleDeleteAll = async () => {
+    try {
+      // Ensure we have meal plans to process
+      if (!mealPlanIds || mealPlanIds.length === 0) {
+        alert("No meal plans found to delete inventory allocations.");
+        return;
+      }
+  
+      // Confirm deletion with the user
+      const confirmDelete = window.confirm(
+        "Are you sure you want to delete all inventory allocations for this meal plan? This action cannot be undone."
+      );
+      if (!confirmDelete) return;
+  
+      // Delete all linked inventory for the current meal plan
+      const { data, error } = await supabase
+        .from("inventory_meal_plan")
+        .delete()
+        .in("meal_plan_id", mealPlanIds); // Match all meal plan IDs in the list
+  
+      if (error) {
+        throw error;
+      }
+  
+      console.log("Deleted inventory allocations:", data);
+  
+      // Optionally, refresh the data or update the UI
+      setLinkedInventory([]); // Clear linked inventory state
+      setRefreshCounter((prev) => prev + 1); // Trigger a refresh
+      alert("All inventory allocations have been deleted successfully.");
+    } catch (err) {
+      console.error("Error deleting all inventory allocations:", err.message);
+      alert("Failed to delete all inventory allocations. Please try again.");
+    }
+  };
+  
+  
+
   return (
     <div className="recipe-preparation-page">
       <BackButton onClick={() => navigate(-1)} />
       <h1>Recipe Preparation</h1>
       <h3>Date: {planned_date}</h3>
       <h3>Meal Type: {mealTypes.find((type) => type.id === meal_type_id)?.name || "Unknown"}</h3>
+
+      <button
+        onClick={handleAutoDistribute}
+        style={{
+          padding: "10px 20px",
+          background: "purple",
+          color: "white",
+          borderRadius: "5px",
+          marginTop: "20px",
+        }}
+      >
+        Auto Distribute All
+      </button>
+
+      <button
+        onClick={handleDeleteAll}
+        style={{
+          padding: "10px 20px",
+          background: "red",
+          color: "white",
+          borderRadius: "5px",
+          marginTop: "20px",
+        }}
+      >
+        Delete All
+      </button>
+
       
       {recipes.map((recipe) => {
       const recipeIngredients = ingredients.find((ri) => ri.recipeId === recipe.id)?.ingredients || [];
