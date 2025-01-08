@@ -79,7 +79,7 @@ const AdminDashboard = () => {
             // Upload the icon
             const { data: iconUploadData, error: iconError } = await supabase.storage
                 .from("ingredient-icons")
-                .upload(icons/${icon.name}, icon, { upsert: true });
+                .upload(`${`icons/${icon.name}`}`, icon, { upsert: true });
 
             if (iconError) throw iconError;
 
