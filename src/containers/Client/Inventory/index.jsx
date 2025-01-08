@@ -162,7 +162,6 @@ const Inventory = () => {
     setPendingSwipe({ id: item.id, action });  // Store pending swipe action
   };
   
-
   return (
     <div className="inventory-container">
       <input
@@ -176,7 +175,7 @@ const Inventory = () => {
       {/* Title */}
       <div className="tracker-header">
         <img
-          src="/image/filter-icon.png" 
+          src="src/assets/images/filter-icon.png" 
           alt="Filter Icon" 
           className="filter-icon"
           onClick={handleFilterClick}
@@ -325,17 +324,31 @@ const Item = ({
           </div>
           <div className="text-section">
             <div className="item-name">{item.name}</div>
-            <div className={item.daysLeft == null ? 'item-days shelf-life' : 'item-days'}>
-              {item.daysLeft != null ? `${item.daysLeft}d left` : null}
+            <div className="item-days">
+              {item.expiryDate == null ? (
+                <>
+                  {/* Display predicted shelf life when expiryDate is null */}
+                  <div
+                    className={`shelf-life ${expandedItems[item.id] ? 'full-text' : ''}`}
+                    onClick={() => handleClick(item.id)}
+                  >
+                    {expandedItems[item.id] ? item.pred_shelf_life : `${item.pred_shelf_life.slice(0, 20)}`}
+                  </div>
+                  {/* Display days left for items without expiry date */}
+                  {item.daysLeft != null && (
+                    <div className="days-left">
+                      Predicted {item.daysLeft}d left
+                    </div>
+                  )}
+                </>
+              ) : (
+                // Display days left if expiryDate is not null
+                <div className="days-left">
+                      {item.daysLeft}d left
+                </div>
+              )}
             </div>
-            {item.daysLeft == null && (
-              <div
-                className={`item-days shelf-life ${expandedItems[item.id] ? 'full-text' : ''}`}
-                onClick={() => handleClick(item.id)}
-              >
-                {expandedItems[item.id] ? item.pred_shelf_life : `${item.pred_shelf_life.slice(0, 20)}...`}
-              </div>
-            )}
+
           </div>
         </div>
   
@@ -351,7 +364,7 @@ const Item = ({
       {activeDropdown === item.id && (
         <div className="dropdown-box">
           <div className="date-purchased">
-            <img src="/image/date-icon.png" alt="Calendar Icon" className="date-icon" />
+            <img src="src/assets/images/date-icon.png" alt="Calendar Icon" className="date-icon" />
             Date Purchased: {new Date(item.created_at).toISOString().split('T')[0]}
           </div>
   
@@ -387,7 +400,7 @@ const Item = ({
                 />
                 <div className="quantity-unit">({item.quantity_unit})</div>
                 <img
-                  src="/image/tick-icon.png"
+                  src="src/assets/images/tick-icon.png"
                   alt="Confirm"
                   className="done-icon"
                   onClick={() => handleDoneClick(item)}
@@ -410,7 +423,7 @@ const Item = ({
           <div className="nutritional-facts">
             <h4>
               Nutritional Facts
-              <img src="/image/nutrition-facts-icon.png" alt="Nutrition Icon" className="nutrition-icon" />
+              <img src="src/assets/images/nutrition-facts-icon.png" alt="Nutrition Icon" className="nutrition-icon" />
             </h4>
             <p>
               Fat: {item.nutritionalInfo.fat}, Protein: {item.nutritionalInfo.protein},
@@ -422,7 +435,7 @@ const Item = ({
           <div className="storage-tips">
             <h4>
               Storage Tips
-              <img src="/image/yellow-bulb-icon.png" alt="Bulb Icon" className="bulb-icon" />
+              <img src="src/assets/images/yellow-bulb-icon.png" alt="Bulb Icon" className="bulb-icon" />
             </h4>
             <p>{item.storageTips}</p>
           </div>
