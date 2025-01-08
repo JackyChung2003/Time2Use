@@ -883,115 +883,137 @@ const RecipePreparationPage = () => {
               ))}
             </ul> */}
 
-<ul>
-  {recipeIngredients.map((ingredient, index) => {
-    // Map `mealPlanId` to the corresponding ingredient
-    const linkedInventory = inventoryData.filter(
-      (item) =>
-        item.inventory.ingredient_id === ingredient.ingredients.id &&
-        mealPlans.some((mealPlan) => mealPlan.id === item.meal_plan_id)
-    );
+            <ul>
+              {recipeIngredients.map((ingredient, index) => {
+                // Map `mealPlanId` to the corresponding ingredient
+                const linkedInventory = inventoryData.filter(
+                  (item) =>
+                    item.inventory.ingredient_id === ingredient.ingredients.id &&
+                    mealPlans.some((mealPlan) => mealPlan.id === item.meal_plan_id)
+                );
 
-    return (
-      <li
-        key={index}
-        onClick={() => handleIngredientClick(ingredient)}
-        style={{
-          cursor: "pointer",
-          color: "blue",
-          fontWeight: "bold",
-          fontSize: "16px",
-        }}
-      >
-        {/* Display ingredient details */}
-        {ingredient.ingredients.name} - {ingredient.quantity}{" "}
-        {ingredient.ingredients.unit?.unit_tag || ""}
+                // Calculate the total allocated quantity
+                const totalAllocated = linkedInventory.reduce(
+                  (sum, inventory) => sum + inventory.used_quantity,
+                  0
+                );
 
-        {/* Check and display inventory data if exists */}
-        {linkedInventory.length > 0 && (
-          <div
-            style={{
-              marginTop: "10px",
-              padding: "10px",
-              backgroundColor: "#f8f9fa",
-              border: "1px solid #ccc",
-              borderRadius: "5px",
-            }}
-          >
-            <h4>Linked Inventory Data</h4>
-            {linkedInventory.map((inventory) => (
-              // console.log("Inventory:", inventory),
-              <div
-                key={inventory.id}
-                style={{
-                  marginBottom: "10px",
-                  padding: "10px",
-                  border: "1px solid #ccc",
-                  borderRadius: "5px",
-                }}
-              >
-                <p>
-                  <strong>testing:</strong> {inventory.inventory.days_left}{" "}
-                </p>
-                <p>
-                  <strong>Original quantity:</strong> {inventory.inventory.init_quantity}{" "}
-                  {inventory.ingredients.unit?.unit_tag || ""}
-                </p>
-                <p>
-                  <strong>Quantity allocated:</strong> {inventory.used_quantity}{" "}
-                  {inventory.ingredients.unit?.unit_tag || ""}
-                </p>
-                <p>
-                  <strong>Expiry Date:</strong>{" "}
-                  {inventory.inventory.expiry_date.date || "No expiry date"}
-                </p>
-                <p>
-                  {inventory.inventory.days_left} days left
-                </p>
-                <p>
-                  <strong>Status:</strong> {inventory.inventory_meal_plan_status.name}
-                </p>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation(); // Prevent triggering the parent onClick
-                    navigate(`/inventory/edit/${inventory.id}`);
-                  }}
-                  style={{
-                    padding: "5px 10px",
-                    backgroundColor: "#007bff",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "5px",
-                    cursor: "pointer",
-                    marginRight: "5px",
-                  }}
-                >
-                  Edit
-                </button>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation(); // Prevent triggering the parent onClick
-                    // handleDeleteInventory(inventory.id);
-                  }}
-                  style={{
-                    padding: "5px 10px",
-                    backgroundColor: "red",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "5px",
-                    cursor: "pointer",
-                  }}
-                >
-                  Delete
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
-      </li>
-    );
-  })}
-</ul>
+                // Determine if the status is "Complete"
+                const isComplete = totalAllocated >= ingredient.quantity;
+
+                return (
+                  <li
+                    key={index}
+                    onClick={() => handleIngredientClick(ingredient)}
+                    style={{
+                      cursor: "pointer",
+                      color: "blue",
+                      fontWeight: "bold",
+                      fontSize: "16px",
+                    }}
+                  >
+                    {/* Display ingredient details */}
+                    {ingredient.ingredients.name} - {ingredient.quantity}{" "}
+                    {ingredient.ingredients.unit?.unit_tag || ""}
+
+                    {/* Check and display inventory data if exists */}
+                    {linkedInventory.length > 0 && (
+                      <div
+                        style={{
+                          marginTop: "10px",
+                          padding: "10px",
+                          backgroundColor: "#f8f9fa",
+                          border: "1px solid #ccc",
+                          borderRadius: "5px",
+                        }}
+                      >
+                        {/* <h4>Linked Inventory Data</h4> */}
+                        <h4>
+                          Linked Inventory Data{" "}
+                          <span
+                            style={{
+                              color: isComplete ? "green" : "red",
+                              fontWeight: "bold",
+                            }}
+                          >
+                            ({isComplete ? "Complete" : "Incomplete"})
+                          </span>
+                        </h4>
+                        {linkedInventory.map((inventory) => (
+                          // console.log("Inventory:", inventory),
+                          <div
+                            key={inventory.id}
+                            style={{
+                              marginBottom: "10px",
+                              padding: "10px",
+                              border: "1px solid #ccc",
+                              borderRadius: "5px",
+                            }}
+                          >
+                            <p>
+                              <strong>testing:</strong> {inventory.inventory.days_left}{" "}
+                            </p>
+                            <p>
+                              <strong>Original quantity:</strong> {inventory.inventory.init_quantity}{" "}
+                              {inventory.ingredients.unit?.unit_tag || ""}
+                            </p>
+                            <p>
+                              <strong>Quantity allocated:</strong> {inventory.used_quantity}{" "}
+                              {inventory.ingredients.unit?.unit_tag || ""}
+                            </p>
+                            <p>
+                              <strong>Expiry Date:</strong>{" "}
+                              {inventory.inventory.expiry_date.date || "No expiry date"}
+                            </p>
+                            <p>
+                              {inventory.inventory.days_left} days left
+                            </p>
+                            <p>
+                              <strong>Status:</strong> {inventory.inventory_meal_plan_status.name}
+                            </p>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation(); // Prevent triggering the parent onClick
+
+                                // Call a function to handle the edit action
+                                handleEditInventory(inventory);
+                              }}
+                              style={{
+                                padding: "5px 10px",
+                                backgroundColor: "#007bff",
+                                color: "white",
+                                border: "none",
+                                borderRadius: "5px",
+                                cursor: "pointer",
+                                marginRight: "5px",
+                              }}
+                            >
+                              Edit
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation(); // Prevent triggering the parent onClick
+                                // handleDeleteInventory(inventory.id);
+                              }}
+                              style={{
+                                padding: "5px 10px",
+                                backgroundColor: "red",
+                                color: "white",
+                                border: "none",
+                                borderRadius: "5px",
+                                cursor: "pointer",
+                              }}
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
 
 
 
