@@ -1045,8 +1045,13 @@ const RecipePreparationPage = () => {
                           borderRadius: "5px",
                         }}
                       >
-                        {/* <h4>Linked Inventory Data</h4> */}
-                        <h4>
+                        <h4
+                          style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                          }}
+                        >
                           Linked Inventory Data{" "}
                           <span
                             style={{
@@ -1056,9 +1061,32 @@ const RecipePreparationPage = () => {
                           >
                             ({isComplete ? "Complete" : "Incomplete"})
                           </span>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation(); // Prevent triggering the parent onClick
+                              // Delete all linked inventory
+                              linkedInventory.forEach((inventory) =>
+                                handleDeleteInventory(
+                                  inventory.inventory_id,
+                                  inventory.meal_plan_id,
+                                  inventory.ingredients.id
+                                )
+                              );
+                            }}
+                            style={{
+                              marginLeft: "20px",
+                              padding: "5px 10px",
+                              backgroundColor: "red",
+                              color: "white",
+                              border: "none",
+                              borderRadius: "5px",
+                              cursor: "pointer",
+                            }}
+                          >
+                            Delete All
+                          </button>
                         </h4>
                         {linkedInventory.map((inventory) => (
-                          console.log("Inventory:", inventory),
                           <div
                             key={inventory.id}
                             style={{
@@ -1068,48 +1096,25 @@ const RecipePreparationPage = () => {
                               borderRadius: "5px",
                             }}
                           >
-                            {/* <p>
-                              <strong>testing:</strong> {inventory.ingredients.id}{" "}
-                            </p> */}
                             <p>
-                              <strong>Original quantity:</strong> {inventory.inventory.init_quantity}{" "}
+                              <strong>Original quantity:</strong>{" "}
+                              {inventory.inventory.init_quantity}{" "}
                               {inventory.ingredients.unit?.unit_tag || ""}
                             </p>
                             <p>
-                              <strong>Quantity allocated:</strong> {inventory.used_quantity}{" "}
+                              <strong>Quantity allocated:</strong>{" "}
+                              {inventory.used_quantity}{" "}
                               {inventory.ingredients.unit?.unit_tag || ""}
                             </p>
                             <p>
                               <strong>Expiry Date:</strong>{" "}
                               {inventory.inventory.expiry_date.date || "No expiry date"}
                             </p>
+                            <p>{inventory.inventory.days_left} days left</p>
                             <p>
-                              {inventory.inventory.days_left} days left
+                              <strong>Status:</strong>{" "}
+                              {inventory.inventory_meal_plan_status.name}
                             </p>
-                            <p>
-                              <strong>Status:</strong> {inventory.inventory_meal_plan_status.name}
-                            </p>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation(); // Prevent triggering the parent onClick
-                                // handleDeleteInventory(inventory.id);
-                                handleDeleteInventory(
-                                  inventory.inventory_id,
-                                  inventory.meal_plan_id,
-                                  inventory.ingredients.id
-                                );
-                              }}
-                              style={{
-                                padding: "5px 10px",
-                                backgroundColor: "red",
-                                color: "white",
-                                border: "none",
-                                borderRadius: "5px",
-                                cursor: "pointer",
-                              }}
-                            >
-                              Delete
-                            </button>
                           </div>
                         ))}
                       </div>
@@ -1118,6 +1123,7 @@ const RecipePreparationPage = () => {
                 );
               })}
             </ul>
+
 
 
 
