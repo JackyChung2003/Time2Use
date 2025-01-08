@@ -332,8 +332,6 @@ const RecipePreparationPage = () => {
     }
   };
 
-  
-  
   const toggleInventorySelection = (item) => {
     console.log("Before toggle:", selectedInventory);
     setSelectedInventory((prevSelected) => {
@@ -681,6 +679,40 @@ const RecipePreparationPage = () => {
       alert("Failed to update quantities. Please try again.");
     }
   };
+
+  const handleDeleteInventory = async (inventoryId, mealPlanId, ingredientId) => {
+    try {
+      const { data, error } = await supabase
+        .from("inventory_meal_plan")
+        .delete()
+        .eq("inventory_id", inventoryId) // Match inventory_id
+        .eq("meal_plan_id", mealPlanId) // Match meal_plan_id
+        .eq("ingredient_id", ingredientId); // Match ingredient_id
+  
+      if (error) {
+        console.error("Error deleting inventory:", error.message);
+        alert("Failed to delete the inventory item. Please try again.");
+        return;
+      }
+  
+      console.log("Deleted inventory:", data);
+      alert("Inventory item deleted successfully!");
+  
+      // Optionally, refresh the data or update the UI
+      const updatedLinkedInventory = linkedInventory.filter(
+        (item) =>
+          item.inventory_id !== inventoryId ||
+          item.meal_plan_id !== mealPlanId ||
+          item.ingredient_id !== ingredientId
+      );
+      setLinkedInventory(updatedLinkedInventory);
+    } catch (err) {
+      console.error("Unexpected error deleting inventory:", err.message);
+      alert("Failed to delete the inventory item. Please try again.");
+    }
+  };
+  
+  
   
   const assignToRecipes = () => {
     const updatedMergedIngredients = mergedIngredients.map((ingredient) => {
@@ -1026,7 +1058,7 @@ const RecipePreparationPage = () => {
                           </span>
                         </h4>
                         {linkedInventory.map((inventory) => (
-                          // console.log("Inventory:", inventory),
+                          console.log("Inventory:", inventory),
                           <div
                             key={inventory.id}
                             style={{
@@ -1036,9 +1068,9 @@ const RecipePreparationPage = () => {
                               borderRadius: "5px",
                             }}
                           >
-                            <p>
-                              <strong>testing:</strong> {inventory.inventory.days_left}{" "}
-                            </p>
+                            {/* <p>
+                              <strong>testing:</strong> {inventory.ingredients.id}{" "}
+                            </p> */}
                             <p>
                               <strong>Original quantity:</strong> {inventory.inventory.init_quantity}{" "}
                               {inventory.ingredients.unit?.unit_tag || ""}
@@ -1061,6 +1093,11 @@ const RecipePreparationPage = () => {
                               onClick={(e) => {
                                 e.stopPropagation(); // Prevent triggering the parent onClick
                                 // handleDeleteInventory(inventory.id);
+                                handleDeleteInventory(
+                                  inventory.inventory_id,
+                                  inventory.meal_plan_id,
+                                  inventory.ingredients.id
+                                );
                               }}
                               style={{
                                 padding: "5px 10px",
