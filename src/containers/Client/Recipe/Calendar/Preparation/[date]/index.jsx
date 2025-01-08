@@ -892,10 +892,6 @@ const RecipePreparationPage = () => {
         mealPlans.some((mealPlan) => mealPlan.id === item.meal_plan_id)
     );
 
-    // Log the ingredient and linked inventory for debugging
-    console.log(`Ingredient: ${ingredient.ingredients.name}`, ingredient);
-    console.log(`Linked Inventory for ${ingredient.ingredients.name}:`, linkedInventory);
-
     return (
       <li
         key={index}
@@ -924,6 +920,7 @@ const RecipePreparationPage = () => {
           >
             <h4>Linked Inventory Data</h4>
             {linkedInventory.map((inventory) => (
+              // console.log("Inventory:", inventory),
               <div
                 key={inventory.id}
                 style={{
@@ -934,15 +931,25 @@ const RecipePreparationPage = () => {
                 }}
               >
                 <p>
-                  <strong>Quantity:</strong> {inventory.quantity}{" "}
+                  <strong>testing:</strong> {inventory.inventory.days_left}{" "}
+                </p>
+                <p>
+                  <strong>Original quantity:</strong> {inventory.inventory.init_quantity}{" "}
+                  {inventory.ingredients.unit?.unit_tag || ""}
+                </p>
+                <p>
+                  <strong>Quantity allocated:</strong> {inventory.used_quantity}{" "}
                   {inventory.ingredients.unit?.unit_tag || ""}
                 </p>
                 <p>
                   <strong>Expiry Date:</strong>{" "}
-                  {inventory.expiry_date?.date || "No expiry date"}
+                  {inventory.inventory.expiry_date.date || "No expiry date"}
                 </p>
                 <p>
-                  <strong>Status:</strong> {inventory.status_id}
+                  {inventory.inventory.days_left} days left
+                </p>
+                <p>
+                  <strong>Status:</strong> {inventory.inventory_meal_plan_status.name}
                 </p>
                 <button
                   onClick={(e) => {
