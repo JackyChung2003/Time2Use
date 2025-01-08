@@ -1188,6 +1188,19 @@ const RecipePreparationPage = () => {
                 >
                   Confirm Selection
                 </button>
+                <button
+                  onClick={() => setSelectedIngredient(null)} // Close modal on cancel
+                  style={{
+                    marginTop: "10px",
+                    marginLeft: "10px",
+                    padding: "10px 20px",
+                    background: "red",
+                    color: "white",
+                    borderRadius: "5px",
+                  }}
+                >
+                  Cancel
+                </button>
               </>
             ) : (
               <>
@@ -1198,6 +1211,7 @@ const RecipePreparationPage = () => {
                 </p>
                 <p>
                   <strong>Your Adjusted Total:</strong>{" "}
+
                   {/* {selectedInventory.reduce((sum, item) => sum + item.selectedQuantity, 0)}{" "} */}
                   {selectedInventory
                     .filter((item) => item.preselected) // Only include preselected items
@@ -1216,18 +1230,20 @@ const RecipePreparationPage = () => {
                   </label>
                 </div> */}
 
-                <button
-                  onClick={() => setAdjustingQuantity(false)} // Back to selection
-                  style={{
-                    marginTop: "10px",
-                    padding: "10px 20px",
-                    background: "orange",
-                    color: "white",
-                    borderRadius: "5px",
-                  }}
-                >
-                  Back to Select
-                </button>
+                {!isUpdateMode && (
+                  <button
+                    onClick={() => setAdjustingQuantity(false)} // Back to selection
+                    style={{
+                      marginTop: "10px",
+                      padding: "10px 20px",
+                      background: "orange",
+                      color: "white",
+                      borderRadius: "5px",
+                    }}
+                  >
+                    Back to Select
+                  </button>
+                )}
 
                 <ul>
                 {/* {console.log("Selected Inventory before filtering:", selectedInventory)} */}
@@ -1277,6 +1293,20 @@ const RecipePreparationPage = () => {
                     </li>
                   ))}
                 </ul>
+
+                <button
+                    onClick={() => setSelectedIngredient(null)} // Close modal on cancel
+                    style={{
+                      marginTop: "10px",
+                      marginLeft: "10px",
+                      padding: "10px 20px",
+                      background: "red",
+                      color: "white",
+                      borderRadius: "5px",
+                    }}
+                  >
+                    Cancel
+                  </button>
 
                 <button
                   onClick={autoAdjustQuantities} // Button to auto-adjust
