@@ -1,4 +1,3 @@
-/*Scan module css*/
 .scanContainer {
     padding: 20px;
     max-width: 600px;
@@ -14,6 +13,24 @@
     max-width: 500px;
     margin: 0 auto;
     overflow: hidden;
+    border-radius: 8px;
+    background: #f5f5f5;
+}
+
+.scanner {
+    width: 100% !important;
+    height: auto !important;
+    aspect-ratio: 1;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.scanner section {
+    padding: 0 !important;
+}
+
+.scanner video {
+    object-fit: cover !important;
 }
 
 .loadingContainer {
@@ -23,4 +40,7 @@
 
 .instructionText {
     text-align: center;
+    margin-top: 20px;
+    color: #666;
+    font-size: 14px;
 }
