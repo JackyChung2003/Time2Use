@@ -37,4 +37,7 @@ export default defineConfig({
     }),
   ],
   base: '/Time2Use/', // Ensure this matches your repository name
+  server: {
+    host: true,
+  },
 });
