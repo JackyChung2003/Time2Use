@@ -14,7 +14,8 @@ const Signup = () => {
         setLoading(true);
 
         try {
-            const { data, error } = await supabase.auth.signUp({
+            // First, try to sign up
+            const { data, error: signUpError } = await supabase.auth.signUp({
                 email,
                 password,
                 options: {
@@ -22,13 +23,47 @@ const Signup = () => {
                 },
             });
 
-            if (error) throw error;
+            if (signUpError) {
+                console.error('Signup error details:', {
+                    message: signUpError.message,
+                    status: signUpError?.status,
+                    details: signUpError?.details,
+                });
+                throw signUpError;
+            }
+
+            if (data?.user) {
+                console.log('Signup successful:', {
+                    userId: data.user.id,
+                    email: data.user.email,
+                    metadata: data.user.user_metadata
+                });
+            }
 
             alert('Account created! Please verify your email.');
             navigate('/login');
         } catch (error) {
-            console.error('Signup failed:', error.message);
-            alert(`Signup failed: ${error.message}`);
+            console.error('Full error object:', error);
+            let errorMessage = 'Signup failed: ';
+            
+            if (error.message) {
+                errorMessage += error.message;
+            } else if (error.msg) {
+                errorMessage += error.msg;
+            } else if (error.error_description) {
+                errorMessage += error.error_description;
+            } else {
+                errorMessage += 'Unknown error occurred';
+            }
+
+            // Check for specific error types
+            if (error.message?.includes('duplicate')) {
+                errorMessage = 'This email is already registered. Please try logging in instead.';
+            } else if (error.message?.includes('password')) {
+                errorMessage = 'Password must be at least 6 characters long.';
+            }
+
+            alert(errorMessage);
         } finally {
             setLoading(false);
         }
