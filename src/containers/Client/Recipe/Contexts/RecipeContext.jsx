@@ -351,7 +351,8 @@ const fetchRecipes = async () => {
               )
         `)
         .eq("ingredient_id", ingredientId) // Filter by ingredient_id
-        .eq("user_id", userData.id); // Use userData to filter by user_id
+        .eq("user_id", userData.id)// Use userData to filter by user_id
+        .gt("days_left", 0); // Filter for items with days_left > 0
 
         // console.log("User inventory:", data);
   
