@@ -446,16 +446,18 @@ input[type="number"] {
   padding: 10px;
   background-color: #eef7e8; /* Light green background */
   border-radius: 5px;
-  font-size: 14px;
+  
+  font-size: 14px; /* Maintain original font size */
   color: #333; /* Dark text for readability */
+
 }
 
 .nutritional-facts h4 {
   display: flex;
   align-items: center;
   margin: 0 0 5px 0; /* Small spacing below the title */
-  font-size: 16px;
-  font-weight: bold;
+  font-size: 16px; /* Maintain original font size */
+  font-weight: bold; /* Maintain bold title */
   color: #2c5f2d; /* Dark green text for the title */
 }
 
@@ -465,6 +467,43 @@ input[type="number"] {
   height: 30px;
   margin-left: 5px; /* Space between icon and text */
 }
+
+/* Nutrition Details */
+.nutrition-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px; /* Spacing between rows */
+}
+
+.nutrition-details p {
+  display: flex;
+  justify-content: space-between;
+  margin: 0; /* Remove default paragraph margin */
+}
+
+.nutrition-details span:first-child {
+  
+  color: #333; 
+  margin-right: 0;
+}
+
+.nutrition-details span.dots {
+  flex: 1; /* Flexible space for dots */
+  display: inline-block;
+  text-align: center; /* Center-align dots */
+  color: #ccc; 
+  font-family: monospace; /* Monospace for even spacing */
+  margin-right: 5px;
+  overflow: hidden; /* Prevent overflow */
+  margin-left: 5px;
+}
+
+.nutrition-details span:last-child {
+  text-align: right; 
+  flex: 0;
+  color: #333; 
+}
+
 
 /* Storage Tips Section */
 .storage-tips {
