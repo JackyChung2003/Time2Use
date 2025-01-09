@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Chart as ChartJS, registerables } from "chart.js";
 import { Pie, Doughnut } from "react-chartjs-2";
 import "./index.css";
-import Notification from '../Notification';
+// import Notification from '../Notification';
 
 // Register all Chart.js components
 ChartJS.register(...registerables);
@@ -173,7 +173,7 @@ const Dashboard = () => {
 
   return (
     <div>
-    <Notification />
+    {/* <Notification /> */}
     <div className="dashboard-container">
       <div className="dashboard-header">
         {username && <h1>Welcome, {username}!</h1>}

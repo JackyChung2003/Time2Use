@@ -4,23 +4,23 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="/icon-192x192.png" />
     <link rel="manifest" href="/Time2Use/site.webmanifest" />
-
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="Time2Use Dashboard" />
     <link rel="apple-touch-icon" href="/icon-192x192.png" />
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Vite + React</title>
-    
-    
+    <link rel="stylesheet" href="/src/styles.css" />
   </head>
   <body>
     <div id="root"></div>
-    <button onClick="requestNotificationPermission()">Enable Notifications1</button>
-    <button onClick="main()">Enable Notifications2</button>
-    <script src="script.js"></script>
+    <button class="bell-button" onclick="main()">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+        <path d="M12 24a2.51 2.51 0 0 0 2.5-2.5h-5A2.51 2.51 0 0 0 12 24zm10.74-7.24c-1.08-1.44-3.19-4.24-3.19-7.51a7.54 7.54 0 0 0-6-7.37V1.5a1.5 1.5 0 0 0-3 0v.38a7.54 7.54 0 0 0-6 7.37c0 3.27-2.11 6.07-3.19 7.51a1.5 1.5 0 0 0 1.19 2.38h16.4a1.5 1.5 0 0 0 1.19-2.38z" />
+      </svg>
+    </button>
+    <script src="/src/script.js"></script>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
