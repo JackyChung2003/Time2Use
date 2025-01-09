@@ -8,6 +8,7 @@ const RecipeContext = createContext();
 export const useRecipeContext = () => useContext(RecipeContext);
 
 export const RecipeProvider = ({ children }) => {
+  const [userData, setUserData] = useState(null); // State to store user data{
   const [recipes, setRecipes] = useState([]);
   const [tags, setTags] = useState([]); // State to store tags
   const [categories, setCategories] = useState([]); // Categories
@@ -24,6 +25,20 @@ export const RecipeProvider = ({ children }) => {
   });
   
   const [loading, setLoading] = useState(true); // Add the missing state
+
+  // Fetch user data
+  const fetchUserData = async () => {
+    try {
+      const { data, error } = await supabase.auth.getUser();
+      if (error) {
+        console.error("Error fetching user data:", error);
+      } else {
+        setUserData(data?.user || null);
+      }
+    } catch (err) {
+      console.error("Unexpected error fetching user data:", err);
+    }
+  };
 
 const fetchRecipes = async () => {
     setLoading(true);
@@ -128,6 +143,7 @@ const fetchRecipes = async () => {
   };
 
   useEffect(() => {
+    fetchUserData(); // Fetch user data on mount
     fetchRecipes(); // Fetch recipes on mount
     fetchTags(); // Fetch tags on mount
     fetchCategories(); // Fetch categories on mount
@@ -282,6 +298,11 @@ const fetchRecipes = async () => {
 
   const fetchUserInventory = async (ingredientId) => {
     try {
+      if (!userData) {
+        console.error("User not logged in. Cannot fetch inventory.");
+        return [];
+      }
+
       const { data, error } = await supabase
         .from("inventory") // Replace with your inventory table name
         // .select(`
@@ -329,7 +350,8 @@ const fetchRecipes = async () => {
                 )
               )
         `)
-        .eq("ingredient_id", ingredientId); // Filter by ingredient_id
+        .eq("ingredient_id", ingredientId) // Filter by ingredient_id
+        .eq("user_id", userData.id); // Use userData to filter by user_id
 
         // console.log("User inventory:", data);
   
@@ -621,6 +643,7 @@ const fetchRecipes = async () => {
     // <RecipeContext.Provider value={{ recipes, tags, filters, fetchRecipes, fetchTags, applyFilters, loading }}>
     <RecipeContext.Provider
       value={{
+        userData,
         recipes,
         tags,
         categories,
