@@ -1059,28 +1059,95 @@ const RecipePreparationPage = () => {
       }
   };
 
+  // const finishCooking = async () => {
+  //     try {
+  //         // Update `status_id` to 2 (Complete) in the database
+  //         const { data, error } = await supabase
+  //             .from("inventory_meal_plan")
+  //             .update({ status_id: 2, updated_at: new Date().toISOString() })
+  //             .in("meal_plan_id", mealPlanIds); // Match your conditions here
+
+  //         if (error) {
+  //             throw error;
+  //         }
+
+  //         alert("Cooking finished and status updated successfully!");
+  //         setIsCookingMode(false); // Exit cooking mode
+  //         setCurrentStepIndex(0); // Reset steps
+  //         setPreviousStepIndex(null); // Clear saved step
+  //         setRefreshCounter((prev) => prev + 1); // Refresh data
+  //     } catch (err) {
+  //         console.error("Error finishing cooking:", err.message);
+  //         alert("Failed to finish cooking. Please try again.");
+  //     }
+  // };
+
   const finishCooking = async () => {
-      try {
-          // Update `status_id` to 2 (Complete) in the database
-          const { data, error } = await supabase
-              .from("inventory_meal_plan")
-              .update({ status_id: 2, updated_at: new Date().toISOString() })
-              .in("meal_plan_id", mealPlanIds); // Match your conditions here
+    try {
+        // Update `status_id` in `inventory_meal_plan` table to 2 (Complete)
+        const { data: mealPlanData, error: mealPlanError } = await supabase
+            .from("inventory_meal_plan")
+            .update({ status_id: 2, updated_at: new Date().toISOString() })
+            .in("meal_plan_id", mealPlanIds);
 
-          if (error) {
-              throw error;
-          }
+        if (mealPlanError) {
+            throw mealPlanError;
+        }
 
-          alert("Cooking finished and status updated successfully!");
-          setIsCookingMode(false); // Exit cooking mode
-          setCurrentStepIndex(0); // Reset steps
-          setPreviousStepIndex(null); // Clear saved step
-          setRefreshCounter((prev) => prev + 1); // Refresh data
-      } catch (err) {
-          console.error("Error finishing cooking:", err.message);
-          alert("Failed to finish cooking. Please try again.");
-      }
+        console.log("Updated inventory_meal_plan:", mealPlanData);
+
+        // Fetch all inventory rows affected
+        const { data: affectedRows, error: fetchError } = await supabase
+            .from("inventory_meal_plan")
+            .select("inventory_id, used_quantity")
+            .in("meal_plan_id", mealPlanIds);
+
+        if (fetchError) {
+            throw fetchError;
+        }
+
+        console.log("Affected Rows in inventory_meal_plan:", affectedRows);
+
+        // Update the `quantity` in the inventory table for each affected row
+        const updatePromises = affectedRows.map(async (row) => {
+            const { data: inventoryData, error: inventoryError } = await supabase
+                .from("inventory")
+                .select("quantity")
+                .eq("id", row.inventory_id)
+                .single();
+
+            if (inventoryError) {
+                throw inventoryError;
+            }
+
+            const updatedQuantity = Math.max(0, inventoryData.quantity - row.used_quantity);
+
+            const { error: updateError } = await supabase
+                .from("inventory")
+                .update({ quantity: updatedQuantity, updated_at: new Date().toISOString() })
+                .eq("id", row.inventory_id);
+
+            if (updateError) {
+                throw updateError;
+            }
+
+            console.log(`Updated inventory for ID ${row.inventory_id} to quantity ${updatedQuantity}`);
+        });
+
+        // Wait for all updates to complete
+        await Promise.all(updatePromises);
+
+        alert("Cooking finished, quantities updated, and status set to complete!");
+        setIsCookingMode(false); // Exit cooking mode
+        setCurrentStepIndex(0); // Reset steps
+        setPreviousStepIndex(null); // Clear saved step
+        setRefreshCounter((prev) => prev + 1); // Refresh data
+    } catch (err) {
+        console.error("Error finishing cooking:", err.message);
+        alert("Failed to finish cooking. Please try again.");
+    }
   };
+
 
   return (
     <div className="recipe-preparation-page">
