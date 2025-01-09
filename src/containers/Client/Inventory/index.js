@@ -56,20 +56,58 @@ export const fetchItems = async (userId) => {
         calculatedDaysLeft = calculatePredictedDaysLeft(item.ingredients.pred_shelf_life);
       }
 
-      // Only update the item in the database if daysLeft is valid and changed
-      if (calculatedDaysLeft !== null && calculatedDaysLeft !== item.daysLeft) {
-        const { data, error: updateError } = await supabase
-          .from('inventory')
-          .update({ days_left: calculatedDaysLeft })
-          .eq('id', item.id);
-
-        if (updateError) {
-          console.error(`Error updating item with id ${item.id}:`, updateError);
-        } else {
-          console.log(`Updated item with id ${item.id}:`, data);
+      // Only update the item in the database if daysLeft is null
+      if (calculatedDaysLeft !== null && item.daysLeft === null) {
+        try {
+          console.log(`Item ID: ${item.id}, Original Days Left: ${item.daysLeft}, Calculated Days Left: ${calculatedDaysLeft}`);
+          console.log(`Type of calculatedDaysLeft: ${typeof calculatedDaysLeft}`);
+          
+          // Step 1: Check if the item exists
+          const { data: existingItem, error: checkError } = await supabase
+            .from('inventory')
+            .select('id')
+            .eq('id', item.id)
+            .single(); // Ensure we get a single item
+      
+          if (checkError) {
+            console.error(`Error checking if item with id ${item.id} exists:`, checkError);
+          } else if (!existingItem) {
+            console.warn(`Item with id ${item.id} does not exist.`);
+          } else {
+            // Step 2: Update the item if it exists
+            const { error: updateError } = await supabase
+              .from('inventory')
+              .update({ days_left: calculatedDaysLeft })
+              .eq('id', item.id);
+      
+            if (updateError) {
+              console.error(`Error updating item with id ${item.id}:`, updateError);
+            } else {
+              console.log(`Successfully updated item with id ${item.id}`);
+      
+              // Step 3: Fetch the updated item to verify the update
+              const { data: updatedItem, error: fetchError } = await supabase
+                .from('inventory')
+                .select('days_left')
+                .eq('id', item.id)
+                .single();
+      
+              if (fetchError) {
+                console.error(`Error fetching updated item with id ${item.id}:`, fetchError);
+              } else {
+                console.log(`Updated item data:`, updatedItem);
+              }
+            }
+          }
+        } catch (exception) {
+          console.error(`Exception while updating item with id ${item.id}:`, exception);
         }
-      }
+      } else {
+        console.log(`No update needed for item with id ${item.id}`);
+      } 
+      
 
+      
       items.push({
         id: item.id,
         name: item.ingredients?.name || 'Unknown',

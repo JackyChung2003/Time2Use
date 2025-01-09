@@ -12,12 +12,7 @@
   max-width: 1000px;
 }
 
-/* Responsive Design */
-@media (min-width: 768px) {
-  .item-container {
-    max-width: 100%; /* Adjust for desktop view */
-  }
-}
+
 
 .swipeable-item {
   position: relative;
@@ -175,6 +170,7 @@
     gap: 10px;
     width: 100%;
     flex-wrap: wrap;
+    overflow: hidden;
   }
   
   .item {
@@ -188,7 +184,7 @@
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     position: relative;
     gap: 10px;
-    overflow:hidden;
+    overflow: hidden;
     width: 100%;
   }
   
@@ -207,6 +203,7 @@
     justify-content: flex-end; /* Adjust spacing between children */
     gap: 0px;
     flex-grow: 0; 
+    
   }
   
   .green-dot {
@@ -300,6 +297,21 @@
     color: #000000;
     white-space: nowrap;
   }
+
+  .progress-bar-container {
+    width: 100%;
+    background-color: #e0e0e0;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-top: 10px;
+  }
+  
+  .progress-bar {
+    height: 20px;
+    background-color: #76c7c0;
+    width: 0; /* Initial width, will be updated dynamically */
+    transition: width 0.3s ease-in-out;
+  }
   
   .dropdown-icon {
     font-size: 10px;
@@ -316,6 +328,7 @@
     margin-left: 0%;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     width: calc(100% - 30px);
+    overflow: hidden;
   }
 
   .date-purchased {

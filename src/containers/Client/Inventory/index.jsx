@@ -361,6 +361,9 @@ const Item = ({
           <span className="tag">{item.category}</span>
           <span className="dropdown-icon" onClick={() => toggleDropdown(item.id)}>▼</span>
         </div>
+        <div className="progress-bar-container">
+          <div className="progress-bar" style={{ width: `${item.progress}%` }}></div>
+        </div>
       </div>
   
       {activeDropdown === item.id && (
