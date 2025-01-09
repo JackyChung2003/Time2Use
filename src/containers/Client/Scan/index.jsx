@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { QrReader } from 'react-qr-reader';
-import { message, Card, Space, Spin } from 'antd';
+import QrScanner from 'react-qr-scanner';
+import { message, Card, Space, Spin, Button } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import supabase from '../../../config/supabaseClient';
 import styles from './Scan.module.css';
@@ -9,6 +9,7 @@ const Scan = () => {
     const [scanning, setScanning] = useState(true);
     const [loading, setLoading] = useState(false);
     const [userId, setUserId] = useState(null);
+    const [facingMode, setFacingMode] = useState('environment');
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -26,66 +27,21 @@ const Scan = () => {
         checkUser();
     }, [navigate]);
 
-    const addItemToInventory = async (qrData) => {
-        try {
-            console.log('Raw QR Data:', qrData);
-            
-            // Parse QR code data
-            const itemData = JSON.parse(qrData);
-            console.log('Parsed Item Data:', itemData);
-            
-            // Validate required fields
-            if (!itemData.ingredient_id) {
-                throw new Error('Invalid QR code: Missing ingredient information');
-            }
-
-            if (!userId) {
-                throw new Error('User not authenticated');
-            }
-
-            console.log('Current User ID:', userId);
-            
-            // Prepare inventory item data
-            const inventoryItem = {
-                user_id: userId,
-                ingredient_id: itemData.ingredient_id,
-                quantity: itemData.quantity || 1,
-                quantity_unit_id: itemData.quantity_unit_id || 1, // default unit
-                created_at: new Date().toISOString(),
-                condition_id: 1, // default condition (good)
-                days_left: null, // will be calculated based on pred_shelf_life
-            };
-
-            console.log('Preparing to insert item:', inventoryItem);
-
-            // Insert into inventory table
-            const { data, error } = await supabase
-                .from('inventory')
-                .insert(inventoryItem)
-                .select();
-
-            if (error) {
-                console.error('Supabase Error:', error);
-                throw error;
-            }
-
-            console.log('Successfully added item:', data[0]);
-            return data[0];
-        } catch (error) {
-            console.error('Error adding item to inventory:', error);
-            throw error;
-        }
-    };
-
-    const handleScan = async (result) => {
-        if (result && !loading) {
+    const handleScan = async (data) => {
+        if (data && !loading) {
             try {
                 setLoading(true);
-                console.log('Scan Result:', result);
-                const qrData = result.text;
+                console.log('Scan Result:', data);
+                
+                // Validate JSON format
+                try {
+                    JSON.parse(data.text);
+                } catch (e) {
+                    throw new Error('Invalid QR code format. Expected JSON data.');
+                }
                 
                 // Add item to inventory
-                await addItemToInventory(qrData);
+                await addItemToInventory(data.text);
                 
                 message.success('Item added to inventory successfully!');
                 setScanning(false);
@@ -102,8 +58,101 @@ const Scan = () => {
     };
 
     const handleError = (error) => {
-        console.error('Camera Error:', error);
-        message.error('Error accessing camera: ' + error.message);
+        if (error?.name !== 'NotFoundException') {
+            console.error('Camera Error:', error);
+            if (error?.name === 'NotAllowedError') {
+                message.error('Please allow camera access to use the scanner');
+            } else if (error?.name === 'NotFoundError') {
+                message.error('No camera found on your device');
+            } else if (error?.name === 'NotReadableError') {
+                message.error('Unable to access camera. Please check if another app is using it');
+            } else {
+                message.error('Error accessing camera: ' + error.message);
+            }
+        }
+    };
+
+    const toggleCamera = () => {
+        setFacingMode(prev => prev === 'environment' ? 'user' : 'environment');
+    };
+
+    const addItemToInventory = async (qrData) => {
+        try {
+            console.log('Raw QR Data:', qrData);
+            
+            // Parse QR code data
+            const data = JSON.parse(qrData);
+            console.log('Parsed Receipt Data:', data);
+            
+            // Validate store name
+            if (data.store.name !== "SuperMart Grocery") {
+                throw new Error('Invalid receipt: Not from SuperMart Grocery');
+            }
+
+            if (!userId) {
+                throw new Error('User not authenticated');
+            }
+
+            console.log('Current User ID:', userId);
+            
+            // Process each item in the receipt
+            const insertPromises = data.receipt.items.map(async (item) => {
+                // Get ingredient details from ingredients table
+                const { data: ingredientData, error: ingredientError } = await supabase
+                    .from('ingredients')
+                    .select('*')
+                    .eq('id', item.id)
+                    .single();
+
+                if (ingredientError) {
+                    console.error('Error fetching ingredient:', ingredientError);
+                    throw new Error(`Invalid ingredient ID: ${item.id}`);
+                }
+
+                // Calculate days_left based on pred_shelf_life if available
+                let days_left = null;
+                if (ingredientData.pred_shelf_life) {
+                    // Convert pred_shelf_life to days if it's in a different format
+                    // Assuming pred_shelf_life is in days format already
+                    days_left = parseInt(ingredientData.pred_shelf_life);
+                }
+
+                // Prepare inventory item data
+                const inventoryItem = {
+                    user_id: userId,
+                    ingredient_id: item.id,
+                    quantity: item.quantity,
+                    quantity_unit_id: ingredientData.quantity_unit_id, // Use the unit from ingredients table
+                    created_at: new Date().toISOString(),
+                    condition_id: 1, // default condition (good)
+                    days_left: days_left,
+                    init_quantity: item.quantity // Store original quantity
+                };
+
+                console.log('Preparing to insert item:', inventoryItem);
+
+                // Insert into inventory table
+                const { data: insertedData, error: insertError } = await supabase
+                    .from('inventory')
+                    .insert(inventoryItem)
+                    .select();
+
+                if (insertError) {
+                    console.error('Supabase Error:', insertError);
+                    throw insertError;
+                }
+
+                console.log('Successfully added item:', insertedData[0]);
+                return insertedData[0];
+            });
+
+            // Wait for all items to be inserted
+            const results = await Promise.all(insertPromises);
+            return results;
+        } catch (error) {
+            console.error('Error adding items to inventory:', error);
+            throw error;
+        }
     };
 
     if (!userId) {
@@ -131,17 +180,26 @@ const Scan = () => {
                     ) : (
                         <>
                             <div className={styles.scannerContainer}>
-                                <QrReader
-                                    constraints={{
-                                        facingMode: 'environment'
-                                    }}
-                                    onResult={handleScan}
+                                <QrScanner
+                                    delay={300}
                                     onError={handleError}
-                                    style={{ width: '100%' }}
+                                    onScan={handleScan}
+                                    constraints={{
+                                        video: { facingMode }
+                                    }}
+                                    style={{
+                                        width: '100%',
+                                        maxWidth: '500px'
+                                    }}
                                 />
                             </div>
+                            <div style={{ textAlign: 'center', marginTop: '10px' }}>
+                                <Button onClick={toggleCamera}>
+                                    Switch Camera ({facingMode === 'environment' ? 'Back' : 'Front'})
+                                </Button>
+                            </div>
                             <p className={styles.instructionText}>
-                                Position the QR code from your receipt within the frame to scan
+                                Hold your QR code steady in front of the camera. Make sure there's good lighting and the code is clear.
                             </p>
                         </>
                     )}
