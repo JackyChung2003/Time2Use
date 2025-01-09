@@ -58,7 +58,7 @@ export const fetchItems = async (userId) => {
 
       // Only update the item in the database if daysLeft is valid and changed
       if (calculatedDaysLeft !== null && calculatedDaysLeft !== item.daysLeft) {
-        const { error: updateError } = await supabase
+        const { data, error: updateError } = await supabase
           .from('inventory')
           .update({ days_left: calculatedDaysLeft })
           .eq('id', item.id);
@@ -66,7 +66,7 @@ export const fetchItems = async (userId) => {
         if (updateError) {
           console.error(`Error updating item with id ${item.id}:`, updateError);
         } else {
-          console.log(`Updated item with id ${item.id}:`, calculatedDaysLeft);
+          console.log(`Updated item with id ${item.id}:`, data);
         }
       }
 
