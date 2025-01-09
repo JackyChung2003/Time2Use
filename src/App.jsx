@@ -13,8 +13,7 @@ import BottomNavBar from './containers/Client/Navigation/BottomNavBar';
 import Dashboard from './containers/Client/Dashboard';
 import Inventory from './containers/Client/Inventory/index.jsx';
 
-// Notification Component
-import Notification from './containers/Client/Notification';
+// import Inventory from './containers/Client/Inventory/index.jsx';
 
 import Scan from './containers/Client/Scan';
 // import Recipe from './containers/Client/Recipe';
@@ -33,15 +32,29 @@ const App = () => {
     const [isCollapsed, setIsCollapsed] = useState(false); // Sidebar collapse state
 
     // Service Worker Update Prompt
-  useEffect(() => {
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.addEventListener("controllerchange", () => {
-        if (window.confirm("New version available. Refresh to update?")) {
-          window.location.reload();
-        }
-      });
-    }
-  }, []);
+    // useEffect(() => {
+    //     if ("serviceWorker" in navigator) {
+    //     navigator.serviceWorker.addEventListener("controllerchange", () => {
+    //         if (window.confirm("New version available. Refresh to update?")) {
+    //         window.location.reload();
+    //         }
+    //     });
+    //     }
+    // }, []);
+
+    // useEffect(() => {
+    //     window.OneSignalDeferred = window.OneSignalDeferred || [];
+    //     window.OneSignalDeferred.push(async function (OneSignal) {
+    //         await OneSignal.init({
+    //             appId: "e8890e25-41ba-4f2f-8cf6-d4fad5098178",
+    //             safari_web_id: "web.onesignal.auto.4b99c5db-a7c9-461a-8333-facb0838095d",
+    //             notifyButton: {
+    //                 enable: true,
+    //             },
+    //         });
+    //     });
+    // }, []);
+
 
     useEffect(() => {
         const fetchUser = async () => {
