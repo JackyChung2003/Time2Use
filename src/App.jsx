@@ -20,9 +20,11 @@ import Profile from './containers/Client/Profile';
 import AdminLayout from './components/AdminLayout';
 import SideNavBar from './containers/Admin/Admin_Navigation/SideNavBar';
 import AdminDashboard from './containers/Admin/Admin_Dashboard';
+import AdminRecipeNavigation from './containers/Admin/Admin_Recipe/AdminRecipeNavigation';
 
 const App = () => {
     const { userRole } = useAuth();
+    console.log(userRole);
     const [loading, setLoading] = useState(false);
     const [isCollapsed, setIsCollapsed] = useState(false);
 
@@ -118,6 +120,9 @@ const App = () => {
                                     </AdminLayout>
                                 }
                             />
+                            {/* <Route path="/admin/recipes/*" element={<AdminRecipeNavigation />} /> */}
+                            <Route path="/admin/recipe-management/*" element={<AdminRecipeNavigation />} />
+
                         </>
                     )}
 
