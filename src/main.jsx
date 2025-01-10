@@ -8,7 +8,9 @@ createRoot(document.getElementById('root')).render(
   <BrowserRouter basename="/Time2Use">
   {/* <BrowserRouter> */}
     <StrictMode>
-      <App />
-    </StrictMode>,
+      <AuthProvider>
+        <App />
+      </AuthProvider>
+    </StrictMode>
   </BrowserRouter>
 )
