@@ -79,7 +79,7 @@ const RecipePreparationPage = () => {
         const relevantPlans = mealPlans.filter(
           (meal) => meal.meal_type_id === meal_type_id
         );
-        console.log("Relevant Meal Plans:", relevantPlans);
+        // console.log("Relevant Meal Plans:", relevantPlans);
         setMealPlans(relevantPlans);
   
         if (relevantPlans.length === 0) {
@@ -107,11 +107,11 @@ const RecipePreparationPage = () => {
         
         // Fetch inventory meal plan data
         const mealPlanIds = relevantPlans.map((plan) => plan.id);
-        console.log("Meal Plan IDs:", mealPlanIds);
+        // console.log("Meal Plan IDs:", mealPlanIds);
         setMealPlanIds(mealPlanIds);
 
         const inventoryMealPlanData = await fetchInventoryMealPlanByMealPlanId(mealPlanIds);
-        console.log("Inventory Meal Plan Data:", inventoryMealPlanData);
+        // console.log("Inventory Meal Plan Data:", inventoryMealPlanData);
 
         setInventoryData(inventoryData);
       } catch (error) {
@@ -282,6 +282,14 @@ const RecipePreparationPage = () => {
       setAdjustingQuantity(false); // Reset adjusting state
 
       const inventory = await fetchUserInventory(ingredient.ingredients.id);
+
+      if (inventory.length === 0) {
+        console.warn("No inventory available for this ingredient.");
+        setAdjustingQuantity(false); // Stop adjusting if inventory is empty
+        return; // Exit the function early
+      }
+
+      // console.log('inventory:', inventory);
       // console.log('ingredient:', ingredient);
       // console.log("Fetched Inventory:", inventory);
 
@@ -559,7 +567,7 @@ const RecipePreparationPage = () => {
       }));
   
       // Log data for debugging
-      console.log("Filtered and Enriched Data to Insert:", dataToInsert);
+      // console.log("Filtered and Enriched Data to Insert:", dataToInsert);
   
       // Insert into the database (uncomment when using Supabase)
 
@@ -609,13 +617,13 @@ const RecipePreparationPage = () => {
       );
   
       // Log enriched inventory for debugging
-      console.log("Enriched Inventory for Update:", enrichedInventory);
+      // console.log("Enriched Inventory for Update:", enrichedInventory);
   
       // Log other key details
-      console.log("Selected Ingredient for Update:", selectedIngredient);
-      console.log("Meal Plan IDs for Update:", mealPlanIds);
-      console.log("Selected Inventory for Update:", selectedInventory);
-      console.log("Ingredient ID for Update:", selectedIngredient.ingredients.id);
+      // console.log("Selected Ingredient for Update:", selectedIngredient);
+      // console.log("Meal Plan IDs for Update:", mealPlanIds);
+      // console.log("Selected Inventory for Update:", selectedInventory);
+      // console.log("Ingredient ID for Update:", selectedIngredient.ingredients.id);
   
       // Update rows based on `meal_plan_id`, `inventory_id`, and `ingredient_id`
       const updatePromises = enrichedInventory.map((item) => {
@@ -1378,41 +1386,88 @@ const RecipePreparationPage = () => {
                   <strong>Required:</strong> {selectedIngredient.quantity}{" "}
                   {selectedIngredient.ingredients.unit?.unit_tag || ""}
                 </p>
-                <p>
-                  <strong>Your Selection:</strong>{" "}
-                  {selectedInventory
-                    .filter((item) => item.preselected) // Only count selected items
-                    .reduce((sum, item) => sum + item.quantity, 0)}{" "}
-                  {selectedIngredient.ingredients.unit?.unit_tag || ""}
-                </p>
-
-                {/* Inventory selection */}
-                <ul>
-                  {inventoryItems.map((item) => (
-                    <li key={item.id}
+                
+                {inventoryItems.length === 0 ? (
+                  // Message when no inventory items exist
+                  // <p>
+                  //   <strong>No {selectedIngredient.ingredients.name} in your inventory.</strong>
+                  // </p>
+                  // Message and alternative button when no inventory items exist
+                  <>
+                  <p>
+                    <strong>No {selectedIngredient.ingredients.name} in your inventory.</strong>
+                  </p>
+                  <button
+                    onClick={() => {
+                      // Navigate or show a modal for missing ingredients
+                      // console.log("Navigating to Missing Ingredients for Weekly Plan");
+                      navigate(`/recipes/shopping-list`); // Navigate to details page
+                      // You can replace this with navigation logic or modal display
+                    }}
                     style={{
-                      backgroundColor: selectedInventory.find((selected) => selected.id === item.id)?.preselected
-                        ? "lightgreen"
-                        : "white",
-                      padding: "5px",
+                      marginTop: "10px",
+                      padding: "10px 20px",
+                      background: "orange",
+                      color: "white",
                       borderRadius: "5px",
                     }}
+                  >
+                    View Missing Ingredients for This Week's Plan
+                  </button>
+                </>
+                  
+                ) : (
+                  <>
+                    <p>
+                      <strong>Your Selection:</strong>{" "}
+                      {selectedInventory
+                        .filter((item) => item.preselected) // Only count selected items
+                        .reduce((sum, item) => sum + item.quantity, 0)}{" "}
+                      {selectedIngredient.ingredients.unit?.unit_tag || ""}
+                    </p>
+
+                    {/* Inventory selection */}
+                    <ul>
+                      {inventoryItems.map((item) => (
+                        <li
+                          key={item.id}
+                          style={{
+                            backgroundColor: selectedInventory.find((selected) => selected.id === item.id)?.preselected
+                              ? "lightgreen"
+                              : "white",
+                            padding: "5px",
+                            borderRadius: "5px",
+                          }}
+                        >
+                          <label>
+                            <input
+                              type="checkbox"
+                              checked={
+                                selectedInventory.find((selected) => selected.id === item.id)?.preselected || false
+                              }
+                              onChange={() => toggleInventorySelection(item)}
+                            />
+                            {item.quantity || 0} {item.unit?.unit_tag || "unit not specified"} (Expiry:{" "}
+                            {item.expiry_date?.date || "No expiry date"})
+                          </label>
+                        </li>
+                      ))}
+                    </ul>
+
+                    <button
+                      onClick={confirmSelection}
+                      style={{
+                        marginTop: "10px",
+                        padding: "10px 20px",
+                        background: "green",
+                        color: "white",
+                        borderRadius: "5px",
+                      }}
                     >
-                      <label>
-                        <input
-                          type="checkbox"
-                          checked={selectedInventory.find((selected) => selected.id === item.id)?.preselected || false}
-                          onChange={() => toggleInventorySelection(item)}
-                        />
-                        {/* {item.quantity} {item.unit?.unit_tag || ""} (Expiry:{" "}
-                        {item.expiry_date?.date || "No expiry date"}) */}
-                        {item.quantity || 0} {item.unit?.unit_tag || "unit not specified"} (Expiry:{" "}
-                        {item.expiry_date?.date || "No expiry date"})
-                      </label>
-                    </li>
-                    
-                  ))}
-                </ul>
+                      Confirm Selection
+                    </button>
+                  </>
+                )}
 
                 {/* <div style={{ margin: "10px 0" }}>
                   <label style={{ display: "block", margin: "10px 0" }}>
@@ -1425,7 +1480,7 @@ const RecipePreparationPage = () => {
                   </label>
                 </div> */}
 
-                <button
+                {/* <button
                   onClick={confirmSelection}
                   style={{
                     marginTop: "10px",
@@ -1436,7 +1491,7 @@ const RecipePreparationPage = () => {
                   }}
                 >
                   Confirm Selection
-                </button>
+                </button> */}
                 <button
                   onClick={() => setSelectedIngredient(null)} // Close modal on cancel
                   style={{

@@ -2,7 +2,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { useEffect, useState } from "react";
 import Login from './containers/Authentication/Login/index';
 import Signup from './containers/Authentication/Registration';
-import supabase from './config/supabaseClient';
+// import supabase from './config/supabaseClient';
 import ProtectedRoute from './components/ProtectedRoute';
 import { useAuth } from './context/AuthContext';
 
@@ -20,22 +20,24 @@ import Profile from './containers/Client/Profile';
 import AdminLayout from './components/AdminLayout';
 import SideNavBar from './containers/Admin/Admin_Navigation/SideNavBar';
 import AdminDashboard from './containers/Admin/Admin_Dashboard';
+import AdminRecipeNavigation from './containers/Admin/Admin_Recipe/AdminRecipeNavigation';
 
 const App = () => {
     const { userRole } = useAuth();
+    console.log(userRole);
     const [loading, setLoading] = useState(false);
     const [isCollapsed, setIsCollapsed] = useState(false);
 
     // Service Worker Update Prompt
-    useEffect(() => {
-        if ("serviceWorker" in navigator) {
-            navigator.serviceWorker.addEventListener("controllerchange", () => {
-                if (window.confirm("New version available. Refresh to update?")) {
-                    window.location.reload();
-                }
-            });
-        }
-    }, []);
+    // useEffect(() => {
+    //     if ("serviceWorker" in navigator) {
+    //         navigator.serviceWorker.addEventListener("controllerchange", () => {
+    //             if (window.confirm("New version available. Refresh to update?")) {
+    //                 window.location.reload();
+    //             }
+    //         });
+    //     }
+    // }, []);
 
     useEffect(() => {
         const handleResize = () => {
@@ -115,6 +117,14 @@ const App = () => {
                                 element={
                                     <AdminLayout isCollapsed={isCollapsed} toggleSidebar={toggleSidebar}>
                                         <AdminDashboard />
+                                    </AdminLayout>
+                                }
+                            />
+                            <Route
+                                path="/admin/recipe-management/*"
+                                element={
+                                    <AdminLayout isCollapsed={isCollapsed} toggleSidebar={toggleSidebar}>
+                                        <AdminRecipeNavigation />
                                     </AdminLayout>
                                 }
                             />

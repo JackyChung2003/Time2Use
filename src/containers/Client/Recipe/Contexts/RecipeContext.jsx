@@ -8,6 +8,7 @@ const RecipeContext = createContext();
 export const useRecipeContext = () => useContext(RecipeContext);
 
 export const RecipeProvider = ({ children }) => {
+  const [userData, setUserData] = useState(null); // State to store user data{
   const [recipes, setRecipes] = useState([]);
   const [tags, setTags] = useState([]); // State to store tags
   const [categories, setCategories] = useState([]); // Categories
@@ -24,6 +25,20 @@ export const RecipeProvider = ({ children }) => {
   });
   
   const [loading, setLoading] = useState(true); // Add the missing state
+
+  // Fetch user data
+  const fetchUserData = async () => {
+    try {
+      const { data, error } = await supabase.auth.getUser();
+      if (error) {
+        console.error("Error fetching user data:", error);
+      } else {
+        setUserData(data?.user || null);
+      }
+    } catch (err) {
+      console.error("Unexpected error fetching user data:", err);
+    }
+  };
 
 const fetchRecipes = async () => {
     setLoading(true);
@@ -128,6 +143,7 @@ const fetchRecipes = async () => {
   };
 
   useEffect(() => {
+    fetchUserData(); // Fetch user data on mount
     fetchRecipes(); // Fetch recipes on mount
     fetchTags(); // Fetch tags on mount
     fetchCategories(); // Fetch categories on mount
@@ -280,21 +296,108 @@ const fetchRecipes = async () => {
     }
   };
 
-  const fetchUserInventory = async (ingredientId) => {
+  // const fetchUserInventory = async (ingredientId) => {
+  //   try {
+  //     if (!userData) {
+  //       console.error("User not logged in. Cannot fetch inventory.");
+  //       return [];
+  //     }
+
+  //     const { data, error } = await supabase
+  //       .from("inventory") // Replace with your inventory table name
+  //       // .select(`
+  //       //   id,
+  //       //   user_id,
+  //       //   ingredient_id,
+  //       //   quantity,
+  //       //   expiry_date_id,
+  //       //   freshness_status_id,
+  //       //   quantity_unit_id,
+  //       //   init_quantity,
+  //       //   days_left
+  //       // `)
+  //       .select(`
+  //         id,
+  //         user_id,
+  //         ingredient_id,
+  //         quantity,
+  //         expiry_date_id,
+  //         freshness_status_id,
+  //         quantity_unit_id,
+  //         init_quantity,
+  //         days_left,
+  //         expiry_date (
+  //           id, 
+  //           date
+  //         ),
+  //         freshness_status (
+  //           id, 
+  //           status_color
+  //         ),
+  //         unit:quantity_unit_id (
+  //           id,
+  //           unit_tag, 
+  //           unit_description
+  //         ),
+  //         ingredients (
+  //               id,
+  //               name,
+  //               nutritional_info,
+  //               unit:quantity_unit_id (
+  //                 unit_tag,
+  //                 unit_description,
+  //                 conversion_rate_to_grams 
+  //               )
+  //             )
+  //       `)
+  //       .eq("ingredient_id", ingredientId) // Filter by ingredient_id
+  //       .eq("user_id", userData.id)// Use userData to filter by user_id
+  //       .gt("days_left", 0); // Filter for items with days_left > 0
+
+  //       // console.log("User inventory:", data);
+  
+  //     if (error) {
+  //       console.error("Error fetching user inventory:", error);
+  //       return [];
+  //     }
+  
+  //     return data || [];
+  //   } catch (err) {
+  //     console.error("Unexpected error fetching user inventory:", err);
+  //     return [];
+  //   }
+  // };
+  
+  // const fetchMealPlanIds = async (ingredientId, recipeId, plannedDate) => {
+  //   try {
+  //     const { data, error } = await supabase
+  //       .from("meal_plan")
+  //       .select("id, recipe_id")
+  //       .eq("planned_date", plannedDate)
+  //       .eq("recipe_id", recipeId);
+
+  //     if (error) {
+  //       console.error("Error fetching meal plan IDs:", error);
+  //       return [];
+  //     }
+
+  //     return data || [];
+  //   } catch (err) {
+  //     console.error("Unexpected error fetching meal plan IDs:", err);
+  //     return [];
+  //   }
+  // };
+
+  const fetchUserInventory = async (ingredientId = null) => {
     try {
-      const { data, error } = await supabase
+      if (!userData) {
+        console.error("User not logged in. Cannot fetch inventory.");
+        return [];
+      }
+  
+      // Build the query
+      const query = supabase
         .from("inventory") // Replace with your inventory table name
-        // .select(`
-        //   id,
-        //   user_id,
-        //   ingredient_id,
-        //   quantity,
-        //   expiry_date_id,
-        //   freshness_status_id,
-        //   quantity_unit_id,
-        //   init_quantity,
-        //   days_left
-        // `)
         .select(`
           id,
           user_id,
@@ -319,19 +422,25 @@ const fetchRecipes = async () => {
             unit_description
           ),
           ingredients (
-                id,
-                name,
-                nutritional_info,
-                unit:quantity_unit_id (
-                  unit_tag,
-                  unit_description,
-                  conversion_rate_to_grams 
-                )
-              )
+            id,
+            name,
+            nutritional_info,
+            unit:quantity_unit_id (
+              unit_tag,
+              unit_description,
+              conversion_rate_to_grams 
+            )
+          )
         `)
-        .eq("ingredient_id", ingredientId); // Filter by ingredient_id
-
-        // console.log("User inventory:", data);
+        .eq("user_id", userData.id) // Filter by user_id
+        .gt("days_left", 0); // Filter for items with days_left > 0
+  
+      // Add `ingredient_id` filter if provided
+      if (ingredientId) {
+        query.eq("ingredient_id", ingredientId);
+      }
+  
+      const { data, error } = await query;
   
       if (error) {
         console.error("Error fetching user inventory:", error);
@@ -345,26 +454,6 @@ const fetchRecipes = async () => {
     }
   };
   
-  // const fetchMealPlanIds = async (ingredientId, recipeId, plannedDate) => {
-  //   try {
-  //     const { data, error } = await supabase
-  //       .from("meal_plan")
-  //       .select("id, recipe_id")
-  //       .eq("planned_date", plannedDate)
-  //       .eq("recipe_id", recipeId);
-
-  //     if (error) {
-  //       console.error("Error fetching meal plan IDs:", error);
-  //       return [];
-  //     }
-
-  //     return data || [];
-  //   } catch (err) {
-  //     console.error("Unexpected error fetching meal plan IDs:", err);
-  //     return [];
-  //   }
-  // };
-
   const fetchMealPlanId = async (recipe_id, meal_type_id, planned_date) => {
     try {
       const { data, error } = await supabase
@@ -621,6 +710,7 @@ const fetchRecipes = async () => {
     // <RecipeContext.Provider value={{ recipes, tags, filters, fetchRecipes, fetchTags, applyFilters, loading }}>
     <RecipeContext.Provider
       value={{
+        userData,
         recipes,
         tags,
         categories,
