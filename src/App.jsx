@@ -120,8 +120,14 @@ const App = () => {
                                     </AdminLayout>
                                 }
                             />
-                            {/* <Route path="/admin/recipes/*" element={<AdminRecipeNavigation />} /> */}
-                            <Route path="/admin/recipe-management/*" element={<AdminRecipeNavigation />} />
+                            <Route
+                                path="/admin/recipe-management/*"
+                                element={
+                                    <AdminLayout isCollapsed={isCollapsed} toggleSidebar={toggleSidebar}>
+                                        <AdminRecipeNavigation />
+                                    </AdminLayout>
+                                }
+                            />
                         </>
                     )}
 
