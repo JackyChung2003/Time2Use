@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import supabase from "../../../config/supabaseClient";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from '../../../context/AuthContext';
 import "./index.css";
 
 const AdminDashboard = () => {
+    const { updateUserRole } = useAuth();
     const [adminUser, setAdminUser] = useState(null);
     const [ingredientName, setIngredientName] = useState("");
     const [icon, setIcon] = useState(null);
@@ -117,16 +119,28 @@ const AdminDashboard = () => {
         setSelectedUnitId(null);
     };
 
+    const handleSignOut = async () => {
+        try {
+            const { error } = await supabase.auth.signOut();
+            if (error) throw error;
+            
+            // Clear role from context and localStorage
+            updateUserRole(null);
+            
+            // Navigate to login page
+            navigate('/login');
+        } catch (error) {
+            console.error('Error signing out:', error.message);
+        }
+    };
+
     return (
         <div className="admin-dashboard">
             <h1>Admin Dashboard</h1>
             {adminUser && <p>Welcome, Admin {adminUser.email}</p>}
             <button
                 className="sign-out-btn"
-                onClick={async () => {
-                    await supabase.auth.signOut();
-                    navigate("/login");
-                }}
+                onClick={handleSignOut}
             >
                 Sign Out
             </button>
