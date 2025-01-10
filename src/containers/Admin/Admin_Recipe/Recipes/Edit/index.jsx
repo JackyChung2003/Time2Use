@@ -4,6 +4,7 @@ import supabase from "../../../../../config/supabaseClient";
 import SortableIngredientList from "../../../../../components/SortableDragAndDrop/Ingredient_List";
 
 import BackButton from "../../../../../components/Button/BackButton";
+import './index.css';
 
 const EditRecipe = () => {
     const { id } = useParams();
@@ -296,59 +297,66 @@ const EditRecipe = () => {
     if (loading) return <p>Loading recipe...</p>;
 
     return (
-        <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
+        <div className="edit-recipe-container">
             {/* Back Button */}
             <BackButton />
-            <h1>Edit Recipe</h1>
-
+            <h1 className="edit-recipe-title">Edit Recipe</h1>
+    
             {/* Recipe Information */}
-            <div>
-                <label>Recipe Name:</label>
+            <div className="form-section">
+                <label className="form-label">Recipe Name:</label>
                 <input
                     type="text"
                     value={formData.name}
                     onChange={(e) => handleChange("name", e.target.value)}
                     required
-                    style={{ width: "100%", margin: "5px 0", padding: "10px" }}
+                    className="form-input"
                 />
-
-                <label>Description:</label>
+    
+                <label className="form-label">Description:</label>
                 <textarea
                     value={formData.description}
                     onChange={(e) => handleChange("description", e.target.value)}
-                    style={{ width: "100%", margin: "5px 0", padding: "10px" }}
+                    className="form-textarea"
                 />
-
-                <label>Image:</label>
+    
+                <label className="form-label">Image:</label>
                 <input
                     type="file"
                     onChange={(e) => handleChange("image", e.target.files[0])}
-                    style={{ width: "100%", margin: "5px 0", padding: "10px" }}
+                    className="form-file-input"
                 />
             </div>
-
+    
             {/* Preparation Details */}
-            <div>
-                <label>Preparation Time (mins):</label>
+            <div className="prep-details">
+                <label className="form-label">Preparation Time (mins):</label>
                 <input
                     type="number"
                     value={formData.prep_time}
                     onChange={(e) => handleChange("prep_time", e.target.value)}
+                    className="form-input"
                 />
-
-                <label>Cooking Time (mins):</label>
+    
+                <label className="form-label">Cooking Time (mins):</label>
                 <input
                     type="number"
                     value={formData.cook_time}
                     onChange={(e) => handleChange("cook_time", e.target.value)}
+                    className="form-input"
                 />
-
-                <label>Total Time (mins):</label>
-                <input type="number" value={formData.total_time} readOnly />
+    
+                <label className="form-label">Total Time (mins):</label>
+                <input
+                    type="number"
+                    value={formData.total_time}
+                    readOnly
+                    className="form-input-readonly"
+                />
             </div>
-
+    
             {/* Categories */}
-            <h2>Categories</h2>
+            <h2 className="form-subtitle">Categories</h2>
             <select
                 onChange={(e) => {
                     const categoryId = Number(e.target.value);
@@ -356,6 +364,7 @@ const EditRecipe = () => {
                     if (category) handleAddSelection(selectedCategories, setSelectedCategories, category);
                     e.target.value = "";
                 }}
+                className="form-select"
             >
                 <option value="">Select a category...</option>
                 {categories.map((category) => (
@@ -364,16 +373,17 @@ const EditRecipe = () => {
                     </option>
                 ))}
             </select>
-
-            <div>
-                <h3>Selected Categories:</h3>
+    
+            <div className="selected-list">
+                <h3 className="selected-list-title">Selected Categories:</h3>
                 {selectedCategories.map((categoryId) => {
                     const category = categories.find((c) => c.id === categoryId);
                     return category ? (
-                        <div key={categoryId}>
-                            {category.name} {" "}
+                        <div key={categoryId} className="selected-item">
+                            {category.name}
                             <button
                                 onClick={() => handleRemoveSelection(selectedCategories, setSelectedCategories, categoryId)}
+                                className="remove-button"
                             >
                                 Remove
                             </button>
@@ -381,9 +391,9 @@ const EditRecipe = () => {
                     ) : null;
                 })}
             </div>
-
+    
             {/* Tags */}
-            <h2>Tags</h2>
+            <h2 className="form-subtitle">Tags</h2>
             <select
                 onChange={(e) => {
                     const tagId = Number(e.target.value);
@@ -391,6 +401,7 @@ const EditRecipe = () => {
                     if (tag) handleAddSelection(selectedTags, setSelectedTags, tag);
                     e.target.value = "";
                 }}
+                className="form-select"
             >
                 <option value="">Select a tag...</option>
                 {tags.map((tag) => (
@@ -399,16 +410,17 @@ const EditRecipe = () => {
                     </option>
                 ))}
             </select>
-
-            <div>
-                <h3>Selected Tags:</h3>
+    
+            <div className="selected-list">
+                <h3 className="selected-list-title">Selected Tags:</h3>
                 {selectedTags.map((tagId) => {
                     const tag = tags.find((t) => t.id === tagId);
                     return tag ? (
-                        <div key={tagId}>
-                            {tag.name} {" "}
+                        <div key={tagId} className="selected-item">
+                            {tag.name}
                             <button
                                 onClick={() => handleRemoveSelection(selectedTags, setSelectedTags, tagId)}
+                                className="remove-button"
                             >
                                 Remove
                             </button>
@@ -416,9 +428,9 @@ const EditRecipe = () => {
                     ) : null;
                 })}
             </div>
-
+    
             {/* Equipment */}
-            <h2>Equipment</h2>
+            <h2 className="form-subtitle">Equipment</h2>
             <select
                 onChange={(e) => {
                     const equipmentId = Number(e.target.value);
@@ -426,6 +438,7 @@ const EditRecipe = () => {
                     if (equip) handleAddSelection(selectedEquipment, setSelectedEquipment, equip);
                     e.target.value = "";
                 }}
+                className="form-select"
             >
                 <option value="">Select equipment...</option>
                 {equipment.map((item) => (
@@ -434,18 +447,19 @@ const EditRecipe = () => {
                     </option>
                 ))}
             </select>
-
-            <div>
-                <h3>Selected Equipment:</h3>
+    
+            <div className="selected-list">
+                <h3 className="selected-list-title">Selected Equipment:</h3>
                 {selectedEquipment.map((equipmentId) => {
                     const equip = equipment.find((e) => e.id === equipmentId);
                     return equip ? (
-                        <div key={equipmentId}>
-                            {equip.name} {" "}
+                        <div key={equipmentId} className="selected-item">
+                            {equip.name}
                             <button
                                 onClick={() =>
                                     handleRemoveSelection(selectedEquipment, setSelectedEquipment, equipmentId)
                                 }
+                                className="remove-button"
                             >
                                 Remove
                             </button>
@@ -453,98 +467,51 @@ const EditRecipe = () => {
                     ) : null;
                 })}
             </div>
-
+    
             {/* Ingredients Section */}
-            <div style={{ padding: "20px" }}>
-                <h2>Ingredients</h2>
+            <div className="ingredients-section">
+                <h2 className="form-subtitle">Ingredients</h2>
                 <SortableIngredientList
                     initialIngredients={ingredients}
                     onIngredientUpdate={handleIngredientUpdate}
                 />
             </div>
-
+    
             {/* Steps Section */}
-            <div style={{ marginTop: "20px" }}>
-                <h2>Steps</h2>
+            <div className="steps-section">
+                <h2 className="form-subtitle">Steps</h2>
                 {formData.steps.map((step, index) => (
-                    <div
-                        key={index}
-                        style={{ display: "flex", alignItems: "center", marginBottom: "10px" }}
-                    >
+                    <div key={index} className="step-item">
                         <textarea
                             value={step.description}
                             onChange={(e) => handleStepChange(index, e.target.value)}
                             placeholder={`Step ${index + 1}`}
-                            style={{
-                                width: "90%",
-                                padding: "10px",
-                                borderRadius: "5px",
-                                border: "1px solid #ccc",
-                                marginRight: "10px",
-                            }}
+                            className="form-textarea"
                         />
                         <button
                             onClick={() => removeStep(index)}
-                            style={{
-                                background: "#f44336",
-                                color: "white",
-                                border: "none",
-                                borderRadius: "4px",
-                                padding: "5px 10px",
-                                cursor: "pointer",
-                            }}
+                            className="button-secondary remove-step-button"
                         >
                             Remove
                         </button>
                     </div>
                 ))}
-                <button
-                    onClick={addStep}
-                    style={{
-                        marginTop: "10px",
-                        padding: "10px 20px",
-                        backgroundColor: "#4CAF50",
-                        color: "white",
-                        border: "none",
-                        borderRadius: "4px",
-                        cursor: "pointer",
-                    }}
-                >
+                <button onClick={addStep} className="button-primary add-step-button">
                     + Add Step
                 </button>
             </div>
-
-            <div style={{ marginTop: "20px" }}>
-                <button
-                    onClick={handleSave}
-                    style={{
-                        marginRight: "10px",
-                        padding: "10px 20px",
-                        backgroundColor: "#4CAF50",
-                        color: "white",
-                        border: "none",
-                        borderRadius: "4px",
-                        cursor: "pointer",
-                    }}
-                >
+    
+            <div className="form-actions">
+                <button onClick={handleSave} className="button-primary">
                     Save
                 </button>
-                <button
-                    onClick={handleCancel}
-                    style={{
-                        padding: "10px 20px",
-                        backgroundColor: "#f44336",
-                        color: "white",
-                        border: "none",
-                        borderRadius: "4px",
-                        cursor: "pointer",
-                    }}
-                >
+                <button onClick={handleCancel} className="button-secondary">
                     Cancel
                 </button>
             </div>
         </div>
     );
+    
 };
 
 export default EditRecipe;
