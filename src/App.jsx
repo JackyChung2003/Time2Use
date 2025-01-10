@@ -122,7 +122,6 @@ const App = () => {
                             />
                             {/* <Route path="/admin/recipes/*" element={<AdminRecipeNavigation />} /> */}
                             <Route path="/admin/recipe-management/*" element={<AdminRecipeNavigation />} />
-
                         </>
                     )}
 
