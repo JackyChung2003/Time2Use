@@ -317,6 +317,8 @@ const Item = ({
             </button>
           </div>
         )}
+
+        
         <div className="left-section">
           <div className={`green-dot ${item.statusColor}`} />
           <div className="circle-image">
@@ -358,6 +360,9 @@ const Item = ({
           </span>
           <span className="tag">{item.category}</span>
           <span className="dropdown-icon" onClick={() => toggleDropdown(item.id)}>▼</span>
+        </div>
+        <div className="progress-bar-container">
+          <div className="progress-bar" style={{ width: `${item.progress}%` }}></div>
         </div>
       </div>
   
@@ -425,10 +430,28 @@ const Item = ({
               Nutritional Facts
               <img src="src/assets/images/nutrition-facts-icon.png" alt="Nutrition Icon" className="nutrition-icon" />
             </h4>
-            <p>
-              Fat: {item.nutritionalInfo.fat}, Protein: {item.nutritionalInfo.protein},
-              Calories: {item.nutritionalInfo.calories}kcal, Carbohydrates: {item.nutritionalInfo.carbohydrate}
-            </p>
+            <div className="nutrition-details">
+              <p>
+                <span>Fat</span>
+                <span className="dots">...............................</span>
+                <span>{item.nutritionalInfo.fat}</span>
+              </p>
+              <p>
+                <span>Protein</span>
+                <span className="dots">..............................</span>
+                <span>{item.nutritionalInfo.protein}</span>
+              </p>
+              <p>
+                <span>Calories</span>
+                <span className="dots">........................</span>
+                <span>{item.nutritionalInfo.calories}kcal</span>
+              </p>
+              <p>
+                <span>Carbohydrate</span>
+                <span className="dots">.......................</span>
+                <span>{item.nutritionalInfo.carbohydrate}</span>
+              </p>
+            </div>
           </div>
   
           {/* Storage Tips */}
