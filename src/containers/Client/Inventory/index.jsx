@@ -70,7 +70,7 @@ const Inventory = () => {
 
   const handleFilterClick = () => {
     setShowFilterMenu((prev) => !prev); // Toggle filter menu visibility
-    };
+  };
   
   const handleSortOptionChange = (option) => {
     setSortOption(option); // Update sort option
@@ -202,9 +202,9 @@ const Inventory = () => {
             <div className="item-list">
               {sortedItems
                 .filter(item => item.daysLeft !== null && item.daysLeft <= 0)
-                .map(item => (
+                .map((item, index) => (
                   <Item
-                    key={item.id}
+                    key={`${item.id}-${index}`} // Combine id and index for uniqueness
                     item={item}
                     setItems={setItems}
                     handleClick={handleClick}
@@ -222,16 +222,16 @@ const Inventory = () => {
                 ))}
             </div>
           </div>
-  
+
           {/* Fresh & Good Section */}
           <div className="fresh-section">
             <h2 className="section-title">Fresh & Good</h2>
             <div className="item-list">
               {sortedItems
                 .filter(item => item.daysLeft > 0 || item.daysLeft === null)
-                .map(item => (
+                .map((item, index) => (
                   <Item
-                    key={item.id}
+                    key={`${item.id}-${index}`} // Combine id and index for uniqueness
                     item={item}
                     setItems={setItems}
                     handleClick={handleClick}
@@ -253,8 +253,7 @@ const Inventory = () => {
       )}
     </div>
   );
-};  
-
+};
 const Item = ({
   item,
   setItems,
@@ -290,6 +289,7 @@ const Item = ({
   };
   
 
+  
   return (
     <div className="item-container"{...swipeHandlers}>
       <div
@@ -361,9 +361,7 @@ const Item = ({
           <span className="tag">{item.category}</span>
           <span className="dropdown-icon" onClick={() => toggleDropdown(item.id)}>▼</span>
         </div>
-        {/* <div className="progress-bar-container">
-          <div className="progress-bar" style={{ width: `${item.progress}%` }}></div>
-        </div> */}
+        
       </div>
   
       {activeDropdown === item.id && (
@@ -376,11 +374,11 @@ const Item = ({
           {/* Quantity Adjustment */}
           {['unit', 'pcs', 'can', 'box'].includes(item.quantity_unit) ? (
             <div className="unit-controls">
-              <button onClick={() => handlePortionClickWithState(item, -1)} className="quantity-button">-</button>
+              <button onClick={() => handlePortionClickWithState(item, 1)} className="quantity-button">-</button>
               <div className="quantity-container">
                 <div className="quantity-box">{item.quantity}</div>
               </div>
-              <button onClick={() => handlePortionClickWithState(item, 1)} className="quantity-button">+</button>
+              <button onClick={() => handlePortionClickWithState(item, -1)} className="quantity-button">+</button>
             </div>
           ) : (
             <div className="portion-section">
