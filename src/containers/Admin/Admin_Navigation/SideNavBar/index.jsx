@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import { NavLink } from "react-router-dom";
-import { FaBars, FaTimes, FaAngleUp, FaChevronDown} from "react-icons/fa"; // Icons for toggle button
+import { NavLink, useNavigate} from "react-router-dom";
+import supabase from "../../../../config/supabaseClient";
+import { FaBars, FaTimes, FaAngleUp, FaChevronDown, FaSignOutAlt} from "react-icons/fa"; // Icons for toggle button
 import PropTypes from "prop-types"; // Import PropTypes for props validation
 import adminNavBarItems from "../AdminNavBarItems";
 import "./index.css"; // Side navigation styles
@@ -8,7 +9,7 @@ import "./index.css"; // Side navigation styles
 const SideNavBar = ({ isCollapsed, toggleSidebar }) => {
     // const [expandedDropdown, setExpandedDropdown] = useState(null); // For dropdowns
     const [expandedDropdown, setExpandedDropdown] = useState({}); // Keep track of dropdown states
-
+    const navigate = useNavigate();
     // const toggleDropdown = (index) => {
     //     // If isCollapsed is true, expand the sidebar first
     //     if (isCollapsed) {
@@ -17,6 +18,7 @@ const SideNavBar = ({ isCollapsed, toggleSidebar }) => {
     //     // Then toggle the dropdown state
     //     setExpandedDropdown(expandedDropdown === index ? null : index);
     //   };
+    
     const toggleDropdown = (key) => {
       // Expand sidebar first if collapsed
       if (isCollapsed) {
@@ -183,6 +185,20 @@ const SideNavBar = ({ isCollapsed, toggleSidebar }) => {
                     </li>
                 ))}
             </ul>
+
+            {/* Logout button at the bottom */}
+            <div className="logout-container">
+                <button 
+                className="logout-btn" 
+                onClick={async () => {
+                    await supabase.auth.signOut();
+                    navigate("/login");
+                }}
+            >
+                    <FaSignOutAlt className="nav-icon" />
+                    {!isCollapsed && <span className="logout-text">Logout</span>}
+                </button>
+            </div>
         </div>
     );
 };
@@ -190,6 +206,7 @@ const SideNavBar = ({ isCollapsed, toggleSidebar }) => {
 SideNavBar.propTypes = {
     isCollapsed: PropTypes.bool.isRequired,
     toggleSidebar: PropTypes.func.isRequired,
+    onLogout: PropTypes.func.isRequired, // Logout callback
 };
 
 export default SideNavBar;

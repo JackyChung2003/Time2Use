@@ -177,3 +177,44 @@
 .nested-menu .nested-menu .nested-item {
   padding-left: 40px; /* Further indent for deeper levels */
 }
+
+/* Logout Button Container */
+.logout-container {
+  margin-top: auto;
+  padding: 10px 20px;
+  background-color: #111827;
+  border-top: 1px solid #374151;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+}
+
+/* Logout Button */
+.logout-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: transparent;
+  color: white;
+  border: none;
+  font-size: 1rem;
+  padding: 10px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.logout-btn:hover {
+  background-color: #374151;
+}
+
+.logout-icon {
+  font-size: 1.5rem;
+  margin-right: 10px;
+}
+
+.logout-text {
+  font-size: 1rem;
+  white-space: nowrap;
+}
