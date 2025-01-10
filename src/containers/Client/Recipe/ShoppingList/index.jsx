@@ -59,8 +59,19 @@ const ShoppingList = () => {
         }
         return dates;
       };
-  
-      const thisWeekDates = generateDatesForWeek(thisWeek[0]);
+
+      const generateDatesFromToday = (startDate, endDate) => {
+        const dates = [];
+        const current = new Date(startDate);
+        while (current <= endDate) {
+          dates.push(new Date(current));
+          current.setDate(current.getDate() + 1);
+        }
+        return dates;
+      };
+      
+      const today = new Date();
+      const thisWeekDates = generateDatesFromToday(today, thisWeek[1]);
       const nextWeekDates = generateDatesForWeek(nextWeek[0]);
   
       setWeekDates({
@@ -91,8 +102,12 @@ const ShoppingList = () => {
   
       console.log("This Week Meal Plans fetched:", thisWeekMealPlans);
       console.log("Next Week Meal Plans fetched:", nextWeekMealPlans);
-
-      // Count the number of unique recipes for each week
+  
+      // Fetch user inventory
+      console.log("Fetching user inventory");
+      const userInventory = await fetchUserInventory();
+      console.log("User inventory fetched:", userInventory);
+  
       const countUniqueRecipes = (mealPlans) => {
         const recipeIds = new Set();
         Object.values(mealPlans).forEach((dailyPlans) => {
@@ -100,10 +115,10 @@ const ShoppingList = () => {
         });
         return recipeIds.size;
       };
-
+  
       const thisWeekRecipeCount = countUniqueRecipes(thisWeekMealPlans);
       const nextWeekRecipeCount = countUniqueRecipes(nextWeekMealPlans);
-      
+  
       console.log(`This Week Recipe Count: ${thisWeekRecipeCount}`);
       console.log(`Next Week Recipe Count: ${nextWeekRecipeCount}`);
   
@@ -114,13 +129,11 @@ const ShoppingList = () => {
           console.log(`Processing meal plans for date: ${date}`);
           if (!dailyPlans.length) continue;
   
-          // Fetch recipes for the meal plans
           const recipeIds = dailyPlans.map((meal) => meal.recipe_id);
           console.log(`Fetching recipes with IDs for ${date}:`, recipeIds);
           const recipes = await fetchRecipesByIds(recipeIds);
           console.log(`Recipes fetched for ${date}:`, recipes);
   
-          // Fetch and combine ingredients for all recipes
           const recipeIngredients = await Promise.all(
             recipes.map(async (recipe) => {
               console.log(`Fetching ingredients for recipe ID: ${recipe.id} on ${date}`);
@@ -130,10 +143,10 @@ const ShoppingList = () => {
             })
           );
   
-          // Flatten and sum up quantities for all ingredients
           recipeIngredients.flat().forEach(({ ingredients, quantity, unit }) => {
             if (!combinedIngredients[ingredients.id]) {
               combinedIngredients[ingredients.id] = {
+                id: ingredients.id, // Add the id for inventory linking
                 name: ingredients.name,
                 totalQuantity: 0,
                 unit: ingredients.unit?.unit_tag || "units",
@@ -148,13 +161,10 @@ const ShoppingList = () => {
       const thisWeekIngredients = await processMealPlans(thisWeekMealPlans);
       const nextWeekIngredients = await processMealPlans(nextWeekMealPlans);
   
-      // Fetch user inventory
-      console.log("Fetching user inventory");
-      const userInventory = await fetchUserInventory();
-      console.log("User inventory fetched:", userInventory);
-  
       const calculateShoppingList = (combinedIngredients) => {
+        // console.log("Combined Ingredients:", combinedIngredients);
         return Object.values(combinedIngredients).map((ingredient) => {
+          // console.log("USER INVENTORY:",userInventory)
           const inventoryItem =
             userInventory.find((item) => item.ingredient_id === ingredient.id) || {};
           const availableQuantity = inventoryItem.quantity || 0;
@@ -178,6 +188,7 @@ const ShoppingList = () => {
       setLoading(false);
     }
   };
+  
   
 
   useEffect(() => {
@@ -218,7 +229,7 @@ const ShoppingList = () => {
         {shoppingList.thisWeek.map((item, idx) => (
           <div key={idx} style={{ marginBottom: "15px" }}>
             <p>
-              <strong>{item.name}</strong>: Need {item.required} {item.unit}, Available{" "}
+              <strong>{item.name}</strong>: Need {item.required} {item.unit}, `Available`{" "}
               {item.available} {item.unit}, To Buy {item.toBuy} {item.unit}
             </p>
           </div>
