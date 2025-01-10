@@ -270,7 +270,7 @@ const Item = ({
   handleSwipeAction,
 }) => {
   const [isSwiped, setIsSwiped] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);  // Add this line
+  const [isProcessing, setIsProcessing] = useState(false);
 
   // Swipeable hook
   const swipeHandlers = useSwipeable({
@@ -287,11 +287,11 @@ const Item = ({
       handleSwipeAction(item, action);  // Trigger action
     }
   };
-  
 
-  
+  const isExpired = item.daysLeft !== null && item.daysLeft <= 0;  // Check if item is expired
+
   return (
-    <div className="item-container"{...swipeHandlers}>
+    <div className="item-container" {...swipeHandlers}>
       <div
         className="swipeable-item"
         style={{
@@ -301,24 +301,36 @@ const Item = ({
 
       <div className="item">
         {/* Buttons revealed when swiped */}
-        {isSwiped && (
+        {isSwiped && ( // Show buttons based on whether the item is expired or not
           <div className="action-buttons">
-            <button
-              className="used-button"
-              onClick={() => handleActionClick("used")}
-            >
-              Used
-            </button>
-            <button
-              className="discard-button"
-              onClick={() => handleActionClick("discard")}
-            >
-              Discard
-            </button>
+            {!isExpired && (
+              <>
+                <button
+                  className="used-button"
+                  onClick={() => handleActionClick("used")}
+                >
+                  Used
+                </button>
+                <button
+                  className="discard-button"
+                  onClick={() => handleActionClick("discard")}
+                >
+                  Discard
+                </button>
+              </>
+            )}
+
+            {isExpired && (  // Only show "Discard" button for expired items
+              <button
+                className="discard-button"
+                onClick={() => handleActionClick("discard")}
+              >
+                Discard
+              </button>
+            )}
           </div>
         )}
 
-        
         <div className="left-section">
           <div className={`green-dot ${item.statusColor}`} />
           <div className="circle-image">
@@ -346,14 +358,13 @@ const Item = ({
               ) : (
                 // Display days left if expiryDate is not null
                 <div className="days-left">
-                      {item.daysLeft}d left
+                  {item.daysLeft}d left
                 </div>
               )}
             </div>
-
           </div>
         </div>
-  
+
         <div className="right-section">
           <span className="item-quantity">
             {item.quantity} {item.quantity_unit}
@@ -361,16 +372,15 @@ const Item = ({
           <span className="tag">{item.category}</span>
           <span className="dropdown-icon" onClick={() => toggleDropdown(item.id)}>▼</span>
         </div>
-        
       </div>
-  
+
       {activeDropdown === item.id && (
         <div className="dropdown-box">
           <div className="date-purchased">
             <img src="src/assets/images/date-icon.png" alt="Calendar Icon" className="date-icon" />
             Date Purchased: {new Date(item.created_at).toISOString().split('T')[0]}
           </div>
-  
+
           {/* Quantity Adjustment */}
           {['unit', 'pcs', 'can', 'box'].includes(item.quantity_unit) ? (
             <div className="unit-controls">
@@ -421,7 +431,7 @@ const Item = ({
               </div>
             </div>
           )}
-  
+
           {/* Nutritional Facts */}
           <div className="nutritional-facts">
             <h4>
@@ -451,7 +461,7 @@ const Item = ({
               </p>
             </div>
           </div>
-  
+
           {/* Storage Tips */}
           <div className="storage-tips">
             <h4>
@@ -464,5 +474,6 @@ const Item = ({
       )}
     </div>
   );
-}
+};
+
 export default Inventory;
