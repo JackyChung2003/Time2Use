@@ -1400,7 +1400,8 @@ const RecipePreparationPage = () => {
                   <button
                     onClick={() => {
                       // Navigate or show a modal for missing ingredients
-                      console.log("Navigating to Missing Ingredients for Weekly Plan");
+                      // console.log("Navigating to Missing Ingredients for Weekly Plan");
+                      navigate(`/recipes/shopping-list`); // Navigate to details page
                       // You can replace this with navigation logic or modal display
                     }}
                     style={{

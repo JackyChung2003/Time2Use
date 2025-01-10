@@ -11,6 +11,9 @@ import MealPlannerPage from './Calendar/[date]';
 import RecipePreparationPage from './Calendar/Preparation/[date]';
 
 import RecipeFavorites from './Favorites';
+
+import ShoppingList from './ShoppingList';
+
 import Chatbot from './Chatbot';
 
 
@@ -40,6 +43,9 @@ const RecipeNavigation = () => {
 
                     {/* Favorites page */}
                     <Route path="favorites" element={<RecipeFavorites />} />
+
+                    {/* shopping list Page*/}
+                    <Route path="shopping-list" element={<ShoppingList />} />
 
                     {/* Fallback */}
                     <Route path="*" element={<Navigate to="dashboard" />} />
