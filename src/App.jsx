@@ -2,7 +2,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { useEffect, useState } from "react";
 import Login from './containers/Authentication/Login/index';
 import Signup from './containers/Authentication/Registration';
-import supabase from './config/supabaseClient';
+// import supabase from './config/supabaseClient';
 import ProtectedRoute from './components/ProtectedRoute';
 import { useAuth } from './context/AuthContext';
 
@@ -27,15 +27,15 @@ const App = () => {
     const [isCollapsed, setIsCollapsed] = useState(false);
 
     // Service Worker Update Prompt
-    useEffect(() => {
-        if ("serviceWorker" in navigator) {
-            navigator.serviceWorker.addEventListener("controllerchange", () => {
-                if (window.confirm("New version available. Refresh to update?")) {
-                    window.location.reload();
-                }
-            });
-        }
-    }, []);
+    // useEffect(() => {
+    //     if ("serviceWorker" in navigator) {
+    //         navigator.serviceWorker.addEventListener("controllerchange", () => {
+    //             if (window.confirm("New version available. Refresh to update?")) {
+    //                 window.location.reload();
+    //             }
+    //         });
+    //     }
+    // }, []);
 
     useEffect(() => {
         const handleResize = () => {
