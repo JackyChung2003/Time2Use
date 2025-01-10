@@ -4,9 +4,11 @@ import defaultProfilePic from "../../../assets/images/default_propic.png";
 import { FaUser, FaBirthdayCake, FaEnvelope, FaLock, FaBell, FaPen } from "react-icons/fa";
 import "./index.css";
 import supabase from "../../../config/supabaseClient";
+import { useAuth } from '../../../context/AuthContext';
 
 const Profile = () => {
   const navigate = useNavigate();
+  const { updateUserRole } = useAuth();
   const [isEditingMode, setIsEditingMode] = useState(false);
   const [profileImage, setProfileImage] = useState(null);
   const [notificationOptions, setNotificationOptions] = useState([3]);
@@ -142,11 +144,17 @@ const Profile = () => {
   };
 
   const handleSignOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      console.error("Sign-out error:", error.message);
-    } else {
-      navigate("/login");
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      
+      // Clear role from context and localStorage
+      updateUserRole(null);
+      
+      // Navigate to login page
+      navigate('/login');
+    } catch (error) {
+      console.error('Error signing out:', error.message);
     }
   };
 

@@ -20,6 +20,7 @@ const RecipePreparationPage = () => {
     fetchInventoryMealPlanData,
     fetchInventoryMealPlanByMealPlanId,
     enrichInventory,
+    fetchInventoryData
   } = useRecipeContext();
 
   const navigate = useNavigate();
@@ -27,47 +28,66 @@ const RecipePreparationPage = () => {
   const location = useLocation();
   const { planned_date, meal_type_id } = location.state || {};
 
+  const [refreshCounter, setRefreshCounter] = useState(0);
+
   const [recipes, setRecipes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
 
   const [ingredients, setIngredients] = useState([]);
-  const [steps, setSteps] = useState([]);
   const [mergedIngredients, setMergedIngredients] = useState([]);
   // const [isCombined, setIsCombined] = useState(true);
 
 
   const [selectedIngredient, setSelectedIngredient] = useState(null);
   const [inventoryItems, setInventoryItems] = useState([]);
-  const [capped, setCapped] = useState(true); // To toggle capped/uncapped mode
 
   const [selectedInventory, setSelectedInventory] = useState([]); // State to track selected inventory items
   const [adjustingQuantity, setAdjustingQuantity] = useState(false); // Add this state
 
   const exceedAmount = Math.max(
     0,
-    selectedInventory.reduce((sum, item) => sum + item.selectedQuantity, 0) -
-      (selectedIngredient?.quantity || 0) // Safeguard in case selectedIngredient is null
+    (selectedInventory || []).reduce((sum, item) => sum + item.selectedQuantity, 0) -
+      (selectedIngredient?.quantity || 0)
   );
-
+  
   const [mealPlanIds, setMealPlanIds] = useState([]);// Add a global state for requiredQuantity
   const [requiredQuantity, setRequiredQuantity] = useState(null);
+  const [mealPlans, setMealPlans] = useState([]); // Store meal plans
+  const [inventoryData, setInventoryData] = useState([]); // Store inventory data
 
+  const [linkedInventory, setLinkedInventory] = useState([]); // For storing the inventory
+  const [isUpdateMode, setIsUpdateMode] = useState(false); // Track if Update or Finalize mode
+
+  const [steps, setSteps] = useState([]);
+  const [isCookingMode, setIsCookingMode] = useState(false);
+  const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  const [previousStepIndex, setPreviousStepIndex] = useState(null);
+  
   useEffect(() => {
     const loadData = async () => {
       try {
         setLoading(true);
   
-        // Fetch meal plans for the given date
-        const mealPlans = await fetchMealPlansByDate(planned_date);
+        // Fetch meal plans and inventory data
+        const [mealPlans, inventoryData] = await Promise.all([
+          fetchMealPlansByDate(planned_date),
+          fetchInventoryData({ plannedDate: planned_date }),
+        ]);
+  
+        // Filter relevant meal plans
         const relevantPlans = mealPlans.filter(
           (meal) => meal.meal_type_id === meal_type_id
         );
+        console.log("Relevant Meal Plans:", relevantPlans);
+        setMealPlans(relevantPlans);
   
         if (relevantPlans.length === 0) {
           console.warn("No meal plans found for the given date and meal type.");
           setRecipes([]);
-          setMergedIngredients([]);
+          // setMergedIngredients([]);
+          setIngredients([]);
+          setInventoryData(inventoryData);
           return;
         }
   
@@ -76,67 +96,24 @@ const RecipePreparationPage = () => {
         const fetchedRecipes = await fetchRecipesByIds(recipeIds);
         setRecipes(fetchedRecipes);
   
-        // Fetch ingredients for each recipe
-        const allIngredients = [];
-        for (const recipe of fetchedRecipes) {
-          const ingredientsData = await fetchRecipeIngredients(recipe.id);
-          allIngredients.push(
-            ...ingredientsData.map((ingredient) => ({
-              ...ingredient,
-              recipeId: recipe.id,
-            }))
-          );
-        }
-  
+        // Fetch ingredients for recipes
+        const recipeIngredients = await Promise.all(
+          fetchedRecipes.map(async (recipe) => {
+            const ingredientsData = await fetchRecipeIngredients(recipe.id);
+            return { recipeId: recipe.id, ingredients: ingredientsData };
+          })
+        );
+        setIngredients(recipeIngredients);
+        
         // Fetch inventory meal plan data
         const mealPlanIds = relevantPlans.map((plan) => plan.id);
-        // console.log("Meal Plan IDs:JJJJJJJJ", mealPlanIds);
+        console.log("Meal Plan IDs:", mealPlanIds);
         setMealPlanIds(mealPlanIds);
+
         const inventoryMealPlanData = await fetchInventoryMealPlanByMealPlanId(mealPlanIds);
-  
-        // console.log("Fetched Inventory Meal Plan Data:", inventoryMealPlanData);
-  
-        // Map inventory to ingredients
-        const merged = allIngredients.reduce((acc, ingredient) => {
-          const existing = acc.find(
-            (item) => item.ingredients.id === ingredient.ingredients.id
-          );
-  
-          // Find related inventory data for this ingredient
-          // console.log(`Ingredient ID for ${ingredient.ingredients.name}:`, ingredient.ingredients.id);
-  
-          const linkedInventory = inventoryMealPlanData.filter(
-            (inv) => inv.inventory.ingredient_id === ingredient.ingredients.id
-          );
-  
-          // console.log(`Linked Inventory for ${ingredient.ingredients.name}:`, linkedInventory);
-  
-          if (existing) {
-            existing.quantity += ingredient.quantity;
-            existing.recipes.push({
-              recipeId: ingredient.recipeId,
-              quantity: ingredient.quantity,
-            });
-            existing.inventoryItems = [
-              ...(existing.inventoryItems || []),
-              ...linkedInventory,
-            ];
-          } else {
-            acc.push({
-              ...ingredient,
-              recipes: [
-                {
-                  recipeId: ingredient.recipeId,
-                  quantity: ingredient.quantity,
-                },
-              ],
-              inventoryItems: linkedInventory,
-            });
-          }
-          return acc;
-        }, []);
-  
-        setMergedIngredients(merged);
+        console.log("Inventory Meal Plan Data:", inventoryMealPlanData);
+
+        setInventoryData(inventoryData);
       } catch (error) {
         console.error("Error loading data:", error.message);
       } finally {
@@ -153,12 +130,36 @@ const RecipePreparationPage = () => {
     fetchMealPlansByDate,
     fetchRecipesByIds,
     fetchRecipeIngredients,
-    fetchInventoryMealPlanByMealPlanId,
+    fetchInventoryData,
+    refreshCounter,
   ]);
   
-  const toggleCombineIngredients = () => {
-    setIsCombined(!isCombined);
-  };
+  // Handle selected inventory changes
+  useEffect(() => {
+    if (selectedInventory.length > 0) {
+      assignToRecipes();
+    }
+  }, [selectedInventory]);
+  
+  // Handle exceed amount changes
+  useEffect(() => {
+    if (exceedAmount > 0) {
+      autoAllocateExceed();
+    }
+  }, [exceedAmount]);
+  
+  useEffect(() => {
+    const loadSteps = async () => {
+        if (recipes.length > 0) {
+            // Fetch steps for the first recipe as an example (or the selected recipe)
+            const recipeId = recipes[0]?.id; // Change this logic to suit your needs
+            const recipeSteps = await fetchRecipeSteps(recipeId); // Replace with your actual fetch logic
+            setSteps(recipeSteps);
+        }
+    };
+
+    loadSteps();
+}, [recipes, fetchRecipeSteps]);
 
   const startCooking = () => {
     setShowModal(true);
@@ -269,11 +270,13 @@ const RecipePreparationPage = () => {
     return updatedInventory;
   };
   
-  const handleIngredientClick = async (ingredient) => {
+  const handleIngredientClick = async (ingredient, recipeId) => {
     try {
       // setSelectedIngredient(null); // Clear previous selection
+      console.log("recipe id",recipeId )
 
       setSelectedIngredient(ingredient); // Set selected ingredient first
+      // setSelectedIngredient({ ...ingredient, recipeId }); // Store recipeId in state
       setInventoryItems([]); // Reset inventory items
       setSelectedInventory([]); // Reset selected inventory
       setAdjustingQuantity(false); // Reset adjusting state
@@ -290,7 +293,11 @@ const RecipePreparationPage = () => {
 
       // Filter inventory meal plan data for the current ingredient
       const linkedInventory = inventoryMealPlanData.filter(
-        (item) => item.inventory.ingredient_id === ingredient.ingredients.id
+        (item) =>
+          item.inventory.ingredient_id === ingredient.ingredients.id &&
+          item.meal_plan?.recipe_id === recipeId // Safely access recipe_id
+          // item.inventory.ingredient_id === ingredient.ingredients.id &&
+          // item.meal_plan?.recipe_id === recipeId // Safely access recipe_id
       );
 
       // console.log("Linked Inventory from Meal Plan:", linkedInventory);
@@ -298,39 +305,11 @@ const RecipePreparationPage = () => {
       let allocatedInventory;
       if (linkedInventory.length > 0) {
         allocatedInventory = preselectLinkedInventory(linkedInventory, inventory);
+        setIsUpdateMode(true); // Set update mode
       } else {
         allocatedInventory = allocateInventoryFIFO(ingredient, inventory);
+        setIsUpdateMode(false); // Set finalize mode
       }
-      // if (linkedInventory.length > 0) {
-      //   // // Preselect linked inventory and proceed to adjust quantities
-      //   // const allocatedInventory = linkedInventory.map((item) => ({
-      //   //   ...item,
-      //   //   selectedQuantity: item.used_quantity, // Use the already-used quantity
-      //   //   preselected: true, // Mark as preselected
-      //   // }));
-
-      //   // Use the new function to preselect linked inventory
-      //   // const allocatedInventory = preselectLinkedInventory(linkedInventory);
-      //   const allocatedInventory = preselectLinkedInventory(linkedInventory, inventory);
-
-      //   // console.log("Preselected Inventory:", allocatedInventory);
-
-      //   setSelectedIngredient(ingredient);
-      //   setInventoryItems(inventory); // Full inventory list
-      //   setSelectedInventory(allocatedInventory); // Preselected items
-      //   setRequiredQuantity(ingredient.quantity); // Set global requiredQuantity
-      //   setAdjustingQuantity(true); // Skip to adjust quantities
-      // } else {
-      //   // If no linked inventory, proceed with FIFO allocation
-      //   const allocatedInventory = allocateInventoryFIFO(ingredient, inventory);
-
-      //   // console.log("Allocated Inventory:", allocatedInventory);
-
-      //   setSelectedIngredient(ingredient);
-      //   setInventoryItems(inventory); // Full inventory list
-      //   setSelectedInventory(allocatedInventory); // Include preselected suggestions
-      //   setRequiredQuantity(ingredient.quantity); // Set global requiredQuantity
-      // }
 
       // Merge previously selected quantities if already in state
       const updatedInventory = allocatedInventory.map((item) => {
@@ -349,8 +328,6 @@ const RecipePreparationPage = () => {
     }
   };
 
-  
-  
   const toggleInventorySelection = (item) => {
     console.log("Before toggle:", selectedInventory);
     setSelectedInventory((prevSelected) => {
@@ -383,17 +360,6 @@ const RecipePreparationPage = () => {
           preselected: true, // Mark as preselected
         },
       ];
-       // If not selected, add to selectedInventory
-      // const newSelection = [
-      //   ...prevSelected,
-      //   {
-      //     ...item,
-      //     selectedQuantity: item.selectedQuantity || 0, // Default to a small quantity if none exists
-      //     preselected: true, // Mark as preselected
-      //   },
-      // ];
-      // console.log("After toggle on:", newSelection);
-      // return newSelection;
     });
   };
 
@@ -409,11 +375,9 @@ const RecipePreparationPage = () => {
     console.log("Total Selected Quantity:", totalSelectedQuantity);
   
     // Validation for capped and uncapped
-    if ((!capped && currentlySelected.length === 0) || (capped && totalSelectedQuantity < selectedIngredient.quantity)) {
+    if ((currentlySelected.length === 0) || (totalSelectedQuantity < selectedIngredient.quantity)) {
       alert(
-        `You must select at least ${
-          capped ? `${selectedIngredient.quantity} ${selectedIngredient.ingredients.unit?.unit_tag || ""}` : "one item"
-        } to proceed. Now you have selected ${totalSelectedQuantity} ${selectedIngredient.ingredients.unit?.unit_tag || ""}.`
+        `You must select at least ${ "one item"} to proceed. Now you have selected ${totalSelectedQuantity} ${selectedIngredient.ingredients.unit?.unit_tag || ""}.`
   
       );
       return;
@@ -438,13 +402,16 @@ const RecipePreparationPage = () => {
   
   const adjustQuantity = (itemId, delta) => {
     setSelectedInventory((prevSelected) => {
+    const inventory = prevSelected || [];
       const target = selectedIngredient.quantity;
   
       // Calculate the current total
-      let totalSelected = prevSelected.reduce((sum, item) => sum + item.selectedQuantity, 0);
-  
+      // let totalSelected = prevSelected.reduce((sum, item) => sum + item.selectedQuantity, 0);
+      let totalSelected = inventory.reduce((sum, item) => sum + item.selectedQuantity, 0);
+      
+    
       // Map through inventory to adjust the quantity for the selected item
-      const updatedInventory = prevSelected.map((item) => {
+      const updatedInventory = inventory.map((item) => {
         if (item.id === itemId) {
           const newQuantity = Math.max(
             1, // Ensure at least 1
@@ -456,11 +423,20 @@ const RecipePreparationPage = () => {
         return item;
       });
   
-      if (capped && totalSelected > target) {
+      if (totalSelected > target) {
         // If capped and total exceeds the target, redistribute excess
         const excess = totalSelected - target;
+        // alert(
+        //   `Cap is enabled, but you have exceeded the target of ${target} by selecting ${totalSelected}.`
+        // );
         return redistributeExcessToMaintainTarget(updatedInventory, itemId, excess);
       }
+      
+      // if (capped && totalSelected > target) {
+      //   alert(
+      //     `Cap is enabled, but you have exceeded the target of ${target} by selecting ${totalSelected}.`
+      //   );
+      // }
   
       // Return updated inventory for both capped and uncapped modes
       return updatedInventory;
@@ -486,16 +462,16 @@ const RecipePreparationPage = () => {
         return item;
       });
   
-      if (capped) {
-        const total = updatedInventory.reduce((sum, item) => sum + item.selectedQuantity, 0);
+      // if (capped) {
+      //   const total = updatedInventory.reduce((sum, item) => sum + item.selectedQuantity, 0);
   
-        if (total > target) {
-          const excess = total - target;
-          return redistributeExcessToMaintainTarget(updatedInventory, itemId, excess);
-        }
+      //   if (total > target) {
+      //     const excess = total - target;
+      //     return redistributeExcessToMaintainTarget(updatedInventory, itemId, excess);
+      //   }
   
-        return updatedInventory; // Allow setting when within or exactly at the target
-      }
+      //   return updatedInventory; // Allow setting when within or exactly at the target
+      // }
   
       // Allow unrestricted input in uncapped mode
       return updatedInventory;
@@ -526,7 +502,7 @@ const RecipePreparationPage = () => {
     });
   };
   
-  const finalizeQuantities = async () => {
+  const handleFinalizeQuantities = async () => {
     try {
       // Check if selectedIngredient and selectedInventory are valid
       if (!selectedIngredient || !selectedInventory || selectedInventory.length === 0) {
@@ -534,8 +510,6 @@ const RecipePreparationPage = () => {
         return;
       }
 
-      
-  
       // Filter out entries with used_quantity === 0
       const filteredInventory = selectedInventory.filter((item) => item.selectedQuantity > 0);
   
@@ -600,12 +574,131 @@ const RecipePreparationPage = () => {
       setSelectedInventory([]); // Reset inventory
       setAdjustingQuantity(false); // Exit adjusting mode
   
-      alert("Quantities successfully logged to the console!");
+      // alert("Quantities successfully logged to the console!");
+      setRefreshCounter((prev) => prev + 1);
     } catch (err) {
       console.error("Error finalizing quantities:", err.message);
       alert("Failed to finalize quantities. Please try again.");
     }
   };
+
+  const handleUpdateQuantities = async () => {
+    try {
+      // Check if selectedIngredient and selectedInventory are valid
+      if (!selectedIngredient || !selectedInventory || selectedInventory.length === 0) {
+        console.warn("Ingredient or inventory selection is missing.");
+        return;
+      }
+  
+      // Filter out entries with used_quantity === 0
+      const filteredInventory = selectedInventory.filter((item) => item.selectedQuantity > 0);
+  
+      if (filteredInventory.length === 0) {
+        alert("No valid inventory selected. Please select quantities to proceed.");
+        return;
+      }
+  
+      // Log filtered inventory
+      console.log("Filtered Inventory:", filteredInventory);
+  
+      // Use the `enrichInventory` function to enrich the inventory
+      const enrichedInventory = await enrichInventory(
+        filteredInventory,
+        selectedIngredient,
+        planned_date
+      );
+  
+      // Log enriched inventory for debugging
+      console.log("Enriched Inventory for Update:", enrichedInventory);
+  
+      // Log other key details
+      console.log("Selected Ingredient for Update:", selectedIngredient);
+      console.log("Meal Plan IDs for Update:", mealPlanIds);
+      console.log("Selected Inventory for Update:", selectedInventory);
+      console.log("Ingredient ID for Update:", selectedIngredient.ingredients.id);
+  
+      // Update rows based on `meal_plan_id`, `inventory_id`, and `ingredient_id`
+      const updatePromises = enrichedInventory.map((item) => {
+        console.log("Updating row with the following details:", {
+          meal_plan_id: item.meal_plan_id,
+          inventory_id: item.inventory_id,
+          ingredient_id: selectedIngredient.ingredients.id,
+          used_quantity: item.selectedQuantity,
+        });
+  
+        return supabase
+          .from("inventory_meal_plan")
+          .update({
+            used_quantity: item.selectedQuantity,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("meal_plan_id", item.meal_plan_id) // Match meal_plan_id
+          .eq("inventory_id", item.id) // Match inventory_id
+          .eq("ingredient_id", selectedIngredient.ingredients.id); // Match ingredient_id
+      });
+  
+      // Execute all update promises
+      const results = await Promise.all(updatePromises);
+  
+      // Log results of the updates
+      results.forEach(({ data, error }, index) => {
+        if (error) {
+          console.error(`Error updating row ${index + 1}:`, error.message);
+        } else {
+          console.log(`Update successful for row ${index + 1}:`, data);
+        }
+      });
+  
+      // Log success message
+      console.log("Updated Quantities Successfully using meal_plan_id, inventory_id, and ingredient_id!");
+  
+      // Reset states after processing
+      setSelectedIngredient(null); // Close modal
+      setSelectedInventory([]); // Reset inventory
+      setAdjustingQuantity(false); // Exit adjusting mode
+  
+      // alert("Quantities successfully updated!");
+      setRefreshCounter((prev) => prev + 1);
+    } catch (err) {
+      console.error("Error updating quantities:", err.message);
+      alert("Failed to update quantities. Please try again.");
+    }
+  };
+
+  const handleDeleteInventory = async (inventoryId, mealPlanId, ingredientId) => {
+    try {
+      const { data, error } = await supabase
+        .from("inventory_meal_plan")
+        .delete()
+        .eq("inventory_id", inventoryId) // Match inventory_id
+        .eq("meal_plan_id", mealPlanId) // Match meal_plan_id
+        .eq("ingredient_id", ingredientId); // Match ingredient_id
+  
+      if (error) {
+        console.error("Error deleting inventory:", error.message);
+        alert("Failed to delete the inventory item. Please try again.");
+        return;
+      }
+  
+      console.log("Deleted inventory:", data);
+      // alert("Inventory item deleted successfully!");
+  
+      // Optionally, refresh the data or update the UI
+      const updatedLinkedInventory = linkedInventory.filter(
+        (item) =>
+          item.inventory_id !== inventoryId ||
+          item.meal_plan_id !== mealPlanId ||
+          item.ingredient_id !== ingredientId
+      );
+      setLinkedInventory(updatedLinkedInventory);
+      setRefreshCounter((prev) => prev + 1);
+    } catch (err) {
+      console.error("Unexpected error deleting inventory:", err.message);
+      alert("Failed to delete the inventory item. Please try again.");
+    }
+  };
+  
+  
   
   const assignToRecipes = () => {
     const updatedMergedIngredients = mergedIngredients.map((ingredient) => {
@@ -629,17 +722,15 @@ const RecipePreparationPage = () => {
     setMergedIngredients(updatedMergedIngredients);
   };
   
-  useEffect(() => {
-    if (selectedInventory.length > 0) {
-      assignToRecipes();
-    }
-  }, [selectedInventory]);
+
   
-  useEffect(() => {
-    if (exceedAmount > 0) {
-      autoAllocateExceed(); // Automatically allocate exceed amount
-    }
-  }, [exceedAmount]); // Dependency array includes exceedAmount
+
+  // const handleToggleCapped = () => {
+  //   setCapped((prevCapped) => {
+  //     console.log("Previous capped value:", prevCapped);
+  //     return !prevCapped;
+  //   });
+  // };
   
   if (loading) {
     return <div>Loading preparation details...</div>;
@@ -652,7 +743,7 @@ const RecipePreparationPage = () => {
   const autoAdjustQuantities = () => {
     let remainingRequired = selectedIngredient.quantity;
   
-    const adjustedInventory = selectedInventory.map((item) => {
+    const adjustedInventory = (selectedInventory || []).map((item) => {
       if (!item.preselected || remainingRequired <= 0) {
         // Skip items not selected or when no more is required
         return { ...item, selectedQuantity: 0 };
@@ -736,23 +827,75 @@ const RecipePreparationPage = () => {
     });
   };
 
+  // const autoAllocateExceed = () => {
+  //   setSelectedIngredient((prev) => {
+  //     const totalRecipes = prev.quantity;
+  //     // console.log("Total Recipes:", totalRecipes);
+  //     // console.log("prev:", prev);
+  //     // const totalRecipes = prev.recipes.length;
+  //     const allocationPerRecipe = Math.floor(exceedAmount / totalRecipes);
+
+  //     const updatedRecipes = prev.recipes.map((recipe, index) => {
+  //       const remainingExceed =
+  //         index === totalRecipes - 1 // Add remaining to the last recipe
+  //           ? exceedAmount - allocationPerRecipe * (totalRecipes - 1)
+  //           : allocationPerRecipe;
+
+  //       return { ...recipe, exceedAllocation: remainingExceed };
+  //     });
+
+  //     return { ...prev, recipes: updatedRecipes };
+  //   });
+  // };
+
   const autoAllocateExceed = () => {
     setSelectedIngredient((prev) => {
+      if (!prev || !prev.recipes || prev.recipes.length === 0) {
+        console.warn("No recipes found to allocate exceed.");
+        return prev;
+      }
+  
+      const totalExceed = Math.max(
+        0,
+        selectedInventory.reduce((sum, item) => sum + item.selectedQuantity, 0) - prev.quantity
+      );
+  
+      if (totalExceed <= 0) {
+        console.log("No exceed to allocate.");
+        return prev;
+      }
+  
+      console.log("Total Exceed to Allocate:", totalExceed);
+  
       const totalRecipes = prev.recipes.length;
-      const allocationPerRecipe = Math.floor(exceedAmount / totalRecipes);
-
+      const evenAllocation = Math.floor(totalExceed / totalRecipes); // Base allocation for each recipe
+      let remainingExceed = totalExceed % totalRecipes; // Remainder to distribute
+  
       const updatedRecipes = prev.recipes.map((recipe, index) => {
-        const remainingExceed =
-          index === totalRecipes - 1 // Add remaining to the last recipe
-            ? exceedAmount - allocationPerRecipe * (totalRecipes - 1)
-            : allocationPerRecipe;
-
-        return { ...recipe, exceedAllocation: remainingExceed };
+        // Allocate even portion to each recipe
+        let allocation = evenAllocation;
+  
+        // Distribute the remainder one by one to recipes
+        if (remainingExceed > 0) {
+          allocation += 1;
+          remainingExceed -= 1;
+        }
+  
+        return {
+          ...recipe,
+          exceedAllocation: allocation,
+        };
       });
-
-      return { ...prev, recipes: updatedRecipes };
+  
+      console.log("Updated Recipes with Exceed Allocation:", updatedRecipes);
+  
+      return {
+        ...prev,
+        recipes: updatedRecipes,
+      };
     });
   };
+  
 
   const handleExceedInputChange = (recipeId, value) => {
     const parsedValue = Math.max(
@@ -778,6 +921,234 @@ const RecipePreparationPage = () => {
     });
   };
 
+  const handleAutoDistribute = async () => {
+    try {
+      // Iterate through all recipes and their respective ingredients
+      for (const recipe of recipes) {
+        const recipeIngredients = ingredients.find((ri) => ri.recipeId === recipe.id)?.ingredients || [];
+  
+        for (const ingredient of recipeIngredients) {
+          // Simulate handleIngredientClick
+          const inventory = await fetchUserInventory(ingredient.ingredients.id);
+          const linkedInventory = (await fetchInventoryMealPlanByMealPlanId(mealPlanIds)).filter(
+            (item) =>
+              item.inventory.ingredient_id === ingredient.ingredients.id &&
+              item.meal_plan?.recipe_id === recipe.id
+          );
+  
+          let allocatedInventory;
+          if (linkedInventory.length > 0) {
+            allocatedInventory = preselectLinkedInventory(linkedInventory, inventory);
+          } else {
+            allocatedInventory = allocateInventoryFIFO(ingredient, inventory);
+          }
+  
+          // Prepare the selected inventory and finalize
+          const enrichedInventory = allocatedInventory.map((item) => ({
+            ...item,
+            selectedQuantity: item.selectedQuantity || 0, // Ensure proper quantity
+            preselected: true,
+          }));
+  
+          setSelectedIngredient(ingredient); // Track the current ingredient for updates
+          setSelectedInventory(enrichedInventory); // Update the selected inventory
+  
+          // Simulate handleFinalizeQuantities for this ingredient
+          const filteredInventory = enrichedInventory.filter((item) => item.selectedQuantity > 0);
+  
+          if (filteredInventory.length > 0) {
+            const statusId = await getStatusIdByName("Planning");
+            const enrichedData = await enrichInventory(
+              filteredInventory,
+              ingredient,
+              planned_date
+            );
+  
+            const dataToInsert = enrichedData.map((item) => ({
+              inventory_id: item.id,
+              meal_plan_id: item.meal_plan_id,
+              used_quantity: item.selectedQuantity,
+              status_id: statusId,
+              created_at: new Date().toISOString(),
+              ingredient_id: ingredient.ingredients.id,
+            }));
+  
+            const { error } = await supabase.from("inventory_meal_plan").insert(dataToInsert);
+            if (error) {
+              throw error;
+            }
+          }
+        }
+      }
+  
+      // Refresh the page after all distributions
+      setRefreshCounter((prev) => prev + 1);
+      alert("All ingredients have been auto-distributed!");
+    } catch (error) {
+      console.error("Error during auto distribution:", error.message);
+      alert("Failed to auto-distribute inventory. Please try again.");
+    }
+  };
+
+  const handleDeleteAll = async () => {
+    try {
+      // Ensure we have meal plans to process
+      if (!mealPlanIds || mealPlanIds.length === 0) {
+        alert("No meal plans found to delete inventory allocations.");
+        return;
+      }
+  
+      // Confirm deletion with the user
+      const confirmDelete = window.confirm(
+        "Are you sure you want to delete all inventory allocations for this meal plan? This action cannot be undone."
+      );
+      if (!confirmDelete) return;
+  
+      // Delete all linked inventory for the current meal plan
+      const { data, error } = await supabase
+        .from("inventory_meal_plan")
+        .delete()
+        .in("meal_plan_id", mealPlanIds); // Match all meal plan IDs in the list
+  
+      if (error) {
+        throw error;
+      }
+  
+      console.log("Deleted inventory allocations:", data);
+  
+      // Optionally, refresh the data or update the UI
+      setLinkedInventory([]); // Clear linked inventory state
+      setRefreshCounter((prev) => prev + 1); // Trigger a refresh
+      alert("All inventory allocations have been deleted successfully.");
+    } catch (err) {
+      console.error("Error deleting all inventory allocations:", err.message);
+      alert("Failed to delete all inventory allocations. Please try again.");
+    }
+  };
+  
+  const toggleCookingMode = () => {
+      if (!isCookingMode) {
+          // Prompt user if they want to continue from the last step
+          if (previousStepIndex !== null) {
+              const continueFromLast = window.confirm(
+                  "Would you like to continue from your last step or start over?"
+              );
+              if (continueFromLast) {
+                  setCurrentStepIndex(previousStepIndex);
+              } else {
+                  setCurrentStepIndex(0);
+              }
+          } else {
+              setCurrentStepIndex(0);
+          }
+      } else {
+          setPreviousStepIndex(currentStepIndex); // Save the current step when exiting
+      }
+      setIsCookingMode((prev) => !prev);
+  };
+
+  const handleNextStep = () => {
+      if (currentStepIndex < steps.length - 1) {
+          setCurrentStepIndex((prev) => prev + 1);
+      }
+  };
+
+  const handlePreviousStep = () => {
+      if (currentStepIndex > 0) {
+          setCurrentStepIndex((prev) => prev - 1);
+      }
+  };
+
+  // const finishCooking = async () => {
+  //     try {
+  //         // Update `status_id` to 2 (Complete) in the database
+  //         const { data, error } = await supabase
+  //             .from("inventory_meal_plan")
+  //             .update({ status_id: 2, updated_at: new Date().toISOString() })
+  //             .in("meal_plan_id", mealPlanIds); // Match your conditions here
+
+  //         if (error) {
+  //             throw error;
+  //         }
+
+  //         alert("Cooking finished and status updated successfully!");
+  //         setIsCookingMode(false); // Exit cooking mode
+  //         setCurrentStepIndex(0); // Reset steps
+  //         setPreviousStepIndex(null); // Clear saved step
+  //         setRefreshCounter((prev) => prev + 1); // Refresh data
+  //     } catch (err) {
+  //         console.error("Error finishing cooking:", err.message);
+  //         alert("Failed to finish cooking. Please try again.");
+  //     }
+  // };
+
+  const finishCooking = async () => {
+    try {
+        // Update `status_id` in `inventory_meal_plan` table to 2 (Complete)
+        const { data: mealPlanData, error: mealPlanError } = await supabase
+            .from("inventory_meal_plan")
+            .update({ status_id: 2, updated_at: new Date().toISOString() })
+            .in("meal_plan_id", mealPlanIds);
+
+        if (mealPlanError) {
+            throw mealPlanError;
+        }
+
+        console.log("Updated inventory_meal_plan:", mealPlanData);
+
+        // Fetch all inventory rows affected
+        const { data: affectedRows, error: fetchError } = await supabase
+            .from("inventory_meal_plan")
+            .select("inventory_id, used_quantity")
+            .in("meal_plan_id", mealPlanIds);
+
+        if (fetchError) {
+            throw fetchError;
+        }
+
+        console.log("Affected Rows in inventory_meal_plan:", affectedRows);
+
+        // Update the `quantity` in the inventory table for each affected row
+        const updatePromises = affectedRows.map(async (row) => {
+            const { data: inventoryData, error: inventoryError } = await supabase
+                .from("inventory")
+                .select("quantity")
+                .eq("id", row.inventory_id)
+                .single();
+
+            if (inventoryError) {
+                throw inventoryError;
+            }
+
+            const updatedQuantity = Math.max(0, inventoryData.quantity - row.used_quantity);
+
+            const { error: updateError } = await supabase
+                .from("inventory")
+                .update({ quantity: updatedQuantity, updated_at: new Date().toISOString() })
+                .eq("id", row.inventory_id);
+
+            if (updateError) {
+                throw updateError;
+            }
+
+            console.log(`Updated inventory for ID ${row.inventory_id} to quantity ${updatedQuantity}`);
+        });
+
+        // Wait for all updates to complete
+        await Promise.all(updatePromises);
+
+        alert("Cooking finished, quantities updated, and status set to complete!");
+        setIsCookingMode(false); // Exit cooking mode
+        setCurrentStepIndex(0); // Reset steps
+        setPreviousStepIndex(null); // Clear saved step
+        setRefreshCounter((prev) => prev + 1); // Refresh data
+    } catch (err) {
+        console.error("Error finishing cooking:", err.message);
+        alert("Failed to finish cooking. Please try again.");
+    }
+  };
+
+
   return (
     <div className="recipe-preparation-page">
       <BackButton onClick={() => navigate(-1)} />
@@ -785,7 +1156,36 @@ const RecipePreparationPage = () => {
       <h3>Date: {planned_date}</h3>
       <h3>Meal Type: {mealTypes.find((type) => type.id === meal_type_id)?.name || "Unknown"}</h3>
 
-      {recipes.map((recipe) => (
+      <button
+        onClick={handleAutoDistribute}
+        style={{
+          padding: "10px 20px",
+          background: "purple",
+          color: "white",
+          borderRadius: "5px",
+          marginTop: "20px",
+        }}
+      >
+        Auto Distribute All
+      </button>
+
+      <button
+        onClick={handleDeleteAll}
+        style={{
+          padding: "10px 20px",
+          background: "red",
+          color: "white",
+          borderRadius: "5px",
+          marginTop: "20px",
+        }}
+      >
+        Delete All
+      </button>
+
+      
+      {recipes.map((recipe) => {
+      const recipeIngredients = ingredients.find((ri) => ri.recipeId === recipe.id)?.ingredients || [];
+      return (
         <div key={recipe.id} className="recipe-details">
           <h2>{recipe.name}</h2>
           <img
@@ -803,14 +1203,28 @@ const RecipePreparationPage = () => {
           <div>
             <h3>Ingredients</h3>
             <ul>
-              {mergedIngredients
-                .filter((ingredient) => 
-                  ingredient.recipes.some((r) => r.recipeId === recipe.id)
-                )
-                .map((ingredient, index) => (
+              {recipeIngredients.map((ingredient, index) => {
+                // Map `mealPlanId` to the corresponding ingredient
+                const linkedInventory = inventoryData.filter(
+                  (item) =>
+                    item.inventory.ingredient_id === ingredient.ingredients.id &&
+                    mealPlans.some((mealPlan) => mealPlan.id === item.meal_plan_id)
+                );
+
+                // Calculate the total allocated quantity
+                const totalAllocated = linkedInventory.reduce(
+                  (sum, inventory) => sum + inventory.used_quantity,
+                  0
+                );
+
+                // Determine if the status is "Complete"
+                const isComplete = totalAllocated >= ingredient.quantity;
+
+                return (
                   <li
                     key={index}
-                    onClick={() => handleIngredientClick(ingredient)}
+                    // onClick={() => handleIngredientClick(ingredient)}
+                    onClick={() => handleIngredientClick(ingredient, recipe.id)}
                     style={{
                       cursor: "pointer",
                       color: "blue",
@@ -818,29 +1232,113 @@ const RecipePreparationPage = () => {
                       fontSize: "16px",
                     }}
                   >
+                    {/* Display ingredient details */}
                     {ingredient.ingredients.name} - {ingredient.quantity}{" "}
                     {ingredient.ingredients.unit?.unit_tag || ""}
-                    {ingredient.recipes.length > 1 && (
-                      <ul style={{ paddingLeft: "20px", marginTop: "5px", fontSize: "14px" }}>
-                        {ingredient.recipes.map((recipeDetail) => (
-                          <li key={recipeDetail.recipeId}>
-                            Needed in {getRecipeNameById(recipeDetail.recipeId)}:{" "}
-                            <strong>
-                              {recipeDetail.quantity} {ingredient.ingredients.unit?.unit_tag || ""}
-                            </strong>
-                          </li>
+
+                    {/* Check and display inventory data if exists */}
+                    {/* {linkedInventory.length > 0 && ( */}
+                    {linkedInventory
+                    .filter((inventory) => inventory.meal_plan.recipe_id === recipe.id).length > 0 && (
+                      <div
+                        style={{
+                          marginTop: "10px",
+                          padding: "10px",
+                          backgroundColor: "#f8f9fa",
+                          border: "1px solid #ccc",
+                          borderRadius: "5px",
+                        }}
+                      >
+                        <h4
+                          style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                          }}
+                        >
+                          Linked Inventory Data{" "}
+                          <span
+                            style={{
+                              color: isComplete ? "green" : "red",
+                              fontWeight: "bold",
+                            }}
+                          >
+                            ({isComplete ? "Complete" : "Incomplete"})
+                          </span>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation(); // Prevent triggering the parent onClick
+                              // Delete all linked inventory
+                              linkedInventory.forEach((inventory) =>
+                                handleDeleteInventory(
+                                  inventory.inventory_id,
+                                  inventory.meal_plan_id,
+                                  inventory.ingredients.id
+                                )
+                              );
+                            }}
+                            style={{
+                              marginLeft: "20px",
+                              padding: "5px 10px",
+                              backgroundColor: "red",
+                              color: "white",
+                              border: "none",
+                              borderRadius: "5px",
+                              cursor: "pointer",
+                            }}
+                          >
+                            Delete All
+                          </button>
+                        </h4>
+                        {linkedInventory
+                        .filter((inventory) => inventory.meal_plan.recipe_id === recipe.id) 
+                        .map((inventory) => (
+                          <div
+                            key={inventory.id}
+                            style={{
+                              marginBottom: "10px",
+                              padding: "10px",
+                              border: "1px solid #ccc",
+                              borderRadius: "5px",
+                            }}
+                          >
+                            <p>
+                              <strong>Original quantity:</strong>{" "}
+                              {inventory.inventory.init_quantity}{" "}
+                              {inventory.ingredients.unit?.unit_tag || ""}
+                            </p>
+                            <p>
+                              <strong>Quantity allocated:</strong>{" "}
+                              {inventory.used_quantity}{" "}
+                              {inventory.ingredients.unit?.unit_tag || ""}
+                            </p>
+                            <p>
+                              <strong>Expiry Date:</strong>{" "}
+                              {inventory.inventory.expiry_date.date || "No expiry date"}
+                            </p>
+                            <p>{inventory.inventory.days_left} days left</p>
+                            <p>
+                              <strong>Status:</strong>{" "}
+                              {inventory.inventory_meal_plan_status.name}
+                            </p>
+                          </div>
                         ))}
-                      </ul>
+                      </div>
                     )}
                   </li>
-                ))}
+                );
+              })}
             </ul>
+
+
+
+
           </div>
         </div>
-      ))}
+      );
+    })}
 
-
-      <button
+      {/* <button
         // onClick={toggleCombineIngredients}
         style={{
           padding: "10px 20px",
@@ -851,7 +1349,7 @@ const RecipePreparationPage = () => {
         }}
       >
         {isCombined ? "Separate Ingredients" : "Combine Ingredients"}
-      </button>
+      </button> */}
 
       <button
         onClick={startCooking}
@@ -888,23 +1386,6 @@ const RecipePreparationPage = () => {
                   {selectedIngredient.ingredients.unit?.unit_tag || ""}
                 </p>
 
-                {/* Add associated recipes */}
-                {selectedIngredient.recipes.length > 0 && (
-                  <div style={{ marginTop: "15px" }}>
-                    <h4>Used in Recipes:</h4>
-                    <ul style={{ paddingLeft: "20px", fontSize: "14px" }}>
-                      {selectedIngredient.recipes.map((recipe) => (
-                        <li key={recipe.recipeId}>
-                          {getRecipeNameById(recipe.recipeId)}:{" "}
-                          <strong>
-                            {recipe.quantity} {selectedIngredient.ingredients.unit?.unit_tag || ""}
-                          </strong>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-
                 {/* Inventory selection */}
                 <ul>
                   {inventoryItems.map((item) => (
@@ -933,7 +1414,7 @@ const RecipePreparationPage = () => {
                   ))}
                 </ul>
 
-                <div style={{ margin: "10px 0" }}>
+                {/* <div style={{ margin: "10px 0" }}>
                   <label style={{ display: "block", margin: "10px 0" }}>
                     <input
                       type="checkbox"
@@ -942,7 +1423,7 @@ const RecipePreparationPage = () => {
                     />
                     Cap total to match required quantity
                   </label>
-                </div>
+                </div> */}
 
                 <button
                   onClick={confirmSelection}
@@ -956,6 +1437,19 @@ const RecipePreparationPage = () => {
                 >
                   Confirm Selection
                 </button>
+                <button
+                  onClick={() => setSelectedIngredient(null)} // Close modal on cancel
+                  style={{
+                    marginTop: "10px",
+                    marginLeft: "10px",
+                    padding: "10px 20px",
+                    background: "red",
+                    color: "white",
+                    borderRadius: "5px",
+                  }}
+                >
+                  Cancel
+                </button>
               </>
             ) : (
               <>
@@ -966,6 +1460,7 @@ const RecipePreparationPage = () => {
                 </p>
                 <p>
                   <strong>Your Adjusted Total:</strong>{" "}
+
                   {/* {selectedInventory.reduce((sum, item) => sum + item.selectedQuantity, 0)}{" "} */}
                   {selectedInventory
                     .filter((item) => item.preselected) // Only include preselected items
@@ -973,31 +1468,38 @@ const RecipePreparationPage = () => {
                   {selectedIngredient.ingredients.unit?.unit_tag || ""}
                 </p>
 
-                <div>
+                {/* <div>
                   <label style={{ display: "block", margin: "10px 0" }}>
                     <input
                       type="checkbox"
                       checked={capped}
-                      onChange={() => setCapped(!capped)}
+                      onChange={handleToggleCapped}
                     />
                     Cap total to match required quantity
                   </label>
-                </div>
+                </div> */}
 
-                <button
-                  onClick={() => setAdjustingQuantity(false)} // Back to selection
-                  style={{
-                    marginTop: "10px",
-                    padding: "10px 20px",
-                    background: "orange",
-                    color: "white",
-                    borderRadius: "5px",
-                  }}
-                >
-                  Back to Select
-                </button>
+                {!isUpdateMode && (
+                  <button
+                    onClick={() => setAdjustingQuantity(false)} // Back to selection
+                    style={{
+                      marginTop: "10px",
+                      padding: "10px 20px",
+                      background: "orange",
+                      color: "white",
+                      borderRadius: "5px",
+                    }}
+                  >
+                    Back to Select
+                  </button>
+                )}
 
                 <ul>
+                {/* {console.log("Selected Inventory before filtering:", selectedInventory)} */}
+                  {/* {console.log(
+                    "Filtered Inventory (only preselected items):",
+                    selectedInventory.filter((item) => item.preselected)
+                  )} */}
                   {selectedInventory
 
                     .filter((item) => item.preselected) // Only show preselected items
@@ -1029,7 +1531,8 @@ const RecipePreparationPage = () => {
                       <button
                         onClick={() => adjustQuantity(item.id, 1)}
                         disabled={
-                          (selectedInventory.filter((item) => item.preselected).length === 1 && item.selectedQuantity >= item.quantity) || // Check if only one preselected item
+                          (selectedInventory.filter((item) => item.preselected).length === 1 && item.selectedQuantity >= selectedIngredient.quantity) || // Check if only one preselected item
+                          // (selectedInventory.filter((item) => item.preselected).length === 1 && item.selectedQuantity >= item.quantity) || // Check if only one preselected item
                           item.selectedQuantity >= item.quantity // Check if maximum quantity reached
                         }
                         style={{ margin: "0 5px", backgroundColor: "blue", color: "white" }}
@@ -1039,6 +1542,20 @@ const RecipePreparationPage = () => {
                     </li>
                   ))}
                 </ul>
+
+                <button
+                    onClick={() => setSelectedIngredient(null)} // Close modal on cancel
+                    style={{
+                      marginTop: "10px",
+                      marginLeft: "10px",
+                      padding: "10px 20px",
+                      background: "red",
+                      color: "white",
+                      borderRadius: "5px",
+                    }}
+                  >
+                    Cancel
+                  </button>
 
                 <button
                   onClick={autoAdjustQuantities} // Button to auto-adjust
@@ -1053,7 +1570,7 @@ const RecipePreparationPage = () => {
                   Auto Adjust Quantities
                 </button>
 
-                <button
+                {/* <button
                   onClick={finalizeQuantities}
                   style={{
                     marginTop: "10px",
@@ -1064,10 +1581,37 @@ const RecipePreparationPage = () => {
                   }}
                 >
                   Finalize Quantities
-                </button>
+                </button> */}
+                {isUpdateMode ? (
+                  <button
+                    onClick={handleUpdateQuantities}
+                    style={{
+                      padding: "10px 20px",
+                      background: "blue",
+                      color: "white",
+                      borderRadius: "5px",
+                      marginTop: "20px",
+                    }}
+                  >
+                    Update Quantities
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleFinalizeQuantities}
+                    style={{
+                      padding: "10px 20px",
+                      background: "green",
+                      color: "white",
+                      borderRadius: "5px",
+                      marginTop: "20px",
+                    }}
+                  >
+                    Finalize Quantities
+                  </button>
+                )}
 
                 {/* Exceed Section */}
-                {!capped && (
+                {/* {!capped && (
                   <div style={{ marginTop: "20px" }}>
                     <h4>Exceed Amount:</h4>
                     <p>
@@ -1079,7 +1623,6 @@ const RecipePreparationPage = () => {
                       {selectedIngredient.ingredients.unit?.unit_tag || ""}
                     </p>
 
-                    {/* Recipes Allocation for Exceed */}
                     <h4>Allocate Exceed Amount</h4>
                     <ul>
                       {selectedIngredient.recipes.map((recipe, index) => (
@@ -1176,7 +1719,7 @@ const RecipePreparationPage = () => {
                       Auto Adjust Exceed Quantities
                     </button>
                   </div>
-                )}
+                )} */}
 
               </>
             )}
@@ -1235,7 +1778,10 @@ const RecipePreparationPage = () => {
                 Cancel
               </button>
               <button
-                onClick={confirmSequence}
+                onClick={() => {
+                  confirmSequence();
+                  toggleCookingMode();
+                }}
                 style={{
                   background: "green",
                   color: "white",
@@ -1249,6 +1795,93 @@ const RecipePreparationPage = () => {
           </div>
         </div>
       )}
+      {isCookingMode && (
+                <div
+                    style={{
+                        position: "fixed",
+                        top: 0,
+                        left: 0,
+                        width: "100%",
+                        height: "100%",
+                        background: "rgba(0, 0, 0, 0.8)",
+                        color: "#fff",
+                        zIndex: 1000,
+                        display: "flex",
+                        flexDirection: "column",
+                        justifyContent: "center",
+                        alignItems: "center",
+                    }}
+                >
+                    <h2>Step {currentStepIndex + 1}</h2>
+                    <p>{steps[currentStepIndex]?.instruction}</p>
+
+                    <div
+                        style={{
+                            marginTop: "20px",
+                            display: "flex",
+                            gap: "10px",
+                        }}
+                    >
+                        <button
+                            onClick={handlePreviousStep}
+                            style={{
+                                padding: "10px 20px",
+                                background: "#007bff",
+                                color: "#fff",
+                                border: "none",
+                                borderRadius: "5px",
+                                cursor: "pointer",
+                                visibility: currentStepIndex === 0 ? "hidden" : "visible",
+                            }}
+                        >
+                            Previous
+                        </button>
+                        <button
+                            onClick={handleNextStep}
+                            style={{
+                                padding: "10px 20px",
+                                background: "#007bff",
+                                color: "#fff",
+                                border: "none",
+                                borderRadius: "5px",
+                                cursor: "pointer",
+                                visibility:
+                                    currentStepIndex === steps.length - 1 ? "hidden" : "visible",
+                            }}
+                        >
+                            Next
+                        </button>
+                        {currentStepIndex === steps.length - 1 && (
+                            <button
+                                onClick={finishCooking}
+                                style={{
+                                    padding: "10px 20px",
+                                    background: "green",
+                                    color: "#fff",
+                                    border: "none",
+                                    borderRadius: "5px",
+                                    cursor: "pointer",
+                                }}
+                            >
+                                Finish Cooking
+                            </button>
+                        )}
+                        <button
+                            onClick={toggleCookingMode}
+                            style={{
+                                padding: "10px 20px",
+                                background: "red",
+                                color: "#fff",
+                                border: "none",
+                                borderRadius: "5px",
+                                cursor: "pointer",
+                            }}
+                        >
+                            Exit Cooking Mode
+                        </button>
+                    </div>
+                </div>
+            )}
 
     </div>
   );

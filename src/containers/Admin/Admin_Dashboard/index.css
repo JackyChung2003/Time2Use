@@ -1,0 +1,4 @@
+select, option {
+    color: black; /* Ensures the text is visible */
+    background-color: white; /* Contrast with the text color */
+}
