@@ -3,60 +3,72 @@ import './index.css'; // Import the CSS file
 import { useState } from 'react';
 import supabase from '../../../config/supabaseClient';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../../context/AuthContext';
 
 const Login = () => {
+    const navigate = useNavigate();
+    const { updateUserRole } = useAuth();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
-    const navigate = useNavigate();
 
     const handleEmailLogin = async (e) => {
         e.preventDefault();
         setLoading(true);
         try {
-            // Authenticate the user
-            const { data: authData, error: authError } = await supabase.auth.signInWithPassword({ email, password });
-            if (authError) throw authError;
+            const { data, error } = await supabase.auth.signInWithPassword({
+                email: email,
+                password: password,
+            });
 
-            const userId = authData.user.id; // Logged-in user's ID
-            console.log("Authenticated User ID:", userId); // Debug log
+            if (error) throw error;
 
-            // Fetch user role information from `user_roles` table
-            const { data: userRoleData, error: userRoleError } = await supabase
+            // First get the role_id from user_roles
+            const { data: userRoleData, error: roleError } = await supabase
                 .from('user_roles')
-                .select('role_id, user_id')
-                .eq('user_id', userId)
-                .single(); // Assumes each user has exactly one role
-
-            if (userRoleError) throw new Error(userRoleError.message);
-
-            const { role_id: roleId } = userRoleData;
-            console.log("Fetched Role ID:", roleId); // Debug log
-
-            // Fetch the role name from the `roles` table using the role_id
-            const { data: roleData, error: roleError } = await supabase
-                .from('roles')
-                .select('role_name')
-                .eq('id', roleId)
+                .select('role_id')
+                .eq('user_id', data.user.id)
                 .single();
 
-            if (roleError) throw new Error(roleError.message);
+            if (roleError) {
+                console.error('Error fetching user_role:', roleError);
+                throw roleError;
+            }
 
-            // Normalize role name (trim spaces and lowercase for comparison)
+            // Then get the role_name from roles table using role_id
+            const { data: roleData, error: roleNameError } = await supabase
+                .from('roles')
+                .select('role_name')
+                .eq('id', userRoleData.role_id)
+                .single();
+
+            if (roleNameError) {
+                console.error('Error fetching role_name:', roleNameError);
+                throw roleNameError;
+            }
+
             const roleName = roleData.role_name.trim().toLowerCase();
-            console.log("Fetched Role Name:", roleName); // Debug log
+            console.log('Role before storing:', roleName);
+            
+            // Update role in context (this also stores in localStorage)
+            updateUserRole(roleName);
+            console.log('Role after storing:', roleName);
 
-            // Navigate to the appropriate dashboard based on role
+            // Navigate based on role
             if (roleName === 'admin') {
+                console.log("Navigating to admin dashboard");
                 navigate('/admin/dashboard');
             } else if (roleName === 'client') {
+                console.log("Navigating to user dashboard");
                 navigate('/dashboard');
             } else {
-                throw new Error('Unknown role detected.');
+                throw new Error(`Unknown role: ${roleName}`);
             }
+
         } catch (error) {
-            console.error('Login failed:', error.message);
-            alert(`Login failed: ${error.message}`);
+            console.error('Error:', error.message);
+            setError(error.message);
         } finally {
             setLoading(false);
         }
