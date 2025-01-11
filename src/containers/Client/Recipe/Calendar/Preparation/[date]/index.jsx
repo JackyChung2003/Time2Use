@@ -1420,10 +1420,33 @@ const RecipePreparationPage = () => {
                   <>
                     <p>
                       <strong>Your Selection:</strong>{" "}
-                      {selectedInventory
+                      {/* {selectedInventory
                         .filter((item) => item.preselected) // Only count selected items
                         .reduce((sum, item) => sum + item.quantity, 0)}{" "}
-                      {selectedIngredient.ingredients.unit?.unit_tag || ""}
+                      {selectedIngredient.ingredients.unit?.unit_tag || ""} */}
+                      {selectedInventory
+                        .filter((item) => item.preselected) // Only count selected items
+                        .map((item) => {
+                          // Check if the unit conversion rates match
+                          const isConversionRateMatching =
+                            item.ingredients.unit?.conversion_rate_to_grams ===
+                            item.ingredients.unitInv?.conversion_rate_to_grams_for_check;
+
+                          // Adjust quantity if conversion rates do not match
+                          const adjustedQuantity = isConversionRateMatching
+                            ? item.quantity // If matching, use the normal quantity
+                            : item.quantity / (item.ingredients.unit?.conversion_rate_to_grams || 1); // Else, divide by the unit's conversion rate
+
+                          // Format the display string based on conversion status
+                          return isConversionRateMatching ? (
+                            `${item.quantity} ${item.ingredients.unit?.unit_tag || "unit not specified"}`
+                          ) : (
+                            `${item.quantity} ${item.ingredients.unitInv?.unitInv_tag || "unit not specified"} (~${Math.round(
+                              adjustedQuantity
+                            )} ${item.ingredients.unit?.unit_tag || "unit not specified"})`
+                          );
+                        })
+                        .join(", ")} {/* Join the individual item strings with commas */}
                     </p>
 
                     {/* Inventory selection */}
