@@ -8,7 +8,7 @@ export const fetchItems = async (userId) => {
         id:ingredient_id,
         daysLeft:days_left,
         quantity,
-        quantity_unit_id,
+        
         freshness_status_id,
         created_at,
         condition_id,
@@ -20,17 +20,18 @@ export const fetchItems = async (userId) => {
           nutritional_info,
           storage_tips,
           pred_shelf_life,
+          quantity_unitInv_id,
           ingredients_category (
             category_tag
-          )
+          ),
+          unitInv:unitInv (unitInv_tag)
         ),
         freshness_status (
           status_color
         ),
-        unit:unit (unit_tag),
         condition:condition (condition)
       `)
-      .eq('user_id', userId); // filter by user id
+      .eq('user_id', userId)// filter by user id
 
     if (error) {
       throw error;
@@ -75,7 +76,7 @@ export const fetchItems = async (userId) => {
         }
       }
 
-      
+
       items.push({
         id: item.id,
         name: item.ingredients?.name || 'Unknown',
@@ -84,7 +85,7 @@ export const fetchItems = async (userId) => {
         category: categoryTag,
         pred_shelf_life: item.ingredients?.pred_shelf_life || 'No prediction available',
         quantity: item.quantity,
-        quantity_unit: item.unit?.unit_tag || 'unit',
+        quantity_unit: item.ingredients?.unitInv?.unitInv_tag,
         statusColor: statusColor, 
         nutritionalInfo: item.ingredients?.nutritional_info || 'No information available',
         storageTips: item.ingredients?.storage_tips || 'No tips available',
