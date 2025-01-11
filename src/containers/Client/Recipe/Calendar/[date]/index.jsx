@@ -383,12 +383,14 @@ const handleAddMeal = async () => {
                       </span>
                       <p className="meal-notes">{meal.notes}</p>
                       <button
-                        onClick={() =>
-                          handleCancelMeal(
-                            meal.planned_date,
-                            meal.recipe_id,
-                            meal.meal_type_id
-                          )
+                        onClick={(e) => {
+                            e.stopPropagation(); 
+                            handleCancelMeal(
+                              meal.planned_date,
+                              meal.recipe_id,
+                              meal.meal_type_id
+                            );
+                          }
                         }
                         className="cancel-meal-button"
                       >
