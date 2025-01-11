@@ -34,7 +34,8 @@ export const RecipeProvider = ({ children }) => {
       if (error) {
         console.error("Error fetching user data:", error);
       } else {
-        setUserData(data?.user || null);
+        setUserData(data?.user);
+        console.log("User data fetched:", data?.user);
       }
     } catch (err) {
       console.error("Unexpected error fetching user data:", err);
@@ -136,7 +137,12 @@ const fetchRecipes = async () => {
   };
 
   const fetchFavorites = async () => {
-    if (!userData) return;
+    // if (!userData) return;
+    if (!userData) {
+      console.error("User not logged in. Skipping fetchFavorites.");
+      return;
+    }
+
     try {
       const { data, error } = await supabase
         .from("favorites")
@@ -148,6 +154,7 @@ const fetchRecipes = async () => {
         return;
       }
 
+      console.log("Favorites fetched:", data);
       setFavorites(data.map((fav) => fav.recipe_id)); // Store favorite recipe IDs
     } catch (err) {
       console.error("Unexpected error fetching favorites:", err.message);
@@ -162,21 +169,43 @@ const fetchRecipes = async () => {
     // console.log("Filters updated:", newFilters);
   };
 
+  // useEffect(() => {
+  //   fetchUserData(); // Fetch user data on mount
+  //   fetchRecipes(); // Fetch recipes on mount
+  //   fetchTags(); // Fetch tags on mount
+  //   fetchCategories(); // Fetch categories on mount
+  //   fetchEquipment(); // Fetch equipment on mount
+  //   fetchIngredients(); // Fetch ingredients on mount
+  //   fetchMealTypes(); // Fetch meal types on mount
+  //   fetchFavorites(); // Fetch favorites on mount
+  // }, []);
+
   useEffect(() => {
-    fetchUserData(); // Fetch user data on mount
-    fetchRecipes(); // Fetch recipes on mount
-    fetchTags(); // Fetch tags on mount
-    fetchCategories(); // Fetch categories on mount
-    fetchEquipment(); // Fetch equipment on mount
-    fetchIngredients(); // Fetch ingredients on mount
-    fetchMealTypes(); // Fetch meal types on mount
-    fetchFavorites(); // Fetch favorites on mount
+    const fetchInitialData = async () => {
+      await fetchUserData(); // Fetch user data first
+      await Promise.all([
+        fetchRecipes(), // Fetch recipes
+        fetchTags(),
+        fetchCategories(),
+        fetchEquipment(),
+        fetchIngredients(),
+        fetchMealTypes(),
+      ]);
+    };
+    fetchInitialData(); // Execute the initial data fetching
   }, []);
 
   useEffect(() => {
     // console.log("Filters changed:", filters);
     fetchRecipes(); // Re-fetch recipes based on new filters
-}, [filters]);
+  }, [filters]);
+
+  // Fetch favorites only after userData is available
+  useEffect(() => {
+    if (userData) {
+      fetchFavorites(); // Fetch favorites when userData is available
+    }
+  }, [userData]);
 
   const fetchRecipeIngredients = async (recipeId) => {
     try {
