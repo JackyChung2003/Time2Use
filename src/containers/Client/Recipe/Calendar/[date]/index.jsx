@@ -16,6 +16,8 @@ const MealPlannerPage = () => {
   const [mergedImages, setMergedImages] = useState({});
   
   const [showAddModal, setShowAddModal] = useState(null); // Meal Type ID for which the modal is open
+  // const [showScheduleOptions, setShowScheduleOptions] = useState(false); // State for showing schedule options modal
+  const [showScheduleOptions, setShowScheduleOptions] = useState({ show: false, mealTypeId: null });
 
   // Accessing the state passed via navigate
   const { recipeId, recipeName, date: passedDate } = location.state || {};
@@ -180,6 +182,27 @@ const handleAddMeal = async () => {
     setShowAddModal(mealTypeId);
   };
 
+  // const handleNavigateToRecipes = (type) => {
+  //   navigate(`/recipes/${type === "favorites" ? "favorites" : "explore"}`, {
+  //     state: {
+  //       planned_date: date,
+  //       meal_type_id: showScheduleOptions.mealTypeId, // Use the passed mealType.id
+  //     },
+  //   });
+  //   setShowScheduleOptions({ show: false, mealTypeId: null }); // Reset modal state
+  // };
+
+  const handleNavigateToRecipes = (type, activityType) => {
+    navigate(`/recipes/${type === "favorites" ? "favorites" : "explore"}`, {
+        state: {
+            planned_date: date,
+            meal_type_id: showScheduleOptions.mealTypeId, // Use the passed mealType.id
+            activity_type: activityType, // Pass the activity type (e.g., "add" or "view")
+        },
+    });
+    setShowScheduleOptions({ show: false, mealTypeId: null }); // Reset modal state
+};
+
 
   if (loading) {
     return <div className="meal-planner-container">Loading...</div>;
@@ -243,7 +266,7 @@ const handleAddMeal = async () => {
                   </div>
                 )}
               </div>
-              <div className="meal-section-controls">
+              {/* <div className="meal-section-controls">
                 <button
                   onClick={() =>
                     navigate(`/recipes/calendar/preparation/${date}`, {
@@ -254,7 +277,7 @@ const handleAddMeal = async () => {
                     })
                   }
                 >
-                  {hasMeals ? "View Details" : "Add Meal"}
+                  View Details
                 </button>
                 {hasMeals && (
                   <button onClick={() => console.log("Start Cooking")}>
@@ -262,14 +285,70 @@ const handleAddMeal = async () => {
                   </button>
                 )}
 
-                {/* Add Meal Button */}
                 <button
                   onClick={() => handleOpenAddModal(mealType.id)} // Pass mealType.id to open the modal
                   className="add-meal-button"
                 >
                   Add Meal(real)
                 </button>
+              </div> */}
+              <div className="meal-section-controls">
+                {/* Button to navigate based on recipeId */}
+                {/* <button
+                  onClick={() =>
+                    recipeId
+                      ? handleOpenAddModal(mealType.id) // Open Add Modal when recipeId exists
+                      : navigate(`/recipes/explore`, {
+                          state: {
+                            planned_date: date,
+                            meal_type_id: mealType.id,
+                          },
+                        }) // Navigate to browse recipes
+                  }
+                  className="action-button"
+                >
+                  {recipeId ? "Add Here" : "Schedule Meal"}
+                </button> */}
+                <button
+                  onClick={() =>
+                    recipeId
+                      ? handleOpenAddModal(mealType.id) // Open Add Modal when recipeId exists
+                      // : setShowScheduleOptions(true) // Show schedule options modal
+                      : setShowScheduleOptions({ show: true, mealTypeId: mealType.id }) // Pass mealType.id to the modal state
+                  }
+                  className="action-button"
+                >
+                  {recipeId ? "Add Here" : "Schedule Meal"}
+                </button>
+
+                {/* View Details Button */}
+                {hasMeals && (
+                  <button
+                    onClick={() =>
+                      navigate(`/recipes/calendar/preparation/${date}`, {
+                        state: {
+                          planned_date: date,
+                          meal_type_id: mealType.id,
+                        },
+                      })
+                    }
+                    className="view-details-button"
+                  >
+                    View Details
+                  </button>
+                )}
+
+                {/* Start Cooking Button */}
+                {/* {hasMeals && (
+                  <button
+                    onClick={() => console.log("Start Cooking")}
+                    className="start-cooking-button"
+                  >
+                    Start Cooking
+                  </button>
+                )} */}
               </div>
+
               <h2>{mealType.name}</h2>
               <span
                 onClick={() => toggleSection(mealType.name)}
@@ -293,6 +372,7 @@ const handleAddMeal = async () => {
                             planned_date: meal.planned_date,
                             meal_type_id: meal.meal_type_id,
                             recipe_id: meal.recipe_id,
+                            activity_type: "view", // Add activity_type as "view"
                           },
                         })
                       }
@@ -390,6 +470,46 @@ const handleAddMeal = async () => {
           </div>
         </div>
       )}
+
+      {showScheduleOptions.show && (
+        <div className="modal">
+          <div className="modal-content">
+            <h2>Schedule Meal</h2>
+            <p>
+              Would you like to schedule a meal for{" "}
+              <strong>
+                {
+                  mealTypes.find((type) => type.id === showScheduleOptions.mealTypeId)
+                    ?.name
+                }
+              </strong>{" "}
+              from your favorites or all recipes?
+            </p>
+            <div className="modal-buttons">
+              <button
+                onClick={() => handleNavigateToRecipes("favorites", "add")}
+                className="modal-button favorites-button"
+              >
+                Favorites
+              </button>
+              <button
+                onClick={() => handleNavigateToRecipes("all", "add")}
+                className="modal-button all-recipes-button"
+              >
+                All Recipes
+              </button>
+            </div>
+            <button
+              onClick={() => setShowScheduleOptions({ show: false, mealTypeId: null })}
+              className="modal-close-button"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
+
 
 
     </div>
