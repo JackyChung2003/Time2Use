@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import supabase from "../../../../../config/supabaseClient";
+import "./index.css";
 
 const CreateTag = () => {
     const [tagName, setTagName] = useState(""); // State for the tag name
@@ -38,71 +39,33 @@ const CreateTag = () => {
     };
 
     return (
-        <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
-            <h1 style={{ color: "#333" }}>Create Tag</h1>
-            <p style={{ color: "#555" }}>Use this form to add a new tag.</p>
-
+        <div className="create-tag-container">
+            <h1 className="create-tag-title">Create Tag</h1>
+            <p className="create-tag-description">Use this form to add a new tag.</p>
+    
             {/* Form for creating a new tag */}
-            <form
-                onSubmit={handleSubmit}
-                style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "10px",
-                    maxWidth: "400px",
-                }}
-            >
-                <label style={{ color: "#333", fontWeight: "bold" }}>
-                    Tag Name
-                </label>
+            <form onSubmit={handleSubmit} className="form-container">
+                <label htmlFor="tagName" className="form-label">Tag Name</label>
                 <input
                     type="text"
+                    id="tagName"
                     value={tagName}
                     onChange={(e) => setTagName(e.target.value)}
                     placeholder="Enter tag name"
-                    style={{
-                        padding: "10px",
-                        borderRadius: "4px",
-                        border: "1px solid #ccc",
-                        width: "100%",
-                    }}
+                    className="form-input"
                 />
-                <button
-                    type="submit"
-                    style={{
-                        padding: "10px 20px",
-                        borderRadius: "4px",
-                        border: "none",
-                        backgroundColor: "#4CAF50",
-                        color: "white",
-                        cursor: "pointer",
-                    }}
-                >
-                    Create Tag
-                </button>
+                <button type="submit" className="button-primary">Create Tag</button>
             </form>
-
+    
             {/* Display error or success message */}
-            {error && <p style={{ color: "red" }}>{error}</p>}
-            {success && <p style={{ color: "green" }}>{success}</p>}
-
+            {error && <p className="form-error">{error}</p>}
+            {success && <p className="form-success">{success}</p>}
+    
             {/* Back button */}
-            <button
-                onClick={() => navigate(-1)} // Navigate back to the previous page
-                style={{
-                    marginTop: "20px",
-                    padding: "10px 20px",
-                    borderRadius: "4px",
-                    border: "none",
-                    backgroundColor: "#007BFF",
-                    color: "white",
-                    cursor: "pointer",
-                }}
-            >
-                Back
-            </button>
+            <button onClick={() => navigate(-1)} className="button-secondary">Back</button>
         </div>
     );
+    
 };
 
 export default CreateTag;

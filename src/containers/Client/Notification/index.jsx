@@ -2,6 +2,22 @@ import { useEffect, useState } from "react";
 import supabase from "../../../config/supabaseClient";
 import "./index.css";
 
+const NotificationPopup = ({ title, messages, type, onClose }) => (
+  <div className={`notification-popup ${type}`}>
+    <div className="notification-content">
+      <button className="close-button" onClick={onClose}>✕</button>
+      <h3>{title}</h3>
+      <div className="notification-list">
+        {messages.length === 0 ? (
+          <p>No items.</p>
+        ) : (
+          messages.map((message, index) => <p key={index}>{message}</p>)
+        )}
+      </div>
+    </div>
+  </div>
+);
+
 const Notification = () => {
   const [soonExpiringNotifications, setSoonExpiringNotifications] = useState([]);
   const [expiredNotifications, setExpiredNotifications] = useState([]);
@@ -12,24 +28,23 @@ const Notification = () => {
     const fetchNotifications = async () => {
       try {
         const { data: { user }, error: userError } = await supabase.auth.getUser();
-
         if (userError || !user) {
-          console.error("Error fetching user:", userError?.message);
+          console.error("Error fetching user or user is not logged in:", userError?.message);
           return;
         }
 
         const { data: profileData, error: profileError } = await supabase
           .from("profile")
-          .select("notification_day(day)")
+          .select("notification_day")
           .eq("user", user.id)
           .single();
 
         if (profileError || !profileData) {
-          console.error("Error fetching profile:", profileError?.message);
+          console.error("Error fetching profile data:", profileError?.message);
           return;
         }
 
-        const notificationDay = profileData.notification_day?.day;
+        const notificationDay = profileData.notification_day;
         if (!notificationDay) {
           console.error("No notification day configured for this user.");
           return;
@@ -50,11 +65,11 @@ const Notification = () => {
         const soonExpiringItems = [];
         const expiredItems = [];
 
-        inventoryItems.forEach((item) => {
+        inventoryItems?.forEach((item) => {
           if (item.days_left < 0) {
-            expiredItems.push(`Oops! Your ${item.ingredients.name} has expired.`);
+            expiredItems.push(`Oops! Your ${item.ingredients?.name} has expired.`);
           } else {
-            soonExpiringItems.push(`Get Cooking! Your ${item.ingredients.name} is expiring soon.`);
+            soonExpiringItems.push(`Get Cooking! Your ${item.ingredients?.name} is expiring soon.`);
           }
         });
 
@@ -80,42 +95,20 @@ const Notification = () => {
   return (
     <>
       {showSoonExpiringNotification && (
-        <div className="notification-popup">
-          <div className="notification-content">
-            <h3>Soon to Expire</h3>
-            <div className="notification-list">
-              {soonExpiringNotifications.length === 0 ? (
-                <p>No ingredients are expiring soon.</p>
-              ) : (
-                soonExpiringNotifications.map((message, index) => (
-                  <p key={index}>{message}</p>
-                ))
-              )}
-            </div>
-            <button className="close-button" onClick={closeSoonExpiringNotification}>
-              Close
-            </button>
-          </div>
-        </div>
+        <NotificationPopup
+          title="Soon to Expire"
+          messages={soonExpiringNotifications}
+          type="soon-expire"
+          onClose={closeSoonExpiringNotification}
+        />
       )}
       {showExpiredNotification && (
-        <div className="notification-popup expired">
-          <div className="notification-content">
-            <h3>Expired Items</h3>
-            <div className="notification-list">
-              {expiredNotifications.length === 0 ? (
-                <p>No expired items.</p>
-              ) : (
-                expiredNotifications.map((message, index) => (
-                  <p key={index}>{message}</p>
-                ))
-              )}
-            </div>
-            <button className="close-button" onClick={closeExpiredNotification}>
-              Close
-            </button>
-          </div>
-        </div>
+        <NotificationPopup
+          title="Expired Items"
+          messages={expiredNotifications}
+          type="expired"
+          onClose={closeExpiredNotification}
+        />
       )}
     </>
   );

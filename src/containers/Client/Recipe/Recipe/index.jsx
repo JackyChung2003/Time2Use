@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import supabase from '../../../../config/supabaseClient';
 
 import BackButton from '../../../../components/Button/BackButton';
@@ -10,7 +10,18 @@ import { useRecipeContext } from '../Contexts/RecipeContext';
 
 const RecipeExplore = () => {
     // const { recipes, filters, applyFilters, loading } = useRecipeContext();
-    const { recipes, filters,  applyFilters, loading, fetchRecipes } = useRecipeContext(); // Get recipes and filters
+    // const { recipes, filters,  applyFilters, loading, fetchRecipes, mealTypes, userData } = useRecipeContext(); // Get recipes and filters
+    const {
+        recipes,
+        filters,
+        applyFilters,
+        loading,
+        fetchRecipes,
+        mealTypes,
+        userData,
+        favorites,
+        toggleFavorite, 
+      } = useRecipeContext();
     const [categories, setCategories] = useState([]);
     const [tags, setTags] = useState([]);
     const [equipment, setEquipment] = useState([]);
@@ -22,7 +33,27 @@ const RecipeExplore = () => {
     const [matchingIngredients, setMatchingIngredients] = useState([]);
     const [selectedIngredients, setSelectedIngredients] = useState([]);
 
+    // const [loading, setLoading] = useState(true);
+
+    const [showAddModal, setShowAddModal] = useState(null); // For showing the add modal
+    const [newMeal, setNewMeal] = useState({
+        notes: "",
+        time: "",
+        meal_type_id: "",
+        planned_date: "",
+        recipe_id: "",
+      });
+
+    const location = useLocation();
     const navigate = useNavigate();
+
+    // Extract the state passed from the previous page
+    const { planned_date, meal_type_id, activity_type } = location.state || {};
+    // const { planned_date, meal_type_id } = location.state || {};
+
+    // Dynamically map meal_type_id to its name
+    const mealTypeName =
+        mealTypes.find((mealType) => mealType.id === meal_type_id)?.name || "Unknown Meal Type";
     
     const fetchFilterOptions = async () => {
         try {
@@ -76,6 +107,8 @@ const RecipeExplore = () => {
     useEffect(() => {
         fetchRecipes(); // Fetch recipes or re-filter based on filters
       }, [filters]);
+
+      
 
     const filteredRecipes = recipes.filter((recipe) => {
         const matchesSearch = recipe.name?.toLowerCase().includes(search.toLowerCase());
@@ -217,11 +250,82 @@ const RecipeExplore = () => {
         });
     };
 
+    const handleAddMeal = async () => {
+        try {
+          const { error } = await supabase.from("meal_plan").insert([
+            {
+              user_id: userData.id,
+              recipe_id: newMeal.recipe_id,
+              planned_date: newMeal.planned_date,
+              meal_type_id: newMeal.meal_type_id,
+              notes: newMeal.notes,
+              time: newMeal.time,
+            },
+          ]);
+    
+          if (error) {
+            console.error("Error adding meal:", error.message);
+            return;
+          }
+    
+          alert("Meal successfully added!");
+          setShowAddModal(null); // Close modal after success
+        } catch (err) {
+          console.error("Unexpected error adding meal:", err.message);
+        }
+      };
+    
+      const handleOpenAddModal = (recipeId) => {
+        const defaultTime =
+          mealTypes.find((type) => type.id === meal_type_id)?.default_time ||
+          "12:00";
+    
+        setNewMeal({
+          notes: "",
+          time: defaultTime,
+          meal_type_id: meal_type_id,
+          planned_date: planned_date,
+          recipe_id: recipeId,
+        });
+    
+        setShowAddModal(true);
+      };
+
+      if (loading) {
+        return <div>Loading recipes...</div>;
+      }
+    
+
 
     return (
         <div style={{ padding: '20px' }}>
             <BackButton />
             <h1>Explore Recipes</h1>
+
+            {/* Display Planned Date and Meal Type */}
+            {planned_date && activity_type && meal_type_id &&  (
+                <div
+                    style={{
+                        marginBottom: '20px',
+                        padding: '10px',
+                        background: '#f8f9fa',
+                        borderRadius: '5px',
+                        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                    }}
+                >
+                    <p><strong>Adding meal for:</strong></p>
+                    <p>
+                        <strong>Date:</strong> {planned_date}
+                    </p>
+                    <p>
+                        <strong>Meal Type:</strong> {mealTypeName}
+                    </p>
+                    <p>
+                        <strong>Activity Type:</strong> {activity_type}
+                    </p>
+                </div>
+            )}
+
             <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
                 <input
                     type="text"
@@ -252,19 +356,43 @@ const RecipeExplore = () => {
             <div>
                 {filteredRecipes.length > 0 ? (
                     filteredRecipes.map((recipe) => (
+                        // <div
+                        //     key={recipe.id}
+                        //     onClick={() => navigate(`/recipes/recipe/${recipe.id}`)}
+                        //     style={{
+                        //         padding: '10px',
+                        //         border: '1px solid #ddd',
+                        //         marginBottom: '10px',
+                        //         borderRadius: '5px',
+                        //         display: 'flex',
+                        //         flexDirection: 'column',
+                        //         cursor: 'pointer',
+                        //     }}
+                        // >
                         <div
                             key={recipe.id}
-                            onClick={() => navigate(`/recipes/recipe/${recipe.id}`)}
+                            onClick={() =>
+                                navigate(`/recipes/recipe/${recipe.id}`, {
+                                    state: {
+                                        planned_date, // Add the planned_date from state
+                                        meal_type_id, // Add the meal_type_id from state
+                                        recipe_id: recipe.id, // Pass the current recipe ID
+                                        recipe_name: recipe.name, // Pass the current recipe name
+                                        activity_type: activity_type, // Add the activity type
+                                    },
+                                })
+                            }
                             style={{
-                                padding: '10px',
-                                border: '1px solid #ddd',
-                                marginBottom: '10px',
-                                borderRadius: '5px',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                cursor: 'pointer',
+                                padding: "10px",
+                                border: "1px solid #ddd",
+                                marginBottom: "10px",
+                                borderRadius: "5px",
+                                display: "flex",
+                                flexDirection: "column",
+                                cursor: "pointer",
                             }}
                         >
+
                             <img
                                 src={`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/${recipe.image_path}`}
                                 alt={recipe.name}
@@ -281,6 +409,63 @@ const RecipeExplore = () => {
                                 <p>{recipe.description}</p>
                                 <p>Prep Time: {recipe.prep_time} mins</p>
                                 <p>Cook Time: {recipe.cook_time} mins</p>
+
+                                {/* Favorite Icon */}
+                                <button
+                                    onClick={(e) => {
+                                    e.stopPropagation(); // Prevent click propagation
+                                    toggleFavorite(recipe.id); // Toggle favorite status
+                                    }}
+                                    style={{
+                                    background: "transparent",
+                                    border: "none",
+                                    cursor: "pointer",
+                                    fontSize: "24px",
+                                    }}
+                                >
+                                    {favorites.includes(recipe.id) ? "❤️" : "🤍"}
+                                </button>
+                                {/* Add to Meal Button */}
+                                {/* <button
+                                    // onClick={() => handleOpenAddModal(recipe.id)}
+                                    onClick={(e) => {
+                                        e.stopPropagation(); // Stop the parent onClick from firing
+                                        handleOpenAddModal(recipe.id);
+                                    }}
+                                    style={{
+                                        padding: "10px",
+                                        background: "#28a745",
+                                        color: "#fff",
+                                        border: "none",
+                                        borderRadius: "5px",
+                                        cursor: "pointer",
+                                        marginTop: "10px",
+                                        zIndex: 1000,
+                                    }}
+                                >
+                                    Add to Meal
+                                </button> */}
+                                {planned_date && meal_type_id && (
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation(); // Stop the parent onClick from firing
+                                            handleOpenAddModal(recipe.id);
+                                        }}
+                                        style={{
+                                            padding: "10px",
+                                            background: "#28a745",
+                                            color: "#fff",
+                                            border: "none",
+                                            borderRadius: "5px",
+                                            cursor: "pointer",
+                                            marginTop: "10px",
+                                            zIndex: 1000,
+                                        }}
+                                    >
+                                        Add to Meal
+                                    </button>
+                                )}
+
                                 {/* Tags */}
                                 {(recipe.tags || []).length > 0 && (
                                     <div style={{ marginTop: '10px' }}>
@@ -796,6 +981,47 @@ const RecipeExplore = () => {
                 >
                     Find Recipes
                 </button>
+            </div>
+        )}
+
+        {showAddModal && (
+            <div className="modal">
+            <div className="modal-content">
+                <h2>Add a Meal</h2>
+                <p>
+                <strong>Meal Type:</strong>{" "}
+                {mealTypes.find((type) => type.id === newMeal.meal_type_id)?.name ||
+                    "Unknown"}
+                </p>
+                <p>
+                <strong>Planned Date:</strong> {newMeal.planned_date}
+                </p>
+                <label>
+                Notes:
+                <textarea
+                    value={newMeal.notes}
+                    placeholder="Enter additional notes (e.g., extra ingredients, instructions)"
+                    onChange={(e) =>
+                    setNewMeal((prev) => ({ ...prev, notes: e.target.value }))
+                    }
+                    rows="3"
+                />
+                </label>
+                <label>
+                Time:
+                <input
+                    type="time"
+                    value={newMeal.time}
+                    onChange={(e) =>
+                    setNewMeal((prev) => ({ ...prev, time: e.target.value }))
+                    }
+                />
+                </label>
+                <button onClick={handleAddMeal} style={{ marginRight: "10px" }}>
+                Save
+                </button>
+                <button onClick={() => setShowAddModal(null)}>Cancel</button>
+            </div>
             </div>
         )}
 

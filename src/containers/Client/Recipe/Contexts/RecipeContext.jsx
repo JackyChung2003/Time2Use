@@ -15,6 +15,7 @@ export const RecipeProvider = ({ children }) => {
   const [equipment, setEquipment] = useState([]); // Equipment
   const [ingredients, setIngredients] = useState([]); // State for ingredients
   const [mealTypes, setMealTypes] = useState([]); // State to store meal types
+  const [favorites, setFavorites] = useState([]); // Track user's favorite recipes
 
   const [filters, setFilters] = useState({
     categories: [],
@@ -134,6 +135,25 @@ const fetchRecipes = async () => {
     }
   };
 
+  const fetchFavorites = async () => {
+    if (!userData) return;
+    try {
+      const { data, error } = await supabase
+        .from("favorites")
+        .select("recipe_id") // Fetch only the recipe IDs
+        .eq("user_id", userData.id);
+
+      if (error) {
+        console.error("Error fetching favorites:", error.message);
+        return;
+      }
+
+      setFavorites(data.map((fav) => fav.recipe_id)); // Store favorite recipe IDs
+    } catch (err) {
+      console.error("Unexpected error fetching favorites:", err.message);
+    }
+  };
+
   const applyFilters = (newFilters) => {
     setFilters((prevFilters) => ({
         ...prevFilters,
@@ -150,6 +170,7 @@ const fetchRecipes = async () => {
     fetchEquipment(); // Fetch equipment on mount
     fetchIngredients(); // Fetch ingredients on mount
     fetchMealTypes(); // Fetch meal types on mount
+    fetchFavorites(); // Fetch favorites on mount
   }, []);
 
   useEffect(() => {
@@ -265,7 +286,10 @@ const fetchRecipes = async () => {
 
   const fetchMealTypes = async () => {
     try {
-        const { data, error } = await supabase.from("meal_type").select("id, name");
+        const { data, error } = await supabase
+          .from("meal_type")
+          // .select("id, name");
+          .select("*");
         if (error) {
             console.error("Error fetching meal types:", error);
         } else {
@@ -281,7 +305,19 @@ const fetchRecipes = async () => {
         // Fetch recipes based on an array of recipe IDs
         const { data, error } = await supabase
             .from("recipes")
-            .select("id, name, image_path, description, prep_time, cook_time")
+            // .select("id, name, image_path, description, prep_time, cook_time")
+            .select(`
+              id,
+              name,
+              description,
+              prep_time,
+              cook_time,
+              image_path,
+              recipe_tags:recipe_tags_recipe_id_fkey ( tags (name) ),
+              recipe_equipment ( equipment (name) ),
+              recipe_category ( category (name) ),
+              recipe_ingredients ( ingredients (name) )
+            `)
             .in("id", recipeIds); // Only fetch recipes with specified IDs
 
         if (error) {
@@ -704,7 +740,108 @@ const fetchRecipes = async () => {
     }
   };
   
-  
+  // const handleFavorite = async (recipeId) => {
+  //   try {
+  //     if (!userData) {
+  //       alert("Please log in to save recipes to your favorites.");
+  //       return { success: false, message: "User not logged in." };
+  //     }
+
+  //     // Check if the favorite already exists
+  //     const { data, error } = await supabase
+  //       .from("favorites")
+  //       .select("id")
+  //       .eq("recipe_id", recipeId)
+  //       .eq("user_id", userData.id)
+  //       .single();
+
+  //     if (error && error.code !== "PGRST116") {
+  //       console.error("Error checking favorite status:", error.message);
+  //       return { success: false, message: "Failed to check favorite status." };
+  //     }
+
+  //     if (data) {
+  //       // If favorite exists, delete it
+  //       const { error: deleteError } = await supabase
+  //         .from("favorites")
+  //         .delete()
+  //         .eq("id", data.id);
+
+  //       if (deleteError) {
+  //         console.error("Error removing favorite:", deleteError.message);
+  //         return { success: false, message: "Failed to remove from favorites." };
+  //       }
+
+  //       return { success: true, message: "Removed from favorites." };
+  //     } else {
+  //       // If favorite doesn't exist, insert it
+  //       const { error: insertError } = await supabase
+  //         .from("favorites")
+  //         .insert({ recipe_id: recipeId, user_id: userData.id });
+
+  //       if (insertError) {
+  //         console.error("Error adding to favorites:", insertError.message);
+  //         return { success: false, message: "Failed to add to favorites." };
+  //       }
+
+  //       return { success: true, message: "Added to favorites." };
+  //     }
+  //   } catch (err) {
+  //     console.error("Unexpected error handling favorite:", err.message);
+  //     return { success: false, message: "An unexpected error occurred." };
+  //   }
+  // };
+
+  const toggleFavorite = async (recipeId) => {
+    if (!userData) {
+      alert("Please log in to add favorites.");
+      return;
+    }
+
+    try {
+      // Check if the recipe is already favorited
+      const { data, error } = await supabase
+        .from("favorites")
+        .select("id")
+        .eq("recipe_id", recipeId)
+        .eq("user_id", userData.id)
+        .single();
+
+      if (error && error.code !== "PGRST116") {
+        console.error("Error checking favorite status:", error.message);
+        return;
+      }
+
+      if (data) {
+        // If favorited, remove it
+        const { error: deleteError } = await supabase
+          .from("favorites")
+          .delete()
+          .eq("id", data.id);
+
+        if (deleteError) {
+          console.error("Error removing favorite:", deleteError.message);
+          return;
+        }
+
+        setFavorites((prev) => prev.filter((id) => id !== recipeId)); // Update state
+      } else {
+        // If not favorited, add it
+        const { error: insertError } = await supabase
+          .from("favorites")
+          .insert({ recipe_id: recipeId, user_id: userData.id });
+
+        if (insertError) {
+          console.error("Error adding favorite:", insertError.message);
+          return;
+        }
+
+        setFavorites((prev) => [...prev, recipeId]); // Update state
+      }
+    } catch (err) {
+      console.error("Unexpected error toggling favorite:", err.message);
+    }
+  };
 
   return (
     // <RecipeContext.Provider value={{ recipes, tags, filters, fetchRecipes, fetchTags, applyFilters, loading }}>
@@ -718,6 +855,7 @@ const fetchRecipes = async () => {
         filters,
         ingredients,
         mealTypes,
+        favorites,
         fetchRecipes,
         fetchTags,
         fetchCategories,
@@ -736,6 +874,7 @@ const fetchRecipes = async () => {
         enrichInventory,
         fetchInventoryData,
         applyFilters,
+        toggleFavorite,
         loading,
       }}
     >

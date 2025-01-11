@@ -3,6 +3,8 @@ import { useState, useEffect } from "react";
 import supabase from "../../../../../config/supabaseClient";
 
 import BackButton from "../../../../../components/Button/BackButton";
+import "./index.css";
+
 
 const RecipeDetail = () => {
     const { id } = useParams(); // Get the recipe ID from the URL
@@ -176,101 +178,83 @@ const RecipeDetail = () => {
     if (error) return <p style={{ color: "red" }}>{error}</p>;
 
     return (
-        <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
+        <div className="recipe-detail-container">
             {/* Back Button */}
             <BackButton />
-
+    
             {/* Action Buttons */}
-            <div style={{ marginTop: "20px", display: "flex", gap: "10px" }}>
+            <div className="action-buttons">
                 <button
-                    onClick={() => navigate(`/admin/recipe-management/recipes/edit/${id}`)}                    
-                    style={{
-                        padding: "10px 20px",
-                        borderRadius: "4px",
-                        border: "none",
-                        backgroundColor: "#FFA500",
-                        color: "white",
-                        cursor: "pointer",
-                    }}
+                    onClick={() => navigate(`/admin/recipe-management/recipes/edit/${id}`)}
+                    className="button-edit"
                 >
                     Edit Recipe
                 </button>
                 <button
-                    onClick={() => deleteRecipe(recipe.id, recipe.image_path)} // Pass id and image_path to deleteRecipe
-                    style={{
-                        padding: "10px 20px",
-                        borderRadius: "4px",
-                        border: "none",
-                        backgroundColor: "#f44336",
-                        color: "white",
-                        cursor: "pointer",
-                    }}
+                    onClick={() => deleteRecipe(recipe.id, recipe.image_path)}
+                    className="button-delete"
                 >
                     Delete Recipe
                 </button>
             </div>
-
-            <h1>{recipe.name}</h1>
-            <p>{recipe.description}</p>
-            <p>Preparation Time: {recipe.prep_time} mins</p>
-            <p>Cooking Time: {recipe.cook_time} mins</p>
-            <p>Total Time: {recipe.prep_time + recipe.cook_time} mins</p>
+    
+            <h1 className="recipe-title">{recipe.name}</h1>
+            <p className="recipe-description">{recipe.description}</p>
+            <p className="recipe-time">Preparation Time: {recipe.prep_time} mins</p>
+            <p className="recipe-time">Cooking Time: {recipe.cook_time} mins</p>
+            <p className="recipe-time">Total Time: {recipe.prep_time + recipe.cook_time} mins</p>
             {recipe.image_path && (
                 <img
                     src={`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/${recipe.image_path}`}
                     alt={recipe.name}
-                    style={{
-                        width: "300px",
-                        height: "300px",
-                        objectFit: "cover",
-                        borderRadius: "8px",
-                    }}
+                    className="recipe-image"
                 />
             )}
-
+    
             {/* Categories */}
-            <h2>Categories</h2>
-            <ul>
+            <h2 className="section-title">Categories</h2>
+            <ul className="category-list">
                 {categories.map((category, index) => (
-                    <li key={index}>{category}</li>
+                    <li key={index} className="list-item">{category}</li>
                 ))}
             </ul>
-
+    
             {/* Tags */}
-            <h2>Tags</h2>
-            <ul>
+            <h2 className="section-title">Tags</h2>
+            <ul className="tag-list">
                 {tags.map((tag, index) => (
-                    <li key={index}>{tag}</li>
+                    <li key={index} className="list-item">{tag}</li>
                 ))}
             </ul>
-
+    
             {/* Equipment */}
-            <h2>Equipment</h2>
-            <ul>
+            <h2 className="section-title">Equipment</h2>
+            <ul className="equipment-list">
                 {equipment.map((equip, index) => (
-                    <li key={index}>{equip}</li>
+                    <li key={index} className="list-item">{equip}</li>
                 ))}
             </ul>
-
+    
             {/* Ingredients */}
-            <h2>Ingredients</h2>
-            <ul>
+            <h2 className="section-title">Ingredients</h2>
+            <ul className="ingredients-list">
                 {ingredients.map((ingredient, index) => (
-                    <li key={index}>
+                    <li key={index} className="list-item">
                         {ingredient.name} - {ingredient.quantity} {ingredient.unit}
                     </li>
                 ))}
             </ul>
-
+    
             {/* Steps */}
-            <h2>Steps</h2>
-            <ol>
+            <h2 className="section-title">Steps</h2>
+            <ol className="steps-list">
                 {steps.map((step) => (
-                    <li key={step.step_number}>{step.instruction}</li>
+                    <li key={step.step_number} className="step-item">{step.instruction}</li>
                 ))}
             </ol>
         </div>
     );
+    
 };
 
 export default RecipeDetail;

@@ -137,3 +137,18 @@ body {
   font-size: 12px;
   margin-top: 5px;
 }
+
+.cancel-meal-button {
+  margin-top: 5px;
+  background: red;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 5px 10px;
+  cursor: pointer;
+  pointer-events: auto; /* Ensure button is clickable */
+}
+
+.cancel-meal-button:hover {
+  background: darkred;
+}

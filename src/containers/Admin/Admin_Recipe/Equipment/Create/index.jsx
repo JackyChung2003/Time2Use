@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import supabase from "../../../../../config/supabaseClient";
+import "./index.css";
 
 const CreateEquipment = () => {
     const [equipmentName, setEquipmentName] = useState(""); // State for equipment name
@@ -38,71 +39,33 @@ const CreateEquipment = () => {
     };
 
     return (
-        <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
-            <h1 style={{ color: "#333" }}>Create Equipment</h1>
-            <p style={{ color: "#555" }}>Use this form to add a new equipment item.</p>
-
+        <div className="create-equipment-container">
+            <h1 className="create-equipment-title">Create Equipment</h1>
+            <p className="create-equipment-description">Use this form to add a new equipment item.</p>
+    
             {/* Form for creating a new equipment item */}
-            <form
-                onSubmit={handleSubmit}
-                style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "10px",
-                    maxWidth: "400px",
-                }}
-            >
-                <label style={{ color: "#333", fontWeight: "bold" }}>
-                    Equipment Name
-                </label>
+            <form onSubmit={handleSubmit} className="form-container">
+                <label htmlFor="equipment-name" className="form-label">Equipment Name</label>
                 <input
+                    id="equipment-name"
                     type="text"
                     value={equipmentName}
                     onChange={(e) => setEquipmentName(e.target.value)}
                     placeholder="Enter equipment name"
-                    style={{
-                        padding: "10px",
-                        borderRadius: "4px",
-                        border: "1px solid #ccc",
-                        width: "100%",
-                    }}
+                    className="form-input"
                 />
-                <button
-                    type="submit"
-                    style={{
-                        padding: "10px 20px",
-                        borderRadius: "4px",
-                        border: "none",
-                        backgroundColor: "#4CAF50",
-                        color: "white",
-                        cursor: "pointer",
-                    }}
-                >
-                    Create Equipment
-                </button>
+                <button type="submit" className="button-primary">Create Equipment</button>
             </form>
-
+    
             {/* Display error or success message */}
-            {error && <p style={{ color: "red" }}>{error}</p>}
-            {success && <p style={{ color: "green" }}>{success}</p>}
-
+            {error && <p className="form-error">{error}</p>}
+            {success && <p className="form-success">{success}</p>}
+    
             {/* Back button */}
-            <button
-                onClick={() => navigate(-1)} // Navigate back to the previous page
-                style={{
-                    marginTop: "20px",
-                    padding: "10px 20px",
-                    borderRadius: "4px",
-                    border: "none",
-                    backgroundColor: "#007BFF",
-                    color: "white",
-                    cursor: "pointer",
-                }}
-            >
-                Back
-            </button>
+            <button onClick={() => navigate(-1)} className="button-secondary">Back</button>
         </div>
     );
+    
 };
 
 export default CreateEquipment;

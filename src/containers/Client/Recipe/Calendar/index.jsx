@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
-import { useNavigate } from 'react-router-dom'; // For navigation
+// import { useNavigate } from 'react-router-dom'; // For navigation
+import { useNavigate, useLocation } from 'react-router-dom';
 import Calendar from 'react-calendar';
 import { format } from 'date-fns';
 
@@ -14,7 +15,13 @@ const RecipeCalendar = () => {
     const [showModal, setShowModal] = useState(false); // State to manage modal visibility
     const [selectedDate, setSelectedDate] = useState(null); // State for long-pressed date
     const navigate = useNavigate(); // React Router hook for navigation
+    const location = useLocation(); // React Router hook for accessing location state
     const timerRef = useRef(null); // Ref to store the long-press timer
+
+    // Accessing the recipe data from navigation state
+    const { state } = location || {};
+    const recipeId = state?.recipeId;
+    const recipeName = state?.recipeName;
 
     const hardcodedDetails = {
         breakfast: '2 dishes',
@@ -38,10 +45,22 @@ const RecipeCalendar = () => {
         console.log('Long press ended');
     };
 
-    // Function to handle click
+    // // Function to handle click
+    // const handleClick = (date) => {
+    //     const formattedDate = format(date, 'yyyy-MM-dd'); // Ensures correct local date
+    //     navigate(`/recipes/calendar/${formattedDate}`); // Navigate to details page
+    // };
+    
+    // Function to handle click on a day and navigate to the next page
     const handleClick = (date) => {
         const formattedDate = format(date, 'yyyy-MM-dd'); // Ensures correct local date
-        navigate(`/recipes/calendar/${formattedDate}`); // Navigate to details page
+        navigate(`/recipes/calendar/${formattedDate}`, {
+            state: {
+                date: formattedDate,
+                recipeId,
+                recipeName,
+            },
+        }); // Pass date and recipe details to the next page
     };
 
     // Function to determine the class name for each calendar tile
@@ -61,6 +80,16 @@ const RecipeCalendar = () => {
         <div className="calendar-container">
             <h1>Calendar</h1>
             <BackButton />
+
+            {/* Conditionally show the recipe details if recipe data exists */}
+            {recipeId && recipeName && (
+                <div className="recipe-details">
+                    <h2>Reschedule Recipe</h2>
+                    <p><strong>Recipe Name:</strong> {recipeName}</p>
+                    {/* <p><strong>Recipe ID:</strong> {recipeId}</p> */}
+                </div>
+            )}
+
             <Calendar
                 onChange={(date) => setValue(date)} // Updates selected date
                 value={value} // Current selected date

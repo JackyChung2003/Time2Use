@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import supabase from "../../../../../config/supabaseClient";
 import SortableIngredientList from "../../../../../components/SortableDragAndDrop/Ingredient_List";
+import './index.css';
 
 const CreateRecipe = () => {
     const navigate = useNavigate();
@@ -297,56 +298,61 @@ const CreateRecipe = () => {
     };
 
     return (
-        <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
-            <h1>Create New Recipe</h1>
+        <div className="create-recipe-container">
+            <h1 className="create-recipe-title">Create New Recipe</h1>
 
             {/* Recipe Information */}
-            <div>
-                <label>Recipe Name:</label>
+            <div className="form-section">
+                <label htmlFor="recipe-name" className="form-label">Recipe Name:</label>
                 <input
                     type="text"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     required
-                    style={{ width: "100%", margin: "5px 0", padding: "10px" }}
+                    className="form-input"
                 />
 
-                <label>Description:</label>
+                <label htmlFor="recipe-description" className="form-label">Description:</label>
                 <textarea
+                    id="recipe-description"
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    style={{ width: "100%", margin: "5px 0", padding: "10px" }}
+                    className="form-textarea"
                 />
 
-                <label>Image: (only file with &lt;1mb allowed)</label>
+                <label htmlFor="recipe-image" className="form-label">Image: (only file with &lt;1mb allowed)</label>
                 <input
+                    id="recipe-image"
                     type="file"
                     onChange={(e) => setFormData({ ...formData, image: e.target.files[0] })}
+                    className="form-file-input"
                 />
             </div>
 
             {/* Preparation Details */}
-            <div>
-                <label>Preparation Time (mins):</label>
+            <div className="prep-details">
+                <label className="form-label">Preparation Time (mins):</label>
                 <input
                     type="number"
                     value={formData.prep_time}
                     onChange={(e) => setFormData({ ...formData, prep_time: e.target.value })}
+                    className="form-input"
                 />
 
-                <label>Cooking Time (mins):</label>
+                <label className="form-label">Cooking Time (mins):</label>
                 <input
                     type="number"
                     value={formData.cook_time}
                     onChange={(e) => setFormData({ ...formData, cook_time: e.target.value })}
+                    className="form-input"
                 />
 
-                <label>Total Time (mins):</label>
-                <input type="number" value={formData.total_time} readOnly />
+                <label className="form-label">Total Time (mins):</label>
+                <input type="number" value={formData.total_time} readOnly className="form-input-readonly" />
             </div>
 
             {/* Categories */}
-            <h2>Categories</h2>
+            <h2 className="form-subtitle">Categories</h2>
             <select
                 onChange={(e) => {
                     const categoryId = Number(e.target.value);
@@ -354,6 +360,7 @@ const CreateRecipe = () => {
                     if (category) handleAddSelection(selectedCategories, setSelectedCategories, category);
                     e.target.value = ""; // Reset dropdown
                 }}
+                className="form-select"
             >
                 <option value="">Select a category...</option>
                 {categories.map((category) => (
@@ -363,22 +370,17 @@ const CreateRecipe = () => {
                 ))}
             </select>
 
-            <div>
-                <h3>Selected Categories:</h3>
+            <div className="selected-list">
+                <h3 className="selected-list-title">Selected Categories:</h3>
                 {selectedCategories.map((category) => (
-                    <div key={category.id}>
-                        {category.name}{" "}
-                        <button
-                            onClick={() => handleRemoveSelection(selectedCategories, setSelectedCategories, category.id)}
-                        >
-                            Remove
-                        </button>
+                    <div key={category.id} className="selected-item">
+                        {category.name} <button className="remove-button" onClick={() => handleRemoveSelection(selectedCategories, setSelectedCategories, category.id)}>Remove</button>
                     </div>
                 ))}
             </div>
 
             {/* Tags */}
-            <h2>Tags</h2>
+            <h2 className="form-subtitle">Tags</h2>
             <select
                 onChange={(e) => {
                     const tagId = Number(e.target.value);
@@ -386,6 +388,7 @@ const CreateRecipe = () => {
                     if (tag) handleAddSelection(selectedTags, setSelectedTags, tag);
                     e.target.value = ""; // Reset dropdown
                 }}
+                className="form-select"
             >
                 <option value="">Select a tag...</option>
                 {tags.map((tag) => (
@@ -395,21 +398,17 @@ const CreateRecipe = () => {
                 ))}
             </select>
 
-            {/* Selected Tags */}
-            <div>
-                <h3>Selected Tags:</h3>
+            <div className="selected-list">
+                <h3 className="selected-list-title">Selected Tags:</h3>
                 {selectedTags.map((tag) => (
-                    <div key={tag.id}>
-                        {tag.name}{" "}
-                        <button onClick={() => handleRemoveSelection(selectedTags, setSelectedTags, tag.id)}>
-                            Remove
-                        </button>
+                    <div key={tag.id} className="selected-item">
+                        {tag.name} <button className="remove-button" onClick={() => handleRemoveSelection(selectedTags, setSelectedTags, tag.id)}>Remove</button>
                     </div>
                 ))}
             </div>
 
             {/* Equipment */}
-            <h2>Equipment</h2>
+            <h2 className="form-subtitle">Equipment</h2>
             <select
                 onChange={(e) => {
                     const equipmentId = Number(e.target.value);
@@ -417,6 +416,7 @@ const CreateRecipe = () => {
                     if (equip) handleAddSelection(selectedEquipment, setSelectedEquipment, equip);
                     e.target.value = ""; // Reset dropdown
                 }}
+                className="form-select"
             >
                 <option value="">Select equipment...</option>
                 {equipment.map((item) => (
@@ -426,40 +426,33 @@ const CreateRecipe = () => {
                 ))}
             </select>
 
-            {/* Selected Equipment */}
-            <div>
-                <h3>Selected Equipment:</h3>
+            <div className="selected-list">
+                <h3 className="selected-list-title">Selected Equipment:</h3>
                 {selectedEquipment.map((equip) => (
-                    <div key={equip.id}>
-                        {equip.name}{" "}
-                        <button
-                            onClick={() =>
-                                handleRemoveSelection(selectedEquipment, setSelectedEquipment, equip.id)
-                            }
-                        >
-                            Remove
-                        </button>
+                    <div key={equip.id} className="selected-item">
+                        {equip.name} <button className="remove-button" onClick={() => handleRemoveSelection(selectedEquipment, setSelectedEquipment, equip.id)}>Remove</button>
                     </div>
                 ))}
             </div>
 
             {/* Modal for Adding New Category */}
             {isCategoryModalOpen && (
-                <div>
-                    <h2>Add New Category</h2>
+                <div className="modal">
+                    <h2 className="modal-title">Add New Category</h2>
                     <input
                         type="text"
                         value={newCategory}
                         onChange={(e) => setNewCategory(e.target.value)}
+                        className="form-input"
                     />
-                    <button onClick={handleAddCategory}>Add</button>
-                    <button onClick={() => setIsCategoryModalOpen(false)}>Cancel</button>
+                    <button onClick={handleAddCategory} className="button-primary">Add</button>
+                    <button onClick={() => setIsCategoryModalOpen(false)} className="button-secondary">Cancel</button>
                 </div>
             )}
 
             {/* Ingredients Section */}
-            <div style={{ padding: "20px" }}>
-                <h1>Create Recipe</h1>
+            <div className="ingredients-section">
+                <h1 className="form-subtitle">Create Recipe</h1>
                 <SortableIngredientList
                     initialIngredients={ingredients}
                     onIngredientUpdate={handleIngredientUpdate}
@@ -467,32 +460,19 @@ const CreateRecipe = () => {
             </div>
 
             {/* Steps Section */}
-            <div style={{ marginTop: "20px" }}>
-                <h2>Steps</h2>
+            <div className="steps-section">
+                <h2 className="form-subtitle">Steps</h2>
                 {formData.steps.map((step, index) => (
-                    <div key={index} style={{ display: "flex", alignItems: "center", marginBottom: "10px" }}>
+                    <div key={index} className="step-item">
                         <textarea
                             value={step.description}
                             onChange={(e) => handleStepChange(index, e.target.value)}
                             placeholder={`Step ${index + 1}`}
-                            style={{
-                                width: "90%",
-                                padding: "10px",
-                                borderRadius: "5px",
-                                border: "1px solid #ccc",
-                                marginRight: "10px",
-                            }}
+                            className="form-textarea"
                         />
                         <button
                             onClick={() => removeStep(index)}
-                            style={{
-                                background: "#f44336",
-                                color: "white",
-                                border: "none",
-                                borderRadius: "4px",
-                                padding: "5px 10px",
-                                cursor: "pointer",
-                            }}
+                            className="button-secondary remove-step-button"
                         >
                             Remove
                         </button>
@@ -500,15 +480,7 @@ const CreateRecipe = () => {
                 ))}
                 <button
                     onClick={addStep}
-                    style={{
-                        marginTop: "10px",
-                        padding: "10px 20px",
-                        backgroundColor: "#4CAF50",
-                        color: "white",
-                        border: "none",
-                        borderRadius: "4px",
-                        cursor: "pointer",
-                    }}
+                    className="button-primary add-step-button"
                 >
                     + Add Step
                 </button>
@@ -516,19 +488,14 @@ const CreateRecipe = () => {
 
             <button
                 onClick={handleSaveRecipe}
-                style={{
-                    marginTop: "20px",
-                    padding: "10px 20px",
-                    backgroundColor: "#4CAF50",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "4px",
-                }}
+                className="button-primary save-recipe-button"
             >
                 Save Recipe
             </button>
         </div>
     );
+
+    
 };
 
 export default CreateRecipe;
