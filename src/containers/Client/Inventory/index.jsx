@@ -381,55 +381,60 @@ const Item = ({
             Date Purchased: {new Date(item.created_at).toISOString().split('T')[0]}
           </div>
 
-          {/* Quantity Adjustment */}
-          {['unit', 'pcs', 'can', 'box'].includes(item.quantity_unit) ? (
-            <div className="unit-controls">
-              <button onClick={() => handlePortionClickWithState(item, 1)} className="quantity-button">-</button>
-              <div className="quantity-container">
-                <div className="quantity-box">{item.quantity}</div>
-              </div>
-              <button onClick={() => handlePortionClickWithState(item, -1)} className="quantity-button">+</button>
-            </div>
-          ) : (
-            <div className="portion-section">
-              <div className="quantity-container">
-                <input
-                  type="number"
-                  value={item.quantity === null || item.quantity === undefined ? '' : item.quantity}
-                  onChange={(e) => handleQuantityChange(item, e.target.value === '' ? '' : parseFloat(e.target.value))}
-                  className="quantity-box"
-                  min="0"
-                />
-                <div className="quantity-unit">({item.quantity_unit})</div>
-              </div>
-              <div className="used-amount-container">
-                <label htmlFor={`used-amount-${item.id}`}>Used amount:</label>
-                <input
-                  type="number"
-                  id={`used-amount-${item.id}`}
-                  className="used-amount-input"
-                  value={usedAmount[item.id] || ''}
-                  onChange={(e) => setUsedAmount({ ...usedAmount, [item.id]: e.target.value })}
-                />
-                <div className="quantity-unit">({item.quantity_unit})</div>
-                <img
-                  src="src/assets/images/tick-icon.png"
-                  alt="Confirm"
-                  className="done-icon"
-                  onClick={() => handleDoneClick(item)}
-                />
-              </div>
-              <p>or</p>
-              <div className="portion-row">
-                <p>Used portion:</p>
-                <div className="portion-buttons">
-                  <button onClick={() => handlePortionClickWithState(item, item.quantity * 0.2)}>1/5</button>
-                  <button onClick={() => handlePortionClickWithState(item, item.quantity * 0.4)}>2/5</button>
-                  <button onClick={() => handlePortionClickWithState(item, item.quantity * 0.6)}>3/5</button>
-                  <button onClick={() => handlePortionClickWithState(item, item.quantity * 0.8)}>4/5</button>
+          {/* Only render Quantity Adjustment and Portion Section if item is not expired */}
+          {!isExpired && (
+            <>
+              {/* Quantity Adjustment */}
+              {['unit', 'pcs', 'can', 'box'].includes(item.quantity_unit) ? (
+                <div className="unit-controls">
+                  <button onClick={() => handlePortionClickWithState(item, 1)} className="quantity-button">-</button>
+                  <div className="quantity-container">
+                    <div className="quantity-box">{item.quantity}</div>
+                  </div>
+                  <button onClick={() => handlePortionClickWithState(item, -1)} className="quantity-button">+</button>
                 </div>
-              </div>
-            </div>
+              ) : (
+                <div className="portion-section">
+                  <div className="quantity-container">
+                    <input
+                      type="number"
+                      value={item.quantity === null || item.quantity === undefined ? '' : item.quantity}
+                      onChange={(e) => handleQuantityChange(item, e.target.value === '' ? '' : parseFloat(e.target.value))}
+                      className="quantity-box"
+                      min="0"
+                    />
+                    <div className="quantity-unit">({item.quantity_unit})</div>
+                  </div>
+                  <div className="used-amount-container">
+                    <label htmlFor={`used-amount-${item.id}`}>Used amount:</label>
+                    <input
+                      type="number"
+                      id={`used-amount-${item.id}`}
+                      className="used-amount-input"
+                      value={usedAmount[item.id] || ''}
+                      onChange={(e) => setUsedAmount({ ...usedAmount, [item.id]: e.target.value })}
+                    />
+                    <div className="quantity-unit">({item.quantity_unit})</div>
+                    <img
+                      src="src/assets/images/tick-icon.png"
+                      alt="Confirm"
+                      className="done-icon"
+                      onClick={() => handleDoneClick(item)}
+                    />
+                  </div>
+                  <p>or</p>
+                  <div className="portion-row">
+                    <p>Used portion:</p>
+                    <div className="portion-buttons">
+                      <button onClick={() => handlePortionClickWithState(item, item.quantity * 0.2)}>1/5</button>
+                      <button onClick={() => handlePortionClickWithState(item, item.quantity * 0.4)}>2/5</button>
+                      <button onClick={() => handlePortionClickWithState(item, item.quantity * 0.6)}>3/5</button>
+                      <button onClick={() => handlePortionClickWithState(item, item.quantity * 0.8)}>4/5</button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </>
           )}
 
           {/* Nutritional Facts */}
