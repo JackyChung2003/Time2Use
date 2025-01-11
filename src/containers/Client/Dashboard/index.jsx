@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Chart as ChartJS, registerables } from "chart.js";
 import { Pie, Doughnut } from "react-chartjs-2";
 import "./index.css";
-// import Notification from '../Notification';
+import Notification from '../Notification';
 
 // Register all Chart.js components
 ChartJS.register(...registerables);
@@ -17,7 +17,17 @@ const Dashboard = () => {
   const [expiredItems, setExpiredItems] = useState([]);
   const [nutritionSummary, setNutritionSummary] = useState({});
   const [loading, setLoading] = useState(true);
+  const [showNotification, setShowNotification] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    // Check the notification flag
+    const shouldShowNotification = sessionStorage.getItem('showNotification');
+    if (shouldShowNotification) {
+      setShowNotification(true);
+      sessionStorage.removeItem('showNotification'); // Clear the flag after showing notification
+    }
+  }, []);
 
   // Fetch user session
   useEffect(() => {
@@ -173,7 +183,7 @@ const Dashboard = () => {
 
   return (
     <div>
-    {/* <Notification /> */}
+    {showNotification && <Notification />}
     <div className="dashboard-container">
       <div className="dashboard-header">
         {username && <h1>Welcome, {username}!</h1>}
@@ -256,12 +266,18 @@ const Dashboard = () => {
                 </tr>
               </thead>
               <tbody>
-                {expiringItems.map((item, index) => (
+              {expiringItems.length === 0 ? (
+                <tr>
+                  <td colSpan="2">No ingredients are expiring soon</td>
+                </tr>
+              ) : (
+                expiringItems.map((item, index) => (
                   <tr key={index}>
                     <td>{item.ingredients.name}</td>
                     <td>{`${Math.abs(item.days_left)} days left`}</td>
                   </tr>
-                ))}
+                ))
+                )}
               </tbody>
             </table>
           </div>
@@ -277,12 +293,18 @@ const Dashboard = () => {
                 </tr>
               </thead>
               <tbody>
-                {expiredItems.map((item, index) => (
+                {expiredItems.length === 0 ? (
+                <tr>
+                  <td colSpan="2">No ingredients are expired</td>
+                </tr>
+                ) : (
+                expiredItems.map((item, index) => (
                   <tr key={index}>
                     <td>{item.ingredients.name}</td>
                     <td>{`Expired ${Math.abs(item.days_left)} days ago`}</td>
                   </tr>
-                ))}
+                ))
+                )}
               </tbody>
             </table>
           </div>
@@ -295,4 +317,3 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
-
