@@ -175,9 +175,76 @@ const RecipePreparationPage = () => {
     setShowModal(false);
   };
 
+  // const allocateInventoryFIFO = (ingredient, inventory) => {
+  //   const target = ingredient.quantity;
+  //   // console.log("Target Quantity Needed:", target);
+  
+  //   // Step 1: Sort inventory by expiry date first, then by quantity
+  //   const sortedInventory = [...inventory].sort((a, b) => {
+  //     const dateA = new Date(a.expiry_date?.date || "9999-12-31");
+  //     const dateB = new Date(b.expiry_date?.date || "9999-12-31");
+  //     if (dateA - dateB !== 0) {
+  //       return dateA - dateB; // Sort by expiry date first
+  //     }
+  //     return a.quantity - b.quantity; // Then by quantity
+  //   });
+  
+  //   // console.log("Sorted Inventory by Expiry and Quantity:", sortedInventory);
+  
+  //   // Step 2: Find the optimal combination of items
+  //   let remainingRequired = target;
+  //   const selectedItems = [];
+  //   for (let i = 0; i < sortedInventory.length; i++) {
+  //     const item = sortedInventory[i];
+  
+  //     // If the current item's quantity alone satisfies the requirement, take it and stop
+  //     if (item.quantity >= remainingRequired) {
+  //       selectedItems.push({
+  //         ...item,
+  //         selectedQuantity: remainingRequired,
+  //         preselected: true,
+  //       });
+  //       remainingRequired = 0;
+  //       break;
+  //     }
+  
+  //     // Otherwise, take the current item fully and subtract its quantity from the requirement
+  //     selectedItems.push({
+  //       ...item,
+  //       selectedQuantity: item.quantity,
+  //       preselected: true,
+  //     });
+  //     remainingRequired -= item.quantity;
+  
+  //     // If the requirement is satisfied, stop
+  //     if (remainingRequired <= 0) {
+  //       break;
+  //     }
+  //   }
+  
+  //   // console.log("Selected Items:", selectedItems);
+  
+  //   // Step 3: Mark the remaining inventory as unselected
+  //   const finalInventory = sortedInventory.map((item) => {
+  //     const selectedItem = selectedItems.find((selected) => selected.id === item.id);
+  //     return selectedItem
+  //       ? selectedItem
+  //       : { ...item, preselected: false, selectedQuantity: 0 }; // Mark unselected
+  //   });
+  
+  //   // console.log("Final Allocated Inventory:", finalInventory);
+  
+  //   return finalInventory;
+  // };
+  
   const allocateInventoryFIFO = (ingredient, inventory) => {
-    const target = ingredient.quantity;
-    // console.log("Target Quantity Needed:", target);
+    const target = ingredient.quantity; // Target quantity required
+    const ingredientConversionRate = ingredient.ingredients.unit?.conversion_rate_to_grams || 1; // Ingredient conversion rate
+    const targetInBaseUnit = target * ingredientConversionRate; // Convert target to base unit (grams)
+  
+    console.log("Ingredient:", ingredient);
+    console.log("Ingredient Conversion Rate:", ingredientConversionRate);
+    console.log("Target Quantity in Base Unit (grams):", targetInBaseUnit);
   
     // Step 1: Sort inventory by expiry date first, then by quantity
     const sortedInventory = [...inventory].sort((a, b) => {
@@ -189,20 +256,32 @@ const RecipePreparationPage = () => {
       return a.quantity - b.quantity; // Then by quantity
     });
   
-    // console.log("Sorted Inventory by Expiry and Quantity:", sortedInventory);
+    console.log("Sorted Inventory by Expiry Date and Quantity:", sortedInventory);
   
     // Step 2: Find the optimal combination of items
-    let remainingRequired = target;
+    let remainingRequired = targetInBaseUnit; // Remaining required quantity in base unit
     const selectedItems = [];
     for (let i = 0; i < sortedInventory.length; i++) {
       const item = sortedInventory[i];
+      const itemConversionRate = item.ingredients.unitInv?.conversion_rate_to_grams_for_check || 1; // Inventory item conversion rate
+      const itemQuantityInBaseUnit = item.quantity * itemConversionRate; // Convert item quantity to base unit (grams)
+  
+      // Adjust quantity in ingredient's unit
+      const adjustedQuantity = itemQuantityInBaseUnit / ingredientConversionRate;
+  
+      console.log(`Inventory Item ${i + 1}:`, item);
+      console.log("Item Conversion Rate:", itemConversionRate);
+      console.log("Item Quantity in Base Unit (grams):", itemQuantityInBaseUnit);
+      console.log("Adjusted Quantity in Ingredient's Unit:", adjustedQuantity);
   
       // If the current item's quantity alone satisfies the requirement, take it and stop
-      if (item.quantity >= remainingRequired) {
+      if (itemQuantityInBaseUnit >= remainingRequired) {
+        console.log("Item fully satisfies the remaining requirement.");
         selectedItems.push({
           ...item,
-          selectedQuantity: remainingRequired,
+          selectedQuantity: remainingRequired / itemConversionRate, // Convert back to item's unit
           preselected: true,
+          adjustedQuantity: remainingRequired / ingredientConversionRate, // Adjusted quantity for ingredient's unit
         });
         remainingRequired = 0;
         break;
@@ -211,32 +290,36 @@ const RecipePreparationPage = () => {
       // Otherwise, take the current item fully and subtract its quantity from the requirement
       selectedItems.push({
         ...item,
-        selectedQuantity: item.quantity,
+        selectedQuantity: item.quantity, // Use the full quantity in item's unit
         preselected: true,
+        adjustedQuantity, // Adjusted quantity for ingredient's unit
       });
-      remainingRequired -= item.quantity;
+      remainingRequired -= itemQuantityInBaseUnit;
+  
+      console.log("Remaining Required Quantity in Base Unit (grams):", remainingRequired);
   
       // If the requirement is satisfied, stop
       if (remainingRequired <= 0) {
+        console.log("Requirement fully satisfied.");
         break;
       }
     }
-  
-    // console.log("Selected Items:", selectedItems);
   
     // Step 3: Mark the remaining inventory as unselected
     const finalInventory = sortedInventory.map((item) => {
       const selectedItem = selectedItems.find((selected) => selected.id === item.id);
       return selectedItem
         ? selectedItem
-        : { ...item, preselected: false, selectedQuantity: 0 }; // Mark unselected
+        : { ...item, preselected: false, selectedQuantity: 0, adjustedQuantity: 0 }; // Mark unselected
     });
   
-    // console.log("Final Allocated Inventory:", finalInventory);
+    console.log("Selected Items:", selectedItems);
+    console.log("Final Allocated Inventory:", finalInventory);
   
     return finalInventory;
   };
   
+
   const preselectLinkedInventory = (linkedInventory, fullInventory) => {
     console.log("Processing Linked Inventory for Preselection:", linkedInventory);
   
@@ -1478,64 +1561,77 @@ const RecipePreparationPage = () => {
                       ))}
                     </ul> */}
                     <ul>
-                      {console.log("Inventory Items:", inventoryItems)}
-                      {inventoryItems.map((item) => {
-                        // Calculate adjusted quantity if the conversion rates don't match
-                        const adjustedQuantity =
-                          item.ingredients.unit?.conversion_rate_to_grams && item.ingredients.unitInv?.conversion_rate_to_grams_for_check
-                            ? item.quantity / item.ingredients.unit.conversion_rate_to_grams
-                            : 0;
+                      {console.log("Inventory Items Before Sorting:", inventoryItems)}
+                      {inventoryItems
+                        .sort((a, b) => {
+                          // Parse dates for comparison
+                          const dateA = new Date(a.expiry_date?.date || "9999-12-31");
+                          const dateB = new Date(b.expiry_date?.date || "9999-12-31");
 
-                        // Check if the conversion rates match
-                        const isConversionRateMatching =
-                          item.ingredients.unit?.conversion_rate_to_grams ===
-                          item.ingredients.unitInv?.conversion_rate_to_grams_for_check;
+                          // Compare expiry dates first
+                          if (dateA - dateB !== 0) {
+                            return dateA - dateB; // Sort by date
+                          }
 
-                        // Check if unitInv_tag is the same as unit_tag
-                        const isUnitTagMatching = item.ingredients.unitInv?.unitInv_tag === item.ingredients.unit?.unit_tag;
+                          // If dates are the same, compare quantities
+                          return a.quantity - b.quantity;
+                        })
+                        .map((item) => {
+                          // Calculate adjusted quantity if the conversion rates don't match
+                          const adjustedQuantity =
+                            item.ingredients.unit?.conversion_rate_to_grams && item.ingredients.unitInv?.conversion_rate_to_grams_for_check
+                              ? item.quantity / item.ingredients.unit.conversion_rate_to_grams
+                              : 0;
 
-                        return (
-                          <li
-                            key={item.id}
-                            style={{
-                              backgroundColor: selectedInventory.find((selected) => selected.id === item.id)?.preselected
-                                ? "lightgreen"
-                                : "white",
-                              padding: "5px",
-                              borderRadius: "5px",
-                            }}
-                          >
-                            <label>
-                              <input
-                                type="checkbox"
-                                checked={selectedInventory.find((selected) => selected.id === item.id)?.preselected || false}
-                                onChange={() => toggleInventorySelection(item)}
-                              />
-                              {isUnitTagMatching ? (
-                                // If unitInv_tag matches unit_tag, show one unit
-                                <>
-                                  {item.quantity || 0} {item.ingredients.unit?.unit_description || "unit not specified"}
-                                </>
-                              ) : isConversionRateMatching ? (
-                                // Display quantity and units if conversion rates match
-                                <>
-                                  {item.quantity || 0} {item.ingredients.unitInv?.unitInv_tag || "unit not specified"} /
-                                  {item.ingredients.unit?.unit_description || "unit not specified"}
-                                </>
-                              ) : (
-                                // Display adjusted quantity if conversion rates don't match
-                                <>
-                                  {item.quantity || 0} {item.ingredients.unitInv?.unitInv_tag || "unit not specified"} /
-                                  {/* {adjustedQuantity.toFixed(2)} {item.ingredients.unit?.unit_tag || "unit not specified"} */}
-                                  {Math.round(adjustedQuantity)} {item.ingredients.unit?.unit_description || "unit not specified"}
-                                </>
-                              )}
-                              (Expiry: {item.expiry_date?.date || "No expiry date"})
-                            </label>
-                          </li>
-                        );
-                      })}
+                          // Check if the conversion rates match
+                          const isConversionRateMatching =
+                            item.ingredients.unit?.conversion_rate_to_grams === item.ingredients.unitInv?.conversion_rate_to_grams_for_check;
+
+                          // Check if unitInv_tag is the same as unit_tag
+                          const isUnitTagMatching = item.ingredients.unitInv?.unitInv_tag === item.ingredients.unit?.unit_tag;
+
+                          return (
+                            <li
+                              key={item.id}
+                              style={{
+                                backgroundColor: selectedInventory.find((selected) => selected.id === item.id)?.preselected
+                                  ? "lightgreen"
+                                  : "white",
+                                padding: "5px",
+                                borderRadius: "5px",
+                              }}
+                            >
+                              <label>
+                                <input
+                                  type="checkbox"
+                                  checked={selectedInventory.find((selected) => selected.id === item.id)?.preselected || false}
+                                  onChange={() => toggleInventorySelection(item)}
+                                />
+                                {isUnitTagMatching ? (
+                                  // If unitInv_tag matches unit_tag, show one unit
+                                  <>
+                                    {item.quantity || 0} {item.ingredients.unit?.unit_description || "unit not specified"}
+                                  </>
+                                ) : isConversionRateMatching ? (
+                                  // Display quantity and units if conversion rates match
+                                  <>
+                                    {item.quantity || 0} {item.ingredients.unitInv?.unitInv_tag || "unit not specified"} /
+                                    {item.ingredients.unit?.unit_description || "unit not specified"}
+                                  </>
+                                ) : (
+                                  // Display adjusted quantity if conversion rates don't match
+                                  <>
+                                    {item.quantity || 0} {item.ingredients.unitInv?.unitInv_tag || "unit not specified"} /
+                                    {Math.round(adjustedQuantity)} {item.ingredients.unit?.unit_description || "unit not specified"}
+                                  </>
+                                )}
+                                (Expiry: {item.expiry_date?.date || "No expiry date"})
+                              </label>
+                            </li>
+                          );
+                        })}
                     </ul>
+
 
 
 
