@@ -142,6 +142,10 @@ h2 {
   max-width: 500px;
 }
 
+.table-container .table-card:last-child {
+  margin-bottom: 30px; /* Add extra space at the bottom of the last card */
+}
+
 
 /* Media Queries for Web and Tablet Views */
 @media (max-width: 1200px) {

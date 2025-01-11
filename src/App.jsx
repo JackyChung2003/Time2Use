@@ -26,17 +26,7 @@ const App = () => {
     const [loading, setLoading] = useState(false);
     const [isCollapsed, setIsCollapsed] = useState(false);
 
-    // Service Worker Update Prompt
-    // useEffect(() => {
-    //     if ("serviceWorker" in navigator) {
-    //         navigator.serviceWorker.addEventListener("controllerchange", () => {
-    //             if (window.confirm("New version available. Refresh to update?")) {
-    //                 window.location.reload();
-    //             }
-    //         });
-    //     }
-    // }, []);
-
+    
     useEffect(() => {
         const handleResize = () => {
             if (window.innerWidth <= 768) {

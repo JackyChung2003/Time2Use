@@ -51,6 +51,9 @@ const Login = () => {
             const roleName = roleData.role_name.trim().toLowerCase();
             console.log('Role before storing:', roleName);
             
+            // Set notification flag to true for dashboard
+            sessionStorage.setItem('showNotification', 'true');
+
             // Update role in context (this also stores in localStorage)
             updateUserRole(roleName);
             console.log('Role after storing:', roleName);
