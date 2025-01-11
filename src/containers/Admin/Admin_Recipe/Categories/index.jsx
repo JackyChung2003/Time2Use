@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import supabase from "../../../../config/supabaseClient";
-
+import "./index.css";
 const Categories = () => {
     const [categories, setCategories] = useState([]);
     const [filteredCategories, setFilteredCategories] = useState([]); // For filtered data
@@ -109,147 +109,81 @@ const Categories = () => {
     }, []);
 
     return (
-        <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
-            <h1 style={{ color: "#333" }}>Manage Categories</h1>
-            <p style={{ color: "#555" }}>View, create, and edit recipe categories.</p>
-
+        <div className="categories-container">
+            <h1 className="categories-title">Manage Categories</h1>
+            <p className="categories-description">View, create, and edit recipe categories.</p>
+    
             {/* Search and Refresh */}
-            <div style={{ marginBottom: "20px", display: "flex", gap: "10px" }}>
+            <div className="categories-controls">
                 <input
                     type="text"
                     placeholder="Search categories..."
                     value={searchTerm}
                     onChange={handleSearch}
-                    style={{
-                        padding: "10px",
-                        borderRadius: "4px",
-                        border: "1px solid #ccc",
-                        width: "100%",
-                        maxWidth: "400px",
-                    }}
+                    className="categories-search"
                 />
                 <button
                     onClick={fetchCategories}
-                    style={{
-                        padding: "10px 20px",
-                        borderRadius: "4px",
-                        border: "none",
-                        backgroundColor: "#4CAF50",
-                        color: "white",
-                        cursor: "pointer",
-                    }}
+                    className="categories-refresh-button"
                 >
                     Refresh
                 </button>
                 <button
-                    onClick={() => navigate("create")} // Navigate to the create category page
-                    style={{
-                        padding: "10px 20px",
-                        borderRadius: "4px",
-                        border: "none",
-                        backgroundColor: "#2196F3",
-                        color: "white",
-                        cursor: "pointer",
-                    }}
+                    onClick={() => navigate("create")}
+                    className="categories-create-button"
                 >
                     Create Category
                 </button>
             </div>
-
+    
             {/* Show loading state */}
-            {loading && <p>Loading categories...</p>}
-
+            {loading && <p className="categories-loading">Loading categories...</p>}
+    
             {/* Show error state */}
-            {error && <p style={{ color: "red" }}>{error}</p>}
-
+            {error && <p className="categories-error">{error}</p>}
+    
             {/* Display categories */}
             {!loading && !error && filteredCategories.length > 0 ? (
-                <table
-                    style={{
-                        width: "100%",
-                        borderCollapse: "collapse",
-                        boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
-                    }}
-                >
+                <table className="categories-table">
                     <thead>
-                        <tr style={{ backgroundColor: "#f4f4f4" }}>
+                        <tr className="categories-table-header-row">
                             <th
                                 onClick={() => handleSort("id")}
-                                style={{
-                                    border: "1px solid #ccc",
-                                    padding: "10px",
-                                    textAlign: "left",
-                                    cursor: "pointer",
-                                }}
+                                className="categories-table-header"
                             >
-                                ID {sortConfig.key === "id" && (sortConfig.direction === "asc" ? "↑" : "↓")}
+                                ID {sortConfig.key === "id" && (sortConfig.direction === "asc" ? "\u2191" : "\u2193")}
                             </th>
                             <th
                                 onClick={() => handleSort("name")}
-                                style={{
-                                    border: "1px solid #ccc",
-                                    padding: "10px",
-                                    textAlign: "left",
-                                    cursor: "pointer",
-                                }}
+                                className="categories-table-header"
                             >
-                                Name {sortConfig.key === "name" && (sortConfig.direction === "asc" ? "↑" : "↓")}
+                                Name {sortConfig.key === "name" && (sortConfig.direction === "asc" ? "\u2191" : "\u2193")}
                             </th>
                             <th
                                 onClick={() => handleSort("description")}
-                                style={{
-                                    border: "1px solid #ccc",
-                                    padding: "10px",
-                                    textAlign: "left",
-                                    cursor: "pointer",
-                                }}
+                                className="categories-table-header"
                             >
-                                Description {sortConfig.key === "description" && (sortConfig.direction === "asc" ? "↑" : "↓")}
+                                Description {sortConfig.key === "description" && (sortConfig.direction === "asc" ? "\u2191" : "\u2193")}
                             </th>
-                            <th style={{ border: "1px solid #ccc", padding: "10px", textAlign: "center" }}>
-                                Actions
-                            </th>
+                            <th className="categories-table-header actions-column">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         {filteredCategories.map((category) => (
-                            <tr key={category.id}>
-                                <td style={{ border: "1px solid #ccc", padding: "10px" }}>{category.id}</td>
-                                <td style={{ border: "1px solid #ccc", padding: "10px" }}>{category.name}</td>
-                                <td style={{ border: "1px solid #ccc", padding: "10px" }}>{category.description}</td>
-                                <td
-                                    style={{
-                                        border: "1px solid #ccc",
-                                        padding: "10px",
-                                        textAlign: "center",
-                                    }}
-                                >
+                            <tr key={category.id} className="categories-table-row">
+                                <td className="categories-table-cell">{category.id}</td>
+                                <td className="categories-table-cell">{category.name}</td>
+                                <td className="categories-table-cell">{category.description}</td>
+                                <td className="categories-table-cell actions-cell">
                                     <button
-                                        // onClick={() => console.log(`Edit ${category.id}`)}
-                                        
-                                        onClick={() => navigate(`edit/${category.id}`)} // Navigate to the edit page
-                                        style={{
-                                            marginRight: "10px",
-                                            padding: "8px 12px",
-                                            cursor: "pointer",
-                                            backgroundColor: "#2196F3",
-                                            color: "white",
-                                            border: "none",
-                                            borderRadius: "4px",
-                                        }}
+                                        onClick={() => navigate(`edit/${category.id}`)}
+                                        className="categories-action-button categories-edit-button"
                                     >
                                         Edit
                                     </button>
                                     <button
-                                        onClick={() => handleDelete(category.id)} // Call delete function
-                                        style={{
-                                            padding: "8px 12px",
-                                            cursor: "pointer",
-                                            backgroundColor: "#f44336",
-                                            color: "white",
-                                            border: "none",
-                                            borderRadius: "4px",
-                                        }}
+                                        onClick={() => handleDelete(category.id)}
+                                        className="categories-action-button categories-delete-button"
                                     >
                                         Delete
                                     </button>
@@ -259,10 +193,11 @@ const Categories = () => {
                     </tbody>
                 </table>
             ) : (
-                !loading && <p>No categories found.</p>
+                !loading && <p className="categories-empty">No categories found.</p>
             )}
         </div>
     );
+    
 };
 
 export default Categories;

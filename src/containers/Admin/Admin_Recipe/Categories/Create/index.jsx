@@ -1,6 +1,7 @@
 import { useState } from "react";
 import supabase from "../../../../../config/supabaseClient";
 import { useNavigate } from "react-router-dom";
+import "./index.css";
 
 const CreateCategory = () => {
     const [name, setName] = useState("");
@@ -32,62 +33,42 @@ const CreateCategory = () => {
     };
 
     return (
-        <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
-            <h1 style={{ color: "#333" }}>Create Category</h1>
-            <form onSubmit={handleCreate} style={{ maxWidth: "400px" }}>
-                {error && <p style={{ color: "red" }}>{error}</p>}
-                <div style={{ marginBottom: "20px" }}>
-                    <label htmlFor="name" style={{ display: "block", marginBottom: "5px" }}>
-                        Name
-                    </label>
+        <div className="create-category-container">
+            <h1 className="create-category-title">Create Category</h1>
+            <form onSubmit={handleCreate} className="form-container">
+                {error && <p className="form-error">{error}</p>}
+                <div className="form-group">
+                    <label htmlFor="name" className="form-label">Name</label>
                     <input
                         id="name"
                         type="text"
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                         required
-                        style={{
-                            width: "100%",
-                            padding: "10px",
-                            border: "1px solid #ccc",
-                            borderRadius: "4px",
-                        }}
+                        className="form-input"
                     />
                 </div>
-                <div style={{ marginBottom: "20px" }}>
-                    <label htmlFor="description" style={{ display: "block", marginBottom: "5px" }}>
-                        Description
-                    </label>
+                <div className="form-group">
+                    <label htmlFor="description" className="form-label">Description</label>
                     <textarea
                         id="description"
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
                         required
-                        style={{
-                            width: "100%",
-                            padding: "10px",
-                            border: "1px solid #ccc",
-                            borderRadius: "4px",
-                        }}
+                        className="form-textarea"
                     />
                 </div>
                 <button
                     type="submit"
                     disabled={loading}
-                    style={{
-                        padding: "10px 20px",
-                        border: "none",
-                        borderRadius: "4px",
-                        backgroundColor: "#4CAF50",
-                        color: "white",
-                        cursor: loading ? "not-allowed" : "pointer",
-                    }}
+                    className={`button-primary ${loading ? "button-disabled" : ""}`}
                 >
                     {loading ? "Creating..." : "Create Category"}
                 </button>
             </form>
         </div>
     );
+    
 };
 
 export default CreateCategory;

@@ -34,10 +34,19 @@
 
 /* Header */
 .admin-header {
-  padding: 20px;
+  /* padding: 20px; */
+  height: 60px;
   background-color: #1e293b;
   color: white;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.admin-header h1 {
+  color: white;
+  margin: 0;
 }
 
 /* Content Area */

@@ -8,27 +8,30 @@ export const fetchItems = async (userId) => {
         id:ingredient_id,
         daysLeft:days_left,
         quantity,
-        quantity_unit_id,
+        
         freshness_status_id,
         created_at,
         condition_id,
+        expiry_date_id,
+        expiry_date:expiry_date (date),
         ingredients (
           name,
           icon_path,
           nutritional_info,
           storage_tips,
           pred_shelf_life,
+          quantity_unitInv_id,
           ingredients_category (
             category_tag
-          )
+          ),
+          unitInv:unitInv (unitInv_tag)
         ),
         freshness_status (
           status_color
         ),
-        unit:unit (unit_tag),
         condition:condition (condition)
       `)
-      .eq('user_id', userId); // filter by user id
+      .eq('user_id', userId)// filter by user id
 
     if (error) {
       throw error;
@@ -37,38 +40,119 @@ export const fetchItems = async (userId) => {
     console.log('Fetched raw data from Supabase:', data);
 
     const SUPABASE_STORAGE_URL = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/`;
-    const items = data.map((item) => {
-      const categoryTag = item.ingredients?.ingredients_category?.category_tag;
-      const statusColor = item.freshness_status?.status_color || 'green'; // Default to 'green' if no status_color
+    const items = [];
 
-      // Construct the full image URL
+    for (const item of data) {
+      const categoryTag = item.ingredients?.ingredients_category?.category_tag;
+      const statusColor = item.freshness_status?.status_color || 'green';
       const imageUrl = item.ingredients?.icon_path
         ? `${SUPABASE_STORAGE_URL}${item.ingredients.icon_path}`
         : '';
 
-      return {
+      // Calculate the daysLeft if necessary
+      let calculatedDaysLeft = item.daysLeft;
+      if (item.daysLeft === null && item.ingredients?.pred_shelf_life) {
+        calculatedDaysLeft = calculatePredictedDaysLeft(item.ingredients.pred_shelf_life);
+      }
+      // If calculatedDaysLeft is not null, update the database
+      if (calculatedDaysLeft !== null && item.daysLeft === null) {
+        try {
+          console.log(`Item ID: ${item.id}, Original Days Left: ${item.daysLeft}, Calculated Days Left: ${calculatedDaysLeft}`);
+    
+          // Update the item directly in the database
+          const { error: updateError } = await supabase
+            .from('inventory')
+            .update({ days_left: calculatedDaysLeft })
+            .eq('ingredient_id', item.id)
+            .eq('user_id', userId);  // Make sure to include user_id if needed for uniqueness
+
+          if (updateError) {
+            console.error(`Error updating item with id ${item.id}:`, updateError);
+          } else {
+            console.log(`Successfully updated item with id ${item.id}`);
+          }
+        } catch (exception) {
+          console.error(`Exception while updating item with id ${item.id}:`, exception);
+        }
+      }
+
+
+      items.push({
         id: item.id,
         name: item.ingredients?.name || 'Unknown',
-        daysLeft: item.daysLeft,
+        daysLeft: calculatedDaysLeft,
         imageUrl: imageUrl,
         category: categoryTag,
         pred_shelf_life: item.ingredients?.pred_shelf_life || 'No prediction available',
         quantity: item.quantity,
-        quantity_unit: item.unit?.unit_tag || 'unit',
+        quantity_unit: item.ingredients?.unitInv?.unitInv_tag,
         statusColor: statusColor, 
         nutritionalInfo: item.ingredients?.nutritional_info || 'No information available',
         storageTips: item.ingredients?.storage_tips || 'No tips available',
         condition_id: item.condition_id,
         created_at: item.created_at,
-      };
+        expiryDate : item.expiry_date?.date,
       });
-      
+    }
 
     return items;
   } catch (err) {
     console.error('Error fetching items:', err);
     return [];
   }
+};
+
+
+const calculatePredictedDaysLeft = (predShelfLife) => {
+  // Match ranges like "2-3 months" or "7-10 days"
+  const rangePattern = /(\d+)-(\d+)\s*(months?|days?|years?)/i;
+  const match = predShelfLife.match(rangePattern);
+
+  if (match) {
+    const minValue = parseInt(match[1]);
+    const maxValue = parseInt(match[2]);
+    const unit = match[3].toLowerCase();  // 'month', 'day', or 'year'
+
+    // Convert to days for consistency
+    let averageDays;
+    if (unit.includes('month')) {
+      averageDays = ((minValue + maxValue) / 2) * 30; // Assuming an average month length of 30 days
+    } else if (unit.includes('year')) {
+      averageDays = ((minValue + maxValue) / 2) * 365; // Average year length
+    } else {
+      averageDays = (minValue + maxValue) / 2; // Average for days
+    }
+
+    return Math.round(averageDays);
+  }
+
+  // Handle the case where the pred_shelf_life is more complex, such as "7-10 days (refrigerated)"
+  // Example: "2-3 years (ground), 4 years (whole)" can be handled by selecting one range (e.g., ground)
+  const multipleRangesPattern = /(\d+)-(\d+)\s*(months?|days?|years?)/g;
+  let totalDays = 0;
+  let count = 0;
+
+  let rangeMatch;
+  while ((rangeMatch = multipleRangesPattern.exec(predShelfLife)) !== null) {
+    const minValue = parseInt(rangeMatch[1]);
+    const maxValue = parseInt(rangeMatch[2]);
+    const unit = rangeMatch[3].toLowerCase();  // 'month', 'day', or 'year'
+
+    let averageDays;
+    if (unit.includes('month')) {
+      averageDays = ((minValue + maxValue) / 2) * 30;
+    } else if (unit.includes('year')) {
+      averageDays = ((minValue + maxValue) / 2) * 365;
+    } else {
+      averageDays = (minValue + maxValue) / 2;
+    }
+
+    totalDays += averageDays;
+    count++;
+  }
+
+  // Return the average of all the parsed ranges
+  return count > 0 ? Math.round(totalDays / count) : null;
 };
 
 

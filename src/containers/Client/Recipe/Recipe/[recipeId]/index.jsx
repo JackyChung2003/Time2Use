@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { useLocation } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
+// import { useLocation } from 'react-router-dom';
 import supabase from '../../../../../config/supabaseClient';
 
 import BackButton from '../../../../../components/Button/BackButton';
@@ -9,7 +9,16 @@ import { useRecipeContext } from '../../Contexts/RecipeContext';
 
 const RecipeDetail = () => {
 
-    const { recipes, fetchRecipeIngredients, fetchRecipeSteps, mealTypes } = useRecipeContext();
+    const { 
+        recipes,
+        fetchRecipeIngredients, 
+        fetchRecipeSteps, 
+        mealTypes, 
+        userData,
+        toggleFavorite
+        // toggleFavorite,
+        // isFavorite 
+    } = useRecipeContext();
 
     const { id } = useParams();
     const navigate = useNavigate();
@@ -19,7 +28,7 @@ const RecipeDetail = () => {
     const [steps, setSteps] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    const [isFavorite, setIsFavorite] = useState(false);
+    // const [isFavorite, setIsFavorite] = useState(false);
     const [isCookingMode, setIsCookingMode] = useState(false);
     const [currentStepIndex, setCurrentStepIndex] = useState(0); // Tracks the current step
     const [previousStepIndex, setPreviousStepIndex] = useState(null); // Tracks the previous step
@@ -39,6 +48,7 @@ const RecipeDetail = () => {
 
     const location = useLocation();
     const scheduleData = location.state; // Get state passed via navigate
+    // const { planned_date, meal_type_id, activity_type } = location.state || {};
 
     // const nutritionFacts = {
     //     calories: 500,
@@ -47,21 +57,103 @@ const RecipeDetail = () => {
     //     fat: 15,
     // };
 
+    const [showAddModal, setShowAddModal] = useState(null); // Tracks modal visibility
+    const [newMeal, setNewMeal] = useState({
+        notes: "",
+        time: "",
+        meal_type_id: "",
+        planned_date: "",
+        recipe_id: "",
+      });
+      
+      const [isFavoriteRecipe, setIsFavoriteRecipe] = useState(false);
+      
+    //   useEffect(() => {
+    //     const selectedRecipe = recipes.find((recipe) => recipe.id === parseInt(id));
+    //     if (selectedRecipe) {
+    //         setRecipe(selectedRecipe);
+    //         // fetchRecipeIngredients(selectedRecipe.id).then(setIngredients);
+    //         fetchRecipeIngredients(selectedRecipe.id).then((data) => {
+    //             setIngredients(data);
+    //             calculateNutrition(data); // Calculate nutrition when ingredients are fetched
+    //         });
+    //         fetchRecipeSteps(selectedRecipe.id).then(setSteps);
+    //     } else {
+    //         setRecipe(null);
+    //     }
+    //     setLoading(false);
+    // }, [id, recipes, fetchRecipeIngredients, fetchRecipeSteps]);
+
+    //   useEffect(() => {
+    //     const fetchRecipeData = async () => {
+    //         const selectedRecipe = recipes.find((recipe) => recipe.id === parseInt(id));
+    //         if (selectedRecipe) {
+    //             setRecipe(selectedRecipe);
+    
+    //             // Fetch ingredients and calculate nutrition
+    //             const ingredientsData = await fetchRecipeIngredients(selectedRecipe.id);
+    //             setIngredients(ingredientsData);
+    //             calculateNutrition(ingredientsData);
+    
+    //             // Fetch steps
+    //             const stepsData = await fetchRecipeSteps(selectedRecipe.id);
+    //             setSteps(stepsData);
+    
+    //             // Check favorite status
+    //             if (userData) {
+    //                 const favoriteStatus = await isFavorite(selectedRecipe.id, userData.id);
+    //                 setIsFavoriteRecipe(favoriteStatus);
+    //             }
+    //         } else {
+    //             setRecipe(null);
+    //         }
+    //         setLoading(false);
+    //     };
+    
+    //     fetchRecipeData();
+    // }, [id, recipes, fetchRecipeIngredients, fetchRecipeSteps, userData, isFavorite]);
+    
     useEffect(() => {
-        const selectedRecipe = recipes.find((recipe) => recipe.id === parseInt(id));
-        if (selectedRecipe) {
-            setRecipe(selectedRecipe);
-            // fetchRecipeIngredients(selectedRecipe.id).then(setIngredients);
-            fetchRecipeIngredients(selectedRecipe.id).then((data) => {
-                setIngredients(data);
-                calculateNutrition(data); // Calculate nutrition when ingredients are fetched
-            });
-            fetchRecipeSteps(selectedRecipe.id).then(setSteps);
-        } else {
-            setRecipe(null);
-        }
-        setLoading(false);
-    }, [id, recipes, fetchRecipeIngredients, fetchRecipeSteps]);
+        const fetchRecipeData = async () => {
+            const selectedRecipe = recipes.find((recipe) => recipe.id === parseInt(id));
+            if (selectedRecipe) {
+                setRecipe(selectedRecipe);
+    
+                // Fetch ingredients and calculate nutrition
+                const ingredientsData = await fetchRecipeIngredients(selectedRecipe.id);
+                setIngredients(ingredientsData);
+                calculateNutrition(ingredientsData);
+    
+                // Fetch steps
+                const stepsData = await fetchRecipeSteps(selectedRecipe.id);
+                setSteps(stepsData);
+    
+                // Check if the recipe is favorited
+                if (userData) {
+                    try {
+                        const { data, error } = await supabase
+                            .from('favorites')
+                            .select('id')
+                            .eq('recipe_id', selectedRecipe.id)
+                            .eq('user_id', userData.id)
+                            .single();
+    
+                        if (!error && data) {
+                            setIsFavoriteRecipe(true);
+                        }
+                    } catch (err) {
+                        console.error('Error checking favorite status:', err.message);
+                    }
+                }
+            } else {
+                setRecipe(null);
+            }
+            setLoading(false);
+        };
+    
+        fetchRecipeData();
+    }, [id, recipes, fetchRecipeIngredients, fetchRecipeSteps, userData]);
+    
 
     const calculateNutrition = (ingredients) => {
         let totalNutrition = {
@@ -154,25 +246,25 @@ const RecipeDetail = () => {
         });
     };
 
-    const toggleFavorite = async () => {
-        try {
-            const { data } = await supabase
-                .from('favorites')
-                .select('*')
-                .eq('recipe_id', id)
-                .single();
+    // const toggleFavorite = async () => {
+    //     try {
+    //         const { data } = await supabase
+    //             .from('favorites')
+    //             .select('*')
+    //             .eq('recipe_id', id)
+    //             .single();
     
-            if (data) {
-                await supabase.from('favorites').delete().eq('recipe_id', id);
-                setIsFavorite(false);
-            } else {
-                await supabase.from('favorites').insert({ recipe_id: id, user_id: '7863d141-7c8f-4779-9ac8-2b45e9a9d752' });
-                setIsFavorite(true);
-            }
-        } catch (error) {
-            console.error('Error toggling favorite:', error);
-        }
-    };
+    //         if (data) {
+    //             await supabase.from('favorites').delete().eq('recipe_id', id);
+    //             setIsFavorite(false);
+    //         } else {
+    //             await supabase.from('favorites').insert({ recipe_id: id, user_id: '7863d141-7c8f-4779-9ac8-2b45e9a9d752' });
+    //             setIsFavorite(true);
+    //         }
+    //     } catch (error) {
+    //         console.error('Error toggling favorite:', error);
+    //     }
+    // };
 
     // const toggleCookingMode = () => setIsCookingMode((prev) => !prev);
 
@@ -285,18 +377,78 @@ const RecipeDetail = () => {
         map[type.id] = type.name;
         return map;
     }, {});
-    
+
+    const handleAddMeal = async () => {
+        try {
+          const { error } = await supabase.from("meal_plan").insert([
+            {
+              user_id: userData.id, // Replace with the appropriate user ID
+              recipe_id: newMeal.recipe_id,
+              planned_date: newMeal.planned_date,
+              meal_type_id: newMeal.meal_type_id,
+              notes: newMeal.notes,
+              time: newMeal.time,
+            },
+          ]);
+      
+          if (error) {
+            console.error("Error adding meal:", error.message);
+            return;
+          }
+      
+          alert("Meal successfully added!");
+          setShowAddModal(null); // Close the modal
+        } catch (err) {
+          console.error("Unexpected error adding meal:", err.message);
+        }
+      };
+      
+      const handleOpenAddModal = (recipeId) => {
+        const defaultTime =
+          mealTypes.find((type) => type.id === scheduleData.meal_type_id)?.default_time || "12:00";
+      
+        setNewMeal({
+          notes: "",
+          time: defaultTime,
+          meal_type_id: scheduleData?.meal_type_id || "",
+          planned_date: scheduleData?.planned_date || "",
+          recipe_id: recipeId,
+        });
+      
+        setShowAddModal(true);
+      };
+
+      const handleFavoriteClick = async () => {
+        const response = await toggleFavorite(recipe.id);
+        if (response.success) {
+          setIsFavoriteRecipe((prev) => !prev);
+          alert(response.message);
+        } else {
+          alert(response.message);
+        }
+      };
 
     return (
         <div style={{ padding: '20px' }}>
             <BackButton />
             <h1>{recipe.name}</h1>
-            <button onClick={toggleFavorite}>
-                {isFavorite ? 'Remove from Favorites' : 'Save to Favorites'}
+            <button onClick={handleFavoriteClick}>
+                {/* {isFavorite ? 'Remove from Favorites' : 'Save to Favorites'} */}
+                {isFavoriteRecipe ? 'Remove from Favorites' : 'Save to Favorites'}
             </button>
             <button onClick={shareRecipe}>Share Recipe</button>
 
-
+            {/* Displaying Schedule Data if Present */}
+            {scheduleData && (
+                <div style={{ marginBottom: '20px', padding: '10px', border: '1px solid #ccc', borderRadius: '5px' }}>
+                    <h2>Scheduled Meal Information</h2>
+                    <p><strong>Planned Date:</strong> {new Date(scheduleData.planned_date).toLocaleDateString()}</p>
+                    <p><strong>Meal Type:</strong> {mealTypeMap[scheduleData.meal_type_id] || 'Unknown'}</p>
+                    <p><strong>Recipe ID:</strong> {scheduleData.recipe_id}</p>
+                    <p><strong>Recipe Name:</strong> {scheduleData.recipe_name}</p>
+                    <p><strong>Activity Type:</strong> {scheduleData.activity_type}</p>
+                </div>
+            )}
             <img
                 src={`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/${recipe.image_path}`}
                 alt={recipe.name}
@@ -646,7 +798,7 @@ const RecipeDetail = () => {
                         Cancel Schedule for {scheduleData.planned_date}, {scheduleData.meal_type_id}
                     </button> */}
 
-                    <button
+                    {/* <button
                         onClick={handleCancelSchedule}
                         style={{
                             padding: "12px 20px",
@@ -675,7 +827,63 @@ const RecipeDetail = () => {
                             year: "numeric",
                         })}{" "}
                         ({mealTypeMap[scheduleData.meal_type_id] || "Unknown"})
-                    </button>
+                    </button> */}
+
+                    {scheduleData?.activity_type === "view" ? (
+                        // Show the "Cancel Schedule" button for "view" activity type
+                        <button
+                            onClick={handleCancelSchedule}
+                            style={{
+                                padding: "12px 20px",
+                                background: "#ff4d4d", // Softer red
+                                color: "#fff",
+                                border: "none",
+                                borderRadius: "8px",
+                                cursor: "pointer",
+                                marginTop: "20px",
+                                fontSize: "16px",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                gap: "8px",
+                                boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
+                                transition: "background 0.3s ease",
+                            }}
+                            onMouseEnter={(e) => (e.target.style.background = "#e63939")}
+                            onMouseLeave={(e) => (e.target.style.background = "#ff4d4d")}
+                        >
+                            <span style={{ fontSize: "20px", fontWeight: "bold" }}>✖</span>
+                            Cancel Schedule for{" "}
+                            {new Date(scheduleData.planned_date).toLocaleDateString("en-US", {
+                                month: "long",
+                                day: "numeric",
+                                year: "numeric",
+                            })}{" "}
+                            ({mealTypeMap[scheduleData.meal_type_id] || "Unknown"})
+                        </button>
+                    ) : (
+                        // Updated "Add Recipe to Meal Plan" button
+                        // Add to Meal Button with Modal Trigger
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation(); // Prevent event propagation
+                                handleOpenAddModal(recipe.id); // Trigger modal opening
+                            }}
+                            style={{
+                                padding: "10px",
+                                background: "#28a745",
+                                color: "#fff",
+                                border: "none",
+                                borderRadius: "5px",
+                                cursor: "pointer",
+                                marginTop: "10px",
+                                zIndex: 1000,
+                            }}
+                        >
+                            Add to Meal
+                        </button>
+                    )}
+
 
 
                     <button
@@ -714,6 +922,46 @@ const RecipeDetail = () => {
                     </li>
                 ))}
             </ul>
+            {showAddModal && (
+                <div className="modal">
+                    <div className="modal-content">
+                    <h2>Add a Meal</h2>
+                    <p>
+                        <strong>Meal Type:</strong>{" "}
+                        {mealTypes.find((type) => type.id === newMeal.meal_type_id)?.name ||
+                        "Unknown"}
+                    </p>
+                    <p>
+                        <strong>Planned Date:</strong> {newMeal.planned_date}
+                    </p>
+                    <label>
+                        Notes:
+                        <textarea
+                        value={newMeal.notes}
+                        placeholder="Enter additional notes (e.g., extra ingredients, instructions)"
+                        onChange={(e) =>
+                            setNewMeal((prev) => ({ ...prev, notes: e.target.value }))
+                        }
+                        rows="3"
+                        />
+                    </label>
+                    <label>
+                        Time:
+                        <input
+                        type="time"
+                        value={newMeal.time}
+                        onChange={(e) =>
+                            setNewMeal((prev) => ({ ...prev, time: e.target.value }))
+                        }
+                        />
+                    </label>
+                    <button onClick={handleAddMeal} style={{ marginRight: "10px" }}>
+                        Save
+                    </button>
+                    <button onClick={() => setShowAddModal(null)}>Cancel</button>
+                    </div>
+                </div>
+                )}
 
         </div>
     );

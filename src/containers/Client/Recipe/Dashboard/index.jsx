@@ -25,6 +25,13 @@ const RecipeDashboard = () => {
                     View Favorites
                 </button>
 
+                {/* <button
+                    onClick={() => navigate('/recipes/shopping-list')}
+                    style={{ padding: '10px 20px', cursor: 'pointer', backgroundColor: '#FF5722', color: 'white', border: 'none', borderRadius: '5px' }}
+                >
+                    View Shopping List
+                </button> */}
+
                 {/* Navigate to Recipe Calendar */}
                 <button 
                     onClick={() => navigate('/recipes/calendar')} 

@@ -1,0 +1,155 @@
+.recipe-detail-container {
+  padding: 20px;
+  font-family: Arial, sans-serif;
+  max-width: 800px;
+  margin: 0 auto;
+  background-color: #f9f9f9;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  overflow: hidden; /* Ensure content stays inside the container */
+}
+
+.recipe-title {
+  font-size: 2.5rem;
+  text-align: center;
+  margin-bottom: 10px;
+  color: #333;
+}
+
+.recipe-description {
+  font-size: 1.2rem;
+  margin-bottom: 15px;
+  color: #555;
+  line-height: 1.5;
+  text-align: center; /* Center-align for a better look */
+}
+
+.recipe-time {
+  font-size: 1rem;
+  margin-bottom: 5px;
+  color: #666;
+}
+
+.recipe-image {
+  width: 100%;
+  max-width: 300px;
+  height: auto;
+  object-fit: cover;
+  border-radius: 8px;
+  display: block;
+  margin: 20px auto;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.section-title {
+  font-size: 1.8rem;
+  margin-top: 20px;
+  margin-bottom: 10px;
+  color: #444;
+}
+
+.category-list,
+.tag-list,
+.equipment-list,
+.ingredients-list,
+.steps-list {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.list-item {
+  padding: 10px;
+  margin-bottom: 5px;
+  background-color: #f4f4f4;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  color: #333;
+}
+
+.steps-list .step-item {
+  margin-bottom: 10px;
+  padding: 10px;
+  background-color: #f4f4f4;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  color: #555;
+}
+.action-buttons {
+  display: flex;
+  gap: 15px; /* Increased spacing between buttons */
+  margin-bottom: 20px;
+  justify-content: center;
+  /* flex-wrap: wrap; */
+}
+
+.button-edit,
+.button-delete {
+  padding: 12px 25px; /* Larger padding for better clickability */
+  border-radius: 6px; /* Slightly rounded corners for a modern look */
+  font-size: 1rem;
+  font-weight: bold; /* Adds visual emphasis */
+  cursor: pointer;
+  transition: all 0.3s ease; /* Smooth hover effect */
+  border: none; /* Remove border for cleaner look */
+}
+
+.button-edit {
+  background-color: #ffa500;
+  color: white;
+  border: 1px solid #e69500; /* Subtle border for definition */
+}
+
+.button-edit:hover {
+  background-color: #e69500;
+  border-color: #cc8400; /* Matches hover color for a cohesive look */
+}
+
+.button-delete {
+  background-color: #f44336;
+  color: white;
+  border: 1px solid #d32f2f; /* Subtle border for definition */
+}
+
+.button-delete:hover {
+  background-color: #d32f2f;
+  border-color: #b71c1c; /* Matches hover color for a cohesive look */
+}
+
+/* For smaller screens, ensure buttons remain accessible */
+@media (max-width: 600px) {
+  .action-buttons {
+    justify-content: center; /* Center buttons on small screens */
+    gap: 10px; /* Slightly reduce gap for narrow layouts */
+  }
+
+  .button-edit,
+  .button-delete {
+    width: 100%; /* Full-width buttons for better usability */
+    max-width: 300px; /* Limit max size for consistency */
+    text-align: center; /* Center-align text */
+  }
+}
+
+/* Normal Button Style */
+.button-normal {
+  padding: 10px 20px;
+  font-size: 1rem;
+  font-weight: bold;
+  color: white;
+  background-color: #007bff; /* Default blue */
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.button-normal:hover {
+  background-color: #0056b3; /* Darker blue on hover */
+  transform: scale(1.05); /* Slightly larger on hover */
+}
+
+.button-normal:active {
+  background-color: #003f7f; /* Even darker blue when clicked */
+  transform: scale(0.95); /* Slightly smaller when clicked */
+}

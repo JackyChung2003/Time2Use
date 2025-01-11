@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import supabase from "../../../../../config/supabaseClient";
+import "./index.css";
 
 const EditTag = () => {
     const { id } = useParams(); // Get the tag ID from the URL
@@ -63,11 +64,14 @@ const EditTag = () => {
     if (error) return <p style={{ color: "red" }}>{error}</p>;
 
     return (
-        <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
-            <h1>Edit Tag</h1>
-            <form onSubmit={handleSubmit} style={{ maxWidth: "400px" }}>
-                <div style={{ marginBottom: "10px" }}>
-                    <label htmlFor="tagName" style={{ display: "block", marginBottom: "5px" }}>
+        <div className="edit-tag-container">
+            <h1 className="edit-tag-title">Edit Tag</h1>
+            {error && <p className="form-error">{error}</p>}
+            {loading && <p className="loading-text">Loading...</p>}
+    
+            <form onSubmit={handleSubmit} className="form-container">
+                <div className="form-group">
+                    <label htmlFor="tagName" className="form-label">
                         Tag Name:
                     </label>
                     <input
@@ -76,46 +80,25 @@ const EditTag = () => {
                         value={tagName}
                         onChange={(e) => setTagName(e.target.value)}
                         required
-                        style={{
-                            padding: "10px",
-                            width: "100%",
-                            borderRadius: "4px",
-                            border: "1px solid #ccc",
-                        }}
+                        className="form-input"
                     />
                 </div>
-                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <div className="form-actions">
                     <button
                         type="button"
-                        onClick={() => navigate(-1)} // Navigate back to the previous page
-                        style={{
-                            padding: "10px 20px",
-                            borderRadius: "4px",
-                            border: "none",
-                            backgroundColor: "#ccc",
-                            color: "black",
-                            cursor: "pointer",
-                        }}
+                        onClick={() => navigate(-1)}
+                        className="button-secondary"
                     >
                         Cancel
                     </button>
-                    <button
-                        type="submit"
-                        style={{
-                            padding: "10px 20px",
-                            borderRadius: "4px",
-                            border: "none",
-                            backgroundColor: "#4CAF50",
-                            color: "white",
-                            cursor: "pointer",
-                        }}
-                    >
+                    <button type="submit" className="button-primary">
                         Save Changes
                     </button>
                 </div>
             </form>
         </div>
     );
+    
 };
 
 export default EditTag;

@@ -1,31 +1,101 @@
+// Successful directed to page
 import './index.css'; // Import the CSS file
 import { useState } from 'react';
 import supabase from '../../../config/supabaseClient';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../../context/AuthContext';
 
 const Login = () => {
+    const navigate = useNavigate();
+    const { updateUserRole } = useAuth();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
-    const navigate = useNavigate();
 
     const handleEmailLogin = async (e) => {
         e.preventDefault();
         setLoading(true);
         try {
-            const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+            const { data, error } = await supabase.auth.signInWithPassword({
+                email: email,
+                password: password,
+            });
+
             if (error) throw error;
 
-            alert(`Welcome back, ${data.user.email}`);
-            navigate('/dashboard');
+            // First get the role_id from user_roles
+            const { data: userRoleData, error: roleError } = await supabase
+                .from('user_roles')
+                .select('role_id')
+                .eq('user_id', data.user.id)
+                .single();
+
+            if (roleError) {
+                console.error('Error fetching user_role:', roleError);
+                throw roleError;
+            }
+
+            // Then get the role_name from roles table using role_id
+            const { data: roleData, error: roleNameError } = await supabase
+                .from('roles')
+                .select('role_name')
+                .eq('id', userRoleData.role_id)
+                .single();
+
+            if (roleNameError) {
+                console.error('Error fetching role_name:', roleNameError);
+                throw roleNameError;
+            }
+
+            const roleName = roleData.role_name.trim().toLowerCase();
+            console.log('Role before storing:', roleName);
+            
+            // Set notification flag to true for dashboard
+            sessionStorage.setItem('showNotification', 'true');
+
+            // Update role in context (this also stores in localStorage)
+            updateUserRole(roleName);
+            console.log('Role after storing:', roleName);
+
+            // Check the user's profile for a username (only for clients)
+            if (roleName === 'client') {
+                const { data: profileData, error: profileError } = await supabase
+                    .from('profile')  // Assuming user profile information is stored here
+                    .select('username')
+                    .eq('user', data.user.id)
+                    .single();
+
+                if (profileError) {
+                    console.error('Error fetching profile data:', profileError);
+                    throw profileError;
+                }
+
+                // If the username is empty, navigate to the profile page to set it
+                if (!profileData?.username) {
+                    console.log("Navigating to profile to set username");
+                    navigate('/profile');
+                } else {
+                    // If the username exists, navigate to the client dashboard
+                    console.log("Navigating to client dashboard");
+                    navigate('/dashboard');
+                }
+            } else if (roleName === 'admin') {
+                // Admin-specific navigation
+                console.log("Navigating to admin dashboard");
+                navigate('/admin/dashboard');
+            } else {
+                throw new Error(`Unknown role: ${roleName}`);
+            }
+
         } catch (error) {
-            console.error('Login failed:', error.message);
-            alert(`Login failed: ${error.message}`);
+            console.error('Error:', error.message);
+            setError(error.message);
         } finally {
             setLoading(false);
         }
     };
-
+    
     return (
         <div className="container">
             <h1 className="header">Login</h1>
@@ -49,7 +119,7 @@ const Login = () => {
                 </button>
             </form>
             <p className="footer">
-                Dont have an account?{' '}
+                Don't have an account?{' '}
                 <button className="signup-link" onClick={() => navigate('/signup')}>
                     Sign Up
                 </button>

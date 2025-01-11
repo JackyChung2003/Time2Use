@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import supabase from "../../../../../config/supabaseClient";
+import "./index.css";
 
 const EditCategory = () => {
     const { id } = useParams(); // Get the category ID from the URL
@@ -61,62 +62,42 @@ const EditCategory = () => {
     };
 
     return (
-        <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
-            <h1 style={{ color: "#333" }}>Edit Category</h1>
-            <form onSubmit={handleEdit} style={{ maxWidth: "400px" }}>
-                {error && <p style={{ color: "red" }}>{error}</p>}
-                <div style={{ marginBottom: "20px" }}>
-                    <label htmlFor="name" style={{ display: "block", marginBottom: "5px" }}>
-                        Name
-                    </label>
+        <div className="edit-category-container">
+            <h1 className="edit-category-title">Edit Category</h1>
+            <form onSubmit={handleEdit} className="form-container">
+                {error && <p className="form-error">{error}</p>}
+                <div className="form-group">
+                    <label htmlFor="name" className="form-label">Name</label>
                     <input
                         id="name"
                         type="text"
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                         required
-                        style={{
-                            width: "100%",
-                            padding: "10px",
-                            border: "1px solid #ccc",
-                            borderRadius: "4px",
-                        }}
+                        className="form-input"
                     />
                 </div>
-                <div style={{ marginBottom: "20px" }}>
-                    <label htmlFor="description" style={{ display: "block", marginBottom: "5px" }}>
-                        Description
-                    </label>
+                <div className="form-group">
+                    <label htmlFor="description" className="form-label">Description</label>
                     <textarea
                         id="description"
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
                         required
-                        style={{
-                            width: "100%",
-                            padding: "10px",
-                            border: "1px solid #ccc",
-                            borderRadius: "4px",
-                        }}
+                        className="form-textarea"
                     />
                 </div>
                 <button
                     type="submit"
                     disabled={loading}
-                    style={{
-                        padding: "10px 20px",
-                        border: "none",
-                        borderRadius: "4px",
-                        backgroundColor: "#FFA500",
-                        color: "white",
-                        cursor: loading ? "not-allowed" : "pointer",
-                    }}
+                    className={`button-warning ${loading ? "button-disabled" : ""}`}
                 >
                     {loading ? "Updating..." : "Update Category"}
                 </button>
             </form>
         </div>
     );
+    
 };
 
 export default EditCategory;
