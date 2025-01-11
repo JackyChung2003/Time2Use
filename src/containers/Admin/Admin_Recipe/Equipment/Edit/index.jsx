@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import supabase from "../../../../../config/supabaseClient";
+import "./index.css";
 
 const EditEquipment = () => {
     const { id } = useParams();
@@ -56,38 +57,32 @@ const EditEquipment = () => {
     };
 
     return (
-        <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
-            <h1>Edit Equipment</h1>
-            {error && <p style={{ color: "red" }}>{error}</p>}
-
-            <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                <label htmlFor="equipmentName">Equipment Name:</label>
+        <div className="edit-equipment-container">
+            <h1 className="edit-equipment-title">Edit Equipment</h1>
+            {error && <p className="form-error">{error}</p>}
+    
+            <form onSubmit={handleSubmit} className="form-container">
+                <label htmlFor="equipmentName" className="form-label">Equipment Name:</label>
                 <input
                     type="text"
                     id="equipmentName"
                     value={equipmentName}
                     onChange={(e) => setEquipmentName(e.target.value)}
                     required
-                    style={{ padding: "10px", borderRadius: "4px", border: "1px solid #ccc" }}
+                    className="form-input"
                 />
-
+    
                 <button
                     type="submit"
                     disabled={loading}
-                    style={{
-                        padding: "10px 20px",
-                        borderRadius: "4px",
-                        border: "none",
-                        backgroundColor: "#4CAF50",
-                        color: "white",
-                        cursor: loading ? "not-allowed" : "pointer",
-                    }}
+                    className={`button-primary ${loading ? "button-disabled" : ""}`}
                 >
                     {loading ? "Updating..." : "Update Equipment"}
                 </button>
             </form>
         </div>
     );
+    
 };
 
 export default EditEquipment;

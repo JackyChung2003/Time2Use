@@ -1,4 +1,4 @@
-.recipes-container {
+.manage-tags-container {
   padding: 20px;
   font-family: "Poppins", Arial, sans-serif;
   background-color: #f9f9f9;
@@ -8,7 +8,7 @@
   margin: auto;
 }
 
-.recipes-title {
+.manage-tags-title {
   color: #2c3e50;
   font-size: 2.5rem;
   margin-bottom: 10px;
@@ -16,21 +16,21 @@
   font-weight: 600;
 }
 
-.recipes-description {
+.manage-tags-description {
   color: #7f8c8d;
   margin-bottom: 30px;
   text-align: center;
   font-size: 1.2rem;
 }
 
-.recipes-controls {
+.manage-tags-actions {
   margin-bottom: 20px;
   display: flex;
   gap: 15px;
   justify-content: center;
 }
 
-.recipes-search {
+.search-input {
   padding: 12px;
   border-radius: 8px;
   border: 1px solid #bdc3c7;
@@ -39,8 +39,7 @@
   font-size: 1rem;
 }
 
-.recipes-refresh-button,
-.recipes-create-button {
+.button-primary {
   padding: 12px 25px;
   border-radius: 8px;
   border: none;
@@ -52,18 +51,48 @@
   transition: background-color 0.3s ease;
 }
 
-.recipes-refresh-button:hover,
-.recipes-create-button:hover {
+.button-primary:hover {
   background-color: #229954;
 }
 
-.recipes-error {
-  color: #e74c3c;
-  font-weight: bold;
+.button-secondary {
+  padding: 12px 25px;
+  border-radius: 8px;
+  border: none;
+  background-color: #3498db;
+  color: white;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.button-secondary:hover {
+  background-color: #2e86c1;
+}
+
+.loading-text {
+  font-size: 1rem;
+  color: #2c3e50;
   text-align: center;
 }
 
-.recipes-table {
+.error-text {
+  color: #e74c3c;
+  font-size: 1rem;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.no-tags-text {
+  font-size: 1rem;
+  color: #7f8c8d;
+  text-align: center;
+  margin-top: 20px;
+}
+
+.tags-table {
   width: 100%;
   border-collapse: collapse;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -73,96 +102,66 @@
   overflow: hidden;
 }
 
-.recipes-table-header {
+.tags-table thead {
   background-color: #ecf0f1;
-  border: 1px solid #bdc3c7;
+}
+
+.sortable-header {
   padding: 12px;
   text-align: left;
   cursor: pointer;
+  border: 1px solid #bdc3c7;
   font-weight: 600;
   color: #34495e;
   text-transform: uppercase;
 }
 
-.recipes-table-row td {
+.actions-header {
+  text-align: center;
+  border: 1px solid #bdc3c7;
+  padding: 12px;
+}
+
+.table-cell {
   border: 1px solid #ecf0f1;
   padding: 12px;
   color: #2c3e50;
   font-size: 0.95rem;
 }
 
-.recipes-table-row:nth-child(even) {
-  background-color: #f8f9fa;
-}
-
-.recipes-image {
-  width: 60px;
-  height: 60px;
-  object-fit: cover;
-  border-radius: 50%;
-  border: 2px solid #bdc3c7;
-}
-
-.recipes-action-button {
-  margin-right: 10px;
-  padding: 10px 15px;
-  cursor: pointer;
-  border: none;
-  border-radius: 8px;
-  color: white;
-  font-size: 0.9rem;
-  font-weight: 500;
-  transition: background-color 0.3s ease;
-  width: 100%;
-}
-
-.recipes-view-button {
-  background-color: #f39c12;
-}
-
-.recipes-view-button:hover {
-  background-color: #d68910;
-}
-
-.recipes-edit-button {
-  background-color: #3498db;
-}
-
-.recipes-edit-button:hover {
-  background-color: #2e86c1;
-}
-
-.recipes-delete-button {
-  background-color: #e74c3c;
-}
-
-.recipes-delete-button:hover {
-  background-color: #c0392b;
-}
-
-.recipes-pagination {
-  margin-top: 30px;
+.actions-cell {
   text-align: center;
 }
 
-.pagination-button {
-  margin: 0 10px;
+.button-edit {
   padding: 10px 15px;
-  background-color: #3498db;
-  color: white;
+  cursor: pointer;
   border: none;
   border-radius: 8px;
+  background-color: #3498db;
+  color: white;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: background-color 0.3s ease;
+  margin-right: 10px;
+}
+
+.button-edit:hover {
+  background-color: #2e86c1;
+}
+
+.button-delete {
+  padding: 10px 15px;
   cursor: pointer;
+  border: none;
+  border-radius: 8px;
+  background-color: #e74c3c;
+  color: white;
   font-size: 0.9rem;
   font-weight: 500;
   transition: background-color 0.3s ease;
 }
 
-.pagination-button:disabled {
-  background-color: #bdc3c7;
-  cursor: not-allowed;
-}
-
-.pagination-button:hover:not(:disabled) {
-  background-color: #2e86c1;
+.button-delete:hover {
+  background-color: #c0392b;
 }
