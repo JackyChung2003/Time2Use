@@ -402,23 +402,23 @@ const Profile = () => {
           <div className="password-container">
             
             {/* Old Password */}
-<div className="password-input">
-  <label>Old Password</label>
-  <input
-    type={showOldPassword ? "text" : "password"}
-    value={oldPassword}
-    placeholder="Enter old password"
-    onChange={(e) => setOldPassword(e.target.value)}
-    className="password-edit-input"
-  />
-  <button
-    type="button"
-    className="toggle-password"
-    onClick={() => setShowOldPassword((prev) => !prev)}
-  >
-    {showOldPassword ? "👁️" : "👁️‍🗨️"}
-  </button>
-</div>
+          <div className="password-input">
+            <label>Old Password</label>
+            <input
+              type={showOldPassword ? "text" : "password"}
+              value={oldPassword}
+              placeholder="Enter old password"
+              onChange={(e) => setOldPassword(e.target.value)}
+              className="password-edit-input"
+            />
+            <button
+              type="button"
+              className="toggle-password"
+              onClick={() => setShowOldPassword((prev) => !prev)}
+            >
+              {showOldPassword ? "👁️" : "👁️‍🗨️"}
+            </button>
+          </div>
 
 {/* New Password */}
 <div className="password-input">

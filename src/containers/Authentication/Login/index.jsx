@@ -58,13 +58,32 @@ const Login = () => {
             updateUserRole(roleName);
             console.log('Role after storing:', roleName);
 
-            // Navigate based on role
-            if (roleName === 'admin') {
+            // Check the user's profile for a username (only for clients)
+            if (roleName === 'client') {
+                const { data: profileData, error: profileError } = await supabase
+                    .from('profile')  // Assuming user profile information is stored here
+                    .select('username')
+                    .eq('user', data.user.id)
+                    .single();
+
+                if (profileError) {
+                    console.error('Error fetching profile data:', profileError);
+                    throw profileError;
+                }
+
+                // If the username is empty, navigate to the profile page to set it
+                if (!profileData?.username) {
+                    console.log("Navigating to profile to set username");
+                    navigate('/profile');
+                } else {
+                    // If the username exists, navigate to the client dashboard
+                    console.log("Navigating to client dashboard");
+                    navigate('/dashboard');
+                }
+            } else if (roleName === 'admin') {
+                // Admin-specific navigation
                 console.log("Navigating to admin dashboard");
                 navigate('/admin/dashboard');
-            } else if (roleName === 'client') {
-                console.log("Navigating to user dashboard");
-                navigate('/dashboard');
             } else {
                 throw new Error(`Unknown role: ${roleName}`);
             }
@@ -76,7 +95,7 @@ const Login = () => {
             setLoading(false);
         }
     };
-
+    
     return (
         <div className="container">
             <h1 className="header">Login</h1>
