@@ -1,12 +1,12 @@
-import { 
-    FaTachometerAlt, 
-    FaUser, 
-    FaCog, 
-    FaClipboardList, 
-    FaUtensils, 
-    FaTags, 
-    FaListAlt, 
-    FaPlusCircle, 
+import {
+    FaTachometerAlt,
+    FaUser,
+    FaCog,
+    FaClipboardList,
+    FaUtensils,
+    FaTags,
+    FaListAlt,
+    FaPlusCircle,
     FaTools,
     FaThList,
 } from "react-icons/fa";
@@ -28,27 +28,7 @@ const adminNavBarItems = [
         icon: <FaCog />,
     },
     {
-        title: "Reports",
-        icon: <FaClipboardList />,
-        dropdown: true, // Indicates dropdown
-        items: [
-            {
-                title: "Monthly Reports",
-                link: "/admin/reports/monthly",
-            },
-            {
-                title: "Annual Reports",
-                link: "/admin/reports/annual",
-            },
-            {
-                title: "Custom Reports",
-                link: "/admin/reports/custom",
-            },
-        ],
-    },
-    {
-        title: "Recipe Management",
-        link: "/admin/recipe-management", // Main page for Recipe Management
+        title: "Recipes",
         icon: <FaUtensils />,
         dropdown: true, // Indicates dropdown
         items: [
@@ -120,23 +100,6 @@ const adminNavBarItems = [
                     },
                 ],
             },
-            // Meal Types Section
-            // {
-            //     title: "Meal Types",
-            //     dropdown: true,
-            //     items: [
-            //         {
-            //             title: "View Meal Types",
-            //             link: "/admin/recipe-management/meal-types",
-            //             icon: <FaThList />,
-            //         },
-            //         {
-            //             title: "Add New Meal Type",
-            //             link: "/admin/recipe-management/meal-types/create",
-            //             icon: <FaPlusCircle />,
-            //         },
-            //     ],
-            // },
         ],
     },
 ];

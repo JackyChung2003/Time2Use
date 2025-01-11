@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import supabase from "../../../../config/supabaseClient";
+import "./index.css";
 
 const Tags = () => {
     const [tags, setTags] = useState([]);
@@ -103,134 +104,57 @@ const Tags = () => {
     }, []);
 
     return (
-        <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
-            <h1 style={{ color: "#333" }}>Manage Tags</h1>
-            <p style={{ color: "#555" }}>View, create, and edit recipe tags.</p>
-
+        <div className="manage-tags-container">
+            <h1 className="manage-tags-title">Manage Tags</h1>
+            <p className="manage-tags-description">View, create, and edit recipe tags.</p>
+    
             {/* Search and Refresh */}
-            <div style={{ marginBottom: "20px", display: "flex", gap: "10px" }}>
+            <div className="manage-tags-actions">
                 <input
                     type="text"
                     placeholder="Search tags..."
                     value={searchTerm}
                     onChange={handleSearch}
-                    style={{
-                        padding: "10px",
-                        borderRadius: "4px",
-                        border: "1px solid #ccc",
-                        width: "100%",
-                        maxWidth: "400px",
-                    }}
+                    className="search-input"
                 />
-                <button
-                    onClick={fetchTags}
-                    style={{
-                        padding: "10px 20px",
-                        borderRadius: "4px",
-                        border: "none",
-                        backgroundColor: "#4CAF50",
-                        color: "white",
-                        cursor: "pointer",
-                    }}
-                >
+                <button onClick={fetchTags} className="button-primary">
                     Refresh
                 </button>
-                <button
-                    onClick={() => navigate("create")} // Navigate to the create tag page
-                    style={{
-                        padding: "10px 20px",
-                        borderRadius: "4px",
-                        border: "none",
-                        backgroundColor: "#2196F3",
-                        color: "white",
-                        cursor: "pointer",
-                    }}
-                >
+                <button onClick={() => navigate("create")} className="button-primary">
                     Create Tag
                 </button>
             </div>
-
+    
             {/* Show loading state */}
-            {loading && <p>Loading tags...</p>}
-
+            {loading && <p className="loading-text">Loading tags...</p>}
+    
             {/* Show error state */}
-            {error && <p style={{ color: "red" }}>{error}</p>}
-
+            {error && <p className="error-text">{error}</p>}
+    
             {/* Display tags */}
             {!loading && !error && filteredTags.length > 0 ? (
-                <table
-                    style={{
-                        width: "100%",
-                        borderCollapse: "collapse",
-                        boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
-                    }}
-                >
+                <table className="tags-table">
                     <thead>
-                        <tr style={{ backgroundColor: "#f4f4f4" }}>
-                            <th
-                                onClick={() => handleSort("id")}
-                                style={{
-                                    border: "1px solid #ccc",
-                                    padding: "10px",
-                                    textAlign: "left",
-                                    cursor: "pointer",
-                                }}
-                            >
+                        <tr>
+                            <th onClick={() => handleSort("id")} className="sortable-header">
                                 ID {sortConfig.key === "id" && (sortConfig.direction === "asc" ? "↑" : "↓")}
                             </th>
-                            <th
-                                onClick={() => handleSort("name")}
-                                style={{
-                                    border: "1px solid #ccc",
-                                    padding: "10px",
-                                    textAlign: "left",
-                                    cursor: "pointer",
-                                }}
-                            >
+                            <th onClick={() => handleSort("name")} className="sortable-header">
                                 Name {sortConfig.key === "name" && (sortConfig.direction === "asc" ? "↑" : "↓")}
                             </th>
-                            <th style={{ border: "1px solid #ccc", padding: "10px", textAlign: "center" }}>
-                                Actions
-                            </th>
+                            <th className="actions-header">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         {filteredTags.map((tag) => (
                             <tr key={tag.id}>
-                                <td style={{ border: "1px solid #ccc", padding: "10px" }}>{tag.id}</td>
-                                <td style={{ border: "1px solid #ccc", padding: "10px" }}>{tag.name}</td>
-                                <td
-                                    style={{
-                                        border: "1px solid #ccc",
-                                        padding: "10px",
-                                        textAlign: "center",
-                                    }}
-                                >
-                                    <button
-                                        onClick={() => navigate(`edit/${tag.id}`)} // Navigate to the edit page
-                                        style={{
-                                            marginRight: "10px",
-                                            padding: "8px 12px",
-                                            cursor: "pointer",
-                                            backgroundColor: "#2196F3",
-                                            color: "white",
-                                            border: "none",
-                                            borderRadius: "4px",
-                                        }}
-                                    >
+                                <td className="table-cell">{tag.id}</td>
+                                <td className="table-cell">{tag.name}</td>
+                                <td className="table-cell actions-cell">
+                                    <button onClick={() => navigate(`edit/${tag.id}`)} className="button-edit">
                                         Edit
                                     </button>
-                                    <button
-                                        onClick={() => handleDelete(tag.id)} // Call delete function
-                                        style={{
-                                            padding: "8px 12px",
-                                            cursor: "pointer",
-                                            backgroundColor: "#f44336",
-                                            color: "white",
-                                            border: "none",
-                                            borderRadius: "4px",
-                                        }}
-                                    >
+                                    <button onClick={() => handleDelete(tag.id)} className="button-delete">
                                         Delete
                                     </button>
                                 </td>
@@ -239,10 +163,11 @@ const Tags = () => {
                     </tbody>
                 </table>
             ) : (
-                !loading && <p>No tags found.</p>
+                !loading && <p className="no-tags-text">No tags found.</p>
             )}
         </div>
     );
+    
 };
 
 export default Tags;

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import supabase from "../../../../config/supabaseClient";
+import "./index.css";
 
 const Equipment = () => {
     const [equipment, setEquipment] = useState([]);
@@ -100,134 +101,57 @@ const Equipment = () => {
     }, []);
 
     return (
-        <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
-            <h1 style={{ color: "#333" }}>Manage Equipment</h1>
-            <p style={{ color: "#555" }}>View, create, and edit equipment items.</p>
-
+        <div className="manage-equipment-container">
+            <h1 className="manage-equipment-title">Manage Equipment</h1>
+            <p className="manage-equipment-description">View, create, and edit equipment items.</p>
+    
             {/* Search and Refresh */}
-            <div style={{ marginBottom: "20px", display: "flex", gap: "10px" }}>
+            <div className="manage-equipment-actions">
                 <input
                     type="text"
                     placeholder="Search equipment..."
                     value={searchTerm}
                     onChange={handleSearch}
-                    style={{
-                        padding: "10px",
-                        borderRadius: "4px",
-                        border: "1px solid #ccc",
-                        width: "100%",
-                        maxWidth: "400px",
-                    }}
+                    className="search-input"
                 />
-                <button
-                    onClick={fetchEquipment}
-                    style={{
-                        padding: "10px 20px",
-                        borderRadius: "4px",
-                        border: "none",
-                        backgroundColor: "#4CAF50",
-                        color: "white",
-                        cursor: "pointer",
-                    }}
-                >
+                <button onClick={fetchEquipment} className="button-primary">
                     Refresh
                 </button>
-                <button
-                    onClick={() => navigate("create")} // Navigate to the Create Equipment page
-                    style={{
-                        padding: "10px 20px",
-                        borderRadius: "4px",
-                        border: "none",
-                        backgroundColor: "#007BFF",
-                        color: "white",
-                        cursor: "pointer",
-                    }}
-                >
+                <button onClick={() => navigate("create")} className="button-primary">
                     Create Equipment
                 </button>
             </div>
-
+    
             {/* Show loading state */}
-            {loading && <p>Loading equipment...</p>}
-
+            {loading && <p className="loading-text">Loading equipment...</p>}
+    
             {/* Show error state */}
-            {error && <p style={{ color: "red" }}>{error}</p>}
-
+            {error && <p className="error-text">{error}</p>}
+    
             {/* Display equipment */}
             {!loading && !error && filteredEquipment.length > 0 ? (
-                <table
-                    style={{
-                        width: "100%",
-                        borderCollapse: "collapse",
-                        boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
-                    }}
-                >
+                <table className="equipment-table">
                     <thead>
-                        <tr style={{ backgroundColor: "#f4f4f4" }}>
-                            <th
-                                onClick={() => handleSort("id")}
-                                style={{
-                                    border: "1px solid #ccc",
-                                    padding: "10px",
-                                    textAlign: "left",
-                                    cursor: "pointer",
-                                }}
-                            >
+                        <tr>
+                            <th onClick={() => handleSort("id")} className="sortable-header">
                                 ID {sortConfig.key === "id" && (sortConfig.direction === "asc" ? "↑" : "↓")}
                             </th>
-                            <th
-                                onClick={() => handleSort("name")}
-                                style={{
-                                    border: "1px solid #ccc",
-                                    padding: "10px",
-                                    textAlign: "left",
-                                    cursor: "pointer",
-                                }}
-                            >
+                            <th onClick={() => handleSort("name")} className="sortable-header">
                                 Name {sortConfig.key === "name" && (sortConfig.direction === "asc" ? "↑" : "↓")}
                             </th>
-                            <th style={{ border: "1px solid #ccc", padding: "10px", textAlign: "center" }}>
-                                Actions
-                            </th>
+                            <th className="actions-header">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         {filteredEquipment.map((item) => (
                             <tr key={item.id}>
-                                <td style={{ border: "1px solid #ccc", padding: "10px" }}>{item.id}</td>
-                                <td style={{ border: "1px solid #ccc", padding: "10px" }}>{item.name}</td>
-                                <td
-                                    style={{
-                                        border: "1px solid #ccc",
-                                        padding: "10px",
-                                        textAlign: "center",
-                                    }}
-                                >
-                                    <button
-                                        onClick={() => navigate(`edit/${item.id}`)} // Navigate to the Edit Equipment page
-                                        style={{
-                                            marginRight: "10px",
-                                            padding: "8px 12px",
-                                            cursor: "pointer",
-                                            backgroundColor: "#2196F3",
-                                            color: "white",
-                                            border: "none",
-                                            borderRadius: "4px",
-                                        }}
-                                    >
+                                <td className="table-cell">{item.id}</td>
+                                <td className="table-cell">{item.name}</td>
+                                <td className="table-cell actions-cell">
+                                    <button onClick={() => navigate(`edit/${item.id}`)} className="button-edit">
                                         Edit
                                     </button>
-                                    <button
-                                        onClick={() => deleteEquipment(item.id)} // Delete equipment
-                                        style={{
-                                            padding: "8px 12px",
-                                            cursor: "pointer",
-                                            backgroundColor: "#f44336",
-                                            color: "white",
-                                            border: "none",
-                                            borderRadius: "4px",
-                                        }}
-                                    >
+                                    <button onClick={() => deleteEquipment(item.id)} className="button-delete">
                                         Delete
                                     </button>
                                 </td>
@@ -236,10 +160,11 @@ const Equipment = () => {
                     </tbody>
                 </table>
             ) : (
-                !loading && <p>No equipment found.</p>
+                !loading && <p className="no-equipment-text">No equipment found.</p>
             )}
         </div>
     );
+    
 };
 
 export default Equipment;

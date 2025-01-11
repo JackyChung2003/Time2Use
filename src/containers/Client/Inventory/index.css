@@ -298,20 +298,6 @@
     white-space: nowrap;
   }
 
-  .progress-bar-container {
-    width: 100%;
-    background-color: #e0e0e0;
-    border-radius: 8px;
-    overflow: hidden;
-    margin-top: 10px;
-  }
-  
-  .progress-bar {
-    height: 20px;
-    background-color: #76c7c0;
-    width: 0; /* Initial width, will be updated dynamically */
-    transition: width 0.3s ease-in-out;
-  }
   
   .dropdown-icon {
     font-size: 10px;

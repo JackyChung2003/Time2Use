@@ -70,7 +70,7 @@ const Inventory = () => {
 
   const handleFilterClick = () => {
     setShowFilterMenu((prev) => !prev); // Toggle filter menu visibility
-    };
+  };
   
   const handleSortOptionChange = (option) => {
     setSortOption(option); // Update sort option
@@ -202,9 +202,9 @@ const Inventory = () => {
             <div className="item-list">
               {sortedItems
                 .filter(item => item.daysLeft !== null && item.daysLeft <= 0)
-                .map(item => (
+                .map((item, index) => (
                   <Item
-                    key={item.id}
+                    key={`${item.id}-${index}`} // Combine id and index for uniqueness
                     item={item}
                     setItems={setItems}
                     handleClick={handleClick}
@@ -222,16 +222,16 @@ const Inventory = () => {
                 ))}
             </div>
           </div>
-  
+
           {/* Fresh & Good Section */}
           <div className="fresh-section">
             <h2 className="section-title">Fresh & Good</h2>
             <div className="item-list">
               {sortedItems
                 .filter(item => item.daysLeft > 0 || item.daysLeft === null)
-                .map(item => (
+                .map((item, index) => (
                   <Item
-                    key={item.id}
+                    key={`${item.id}-${index}`} // Combine id and index for uniqueness
                     item={item}
                     setItems={setItems}
                     handleClick={handleClick}
@@ -253,8 +253,7 @@ const Inventory = () => {
       )}
     </div>
   );
-};  
-
+};
 const Item = ({
   item,
   setItems,
@@ -271,7 +270,7 @@ const Item = ({
   handleSwipeAction,
 }) => {
   const [isSwiped, setIsSwiped] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);  // Add this line
+  const [isProcessing, setIsProcessing] = useState(false);
 
   // Swipeable hook
   const swipeHandlers = useSwipeable({
@@ -288,10 +287,11 @@ const Item = ({
       handleSwipeAction(item, action);  // Trigger action
     }
   };
-  
+
+  const isExpired = item.daysLeft !== null && item.daysLeft <= 0;  // Check if item is expired
 
   return (
-    <div className="item-container"{...swipeHandlers}>
+    <div className="item-container" {...swipeHandlers}>
       <div
         className="swipeable-item"
         style={{
@@ -301,24 +301,36 @@ const Item = ({
 
       <div className="item">
         {/* Buttons revealed when swiped */}
-        {isSwiped && (
+        {isSwiped && ( // Show buttons based on whether the item is expired or not
           <div className="action-buttons">
-            <button
-              className="used-button"
-              onClick={() => handleActionClick("used")}
-            >
-              Used
-            </button>
-            <button
-              className="discard-button"
-              onClick={() => handleActionClick("discard")}
-            >
-              Discard
-            </button>
+            {!isExpired && (
+              <>
+                <button
+                  className="used-button"
+                  onClick={() => handleActionClick("used")}
+                >
+                  Used
+                </button>
+                <button
+                  className="discard-button"
+                  onClick={() => handleActionClick("discard")}
+                >
+                  Discard
+                </button>
+              </>
+            )}
+
+            {isExpired && (  // Only show "Discard" button for expired items
+              <button
+                className="discard-button"
+                onClick={() => handleActionClick("discard")}
+              >
+                Discard
+              </button>
+            )}
           </div>
         )}
 
-        
         <div className="left-section">
           <div className={`green-dot ${item.statusColor}`} />
           <div className="circle-image">
@@ -346,14 +358,13 @@ const Item = ({
               ) : (
                 // Display days left if expiryDate is not null
                 <div className="days-left">
-                      {item.daysLeft}d left
+                  {item.daysLeft}d left
                 </div>
               )}
             </div>
-
           </div>
         </div>
-  
+
         <div className="right-section">
           <span className="item-quantity">
             {item.quantity} {item.quantity_unit}
@@ -361,69 +372,71 @@ const Item = ({
           <span className="tag">{item.category}</span>
           <span className="dropdown-icon" onClick={() => toggleDropdown(item.id)}>▼</span>
         </div>
-        <div className="progress-bar-container">
-          <div className="progress-bar" style={{ width: `${item.progress}%` }}></div>
-        </div>
       </div>
-  
+
       {activeDropdown === item.id && (
         <div className="dropdown-box">
           <div className="date-purchased">
             <img src="src/assets/images/date-icon.png" alt="Calendar Icon" className="date-icon" />
             Date Purchased: {new Date(item.created_at).toISOString().split('T')[0]}
           </div>
-  
-          {/* Quantity Adjustment */}
-          {['unit', 'pcs', 'can', 'box'].includes(item.quantity_unit) ? (
-            <div className="unit-controls">
-              <button onClick={() => handlePortionClickWithState(item, -1)} className="quantity-button">-</button>
-              <div className="quantity-container">
-                <div className="quantity-box">{item.quantity}</div>
-              </div>
-              <button onClick={() => handlePortionClickWithState(item, 1)} className="quantity-button">+</button>
-            </div>
-          ) : (
-            <div className="portion-section">
-              <div className="quantity-container">
-                <input
-                  type="number"
-                  value={item.quantity === null || item.quantity === undefined ? '' : item.quantity}
-                  onChange={(e) => handleQuantityChange(item, e.target.value === '' ? '' : parseFloat(e.target.value))}
-                  className="quantity-box"
-                  min="0"
-                />
-                <div className="quantity-unit">({item.quantity_unit})</div>
-              </div>
-              <div className="used-amount-container">
-                <label htmlFor={`used-amount-${item.id}`}>Used amount:</label>
-                <input
-                  type="number"
-                  id={`used-amount-${item.id}`}
-                  className="used-amount-input"
-                  value={usedAmount[item.id] || ''}
-                  onChange={(e) => setUsedAmount({ ...usedAmount, [item.id]: e.target.value })}
-                />
-                <div className="quantity-unit">({item.quantity_unit})</div>
-                <img
-                  src="src/assets/images/tick-icon.png"
-                  alt="Confirm"
-                  className="done-icon"
-                  onClick={() => handleDoneClick(item)}
-                />
-              </div>
-              <p>or</p>
-              <div className="portion-row">
-                <p>Used portion:</p>
-                <div className="portion-buttons">
-                  <button onClick={() => handlePortionClickWithState(item, item.quantity * 0.2)}>1/5</button>
-                  <button onClick={() => handlePortionClickWithState(item, item.quantity * 0.4)}>2/5</button>
-                  <button onClick={() => handlePortionClickWithState(item, item.quantity * 0.6)}>3/5</button>
-                  <button onClick={() => handlePortionClickWithState(item, item.quantity * 0.8)}>4/5</button>
+
+          {/* Only render Quantity Adjustment and Portion Section if item is not expired */}
+          {!isExpired && (
+            <>
+              {/* Quantity Adjustment */}
+              {['unit', 'pcs', 'can', 'box'].includes(item.quantity_unit) ? (
+                <div className="unit-controls">
+                  <button onClick={() => handlePortionClickWithState(item, 1)} className="quantity-button">-</button>
+                  <div className="quantity-container">
+                    <div className="quantity-box">{item.quantity}</div>
+                  </div>
+                  <button onClick={() => handlePortionClickWithState(item, -1)} className="quantity-button">+</button>
                 </div>
-              </div>
-            </div>
+              ) : (
+                <div className="portion-section">
+                  <div className="quantity-container">
+                    <input
+                      type="number"
+                      value={item.quantity === null || item.quantity === undefined ? '' : item.quantity}
+                      onChange={(e) => handleQuantityChange(item, e.target.value === '' ? '' : parseFloat(e.target.value))}
+                      className="quantity-box"
+                      min="0"
+                    />
+                    <div className="quantity-unit">({item.quantity_unit})</div>
+                  </div>
+                  <div className="used-amount-container">
+                    <label htmlFor={`used-amount-${item.id}`}>Used amount:</label>
+                    <input
+                      type="number"
+                      id={`used-amount-${item.id}`}
+                      className="used-amount-input"
+                      value={usedAmount[item.id] || ''}
+                      onChange={(e) => setUsedAmount({ ...usedAmount, [item.id]: e.target.value })}
+                    />
+                    <div className="quantity-unit">({item.quantity_unit})</div>
+                    <img
+                      src="src/assets/images/tick-icon.png"
+                      alt="Confirm"
+                      className="done-icon"
+                      onClick={() => handleDoneClick(item)}
+                    />
+                  </div>
+                  <p>or</p>
+                  <div className="portion-row">
+                    <p>Used portion:</p>
+                    <div className="portion-buttons">
+                      <button onClick={() => handlePortionClickWithState(item, item.quantity * 0.2)}>1/5</button>
+                      <button onClick={() => handlePortionClickWithState(item, item.quantity * 0.4)}>2/5</button>
+                      <button onClick={() => handlePortionClickWithState(item, item.quantity * 0.6)}>3/5</button>
+                      <button onClick={() => handlePortionClickWithState(item, item.quantity * 0.8)}>4/5</button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </>
           )}
-  
+
           {/* Nutritional Facts */}
           <div className="nutritional-facts">
             <h4>
@@ -453,7 +466,7 @@ const Item = ({
               </p>
             </div>
           </div>
-  
+
           {/* Storage Tips */}
           <div className="storage-tips">
             <h4>
@@ -466,5 +479,6 @@ const Item = ({
       )}
     </div>
   );
-}
+};
+
 export default Inventory;
