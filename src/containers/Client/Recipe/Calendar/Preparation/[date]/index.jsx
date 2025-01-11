@@ -1427,7 +1427,8 @@ const RecipePreparationPage = () => {
                     </p>
 
                     {/* Inventory selection */}
-                    <ul>
+                    {/* <ul>
+                      {console.log("Inventory Items:", inventoryItems)}
                       {inventoryItems.map((item) => (
                         <li
                           key={item.id}
@@ -1447,12 +1448,73 @@ const RecipePreparationPage = () => {
                               }
                               onChange={() => toggleInventorySelection(item)}
                             />
-                            {item.quantity || 0} {item.unit?.unit_tag || "unit not specified"} (Expiry:{" "}
+                            {item.quantity || 0} {item.ingredients.unitInv.unitInv_tag || "unit not specified"} (Expiry:{" "}
                             {item.expiry_date?.date || "No expiry date"})
                           </label>
                         </li>
                       ))}
+                    </ul> */}
+                    <ul>
+                      {console.log("Inventory Items:", inventoryItems)}
+                      {inventoryItems.map((item) => {
+                        // Calculate adjusted quantity if the conversion rates don't match
+                        const adjustedQuantity =
+                          item.ingredients.unit?.conversion_rate_to_grams && item.ingredients.unitInv?.conversion_rate_to_grams_for_check
+                            ? item.quantity / item.ingredients.unit.conversion_rate_to_grams
+                            : 0;
+
+                        // Check if the conversion rates match
+                        const isConversionRateMatching =
+                          item.ingredients.unit?.conversion_rate_to_grams ===
+                          item.ingredients.unitInv?.conversion_rate_to_grams_for_check;
+
+                        // Check if unitInv_tag is the same as unit_tag
+                        const isUnitTagMatching = item.ingredients.unitInv?.unitInv_tag === item.ingredients.unit?.unit_tag;
+
+                        return (
+                          <li
+                            key={item.id}
+                            style={{
+                              backgroundColor: selectedInventory.find((selected) => selected.id === item.id)?.preselected
+                                ? "lightgreen"
+                                : "white",
+                              padding: "5px",
+                              borderRadius: "5px",
+                            }}
+                          >
+                            <label>
+                              <input
+                                type="checkbox"
+                                checked={selectedInventory.find((selected) => selected.id === item.id)?.preselected || false}
+                                onChange={() => toggleInventorySelection(item)}
+                              />
+                              {isUnitTagMatching ? (
+                                // If unitInv_tag matches unit_tag, show one unit
+                                <>
+                                  {item.quantity || 0} {item.ingredients.unit?.unit_description || "unit not specified"}
+                                </>
+                              ) : isConversionRateMatching ? (
+                                // Display quantity and units if conversion rates match
+                                <>
+                                  {item.quantity || 0} {item.ingredients.unitInv?.unitInv_tag || "unit not specified"} /
+                                  {item.ingredients.unit?.unit_description || "unit not specified"}
+                                </>
+                              ) : (
+                                // Display adjusted quantity if conversion rates don't match
+                                <>
+                                  {item.quantity || 0} {item.ingredients.unitInv?.unitInv_tag || "unit not specified"} /
+                                  {/* {adjustedQuantity.toFixed(2)} {item.ingredients.unit?.unit_tag || "unit not specified"} */}
+                                  {Math.round(adjustedQuantity)} {item.ingredients.unit?.unit_description || "unit not specified"}
+                                </>
+                              )}
+                              (Expiry: {item.expiry_date?.date || "No expiry date"})
+                            </label>
+                          </li>
+                        );
+                      })}
                     </ul>
+
+
 
                     <button
                       onClick={confirmSelection}

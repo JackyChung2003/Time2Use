@@ -470,7 +470,6 @@ const fetchRecipes = async () => {
           quantity,
           expiry_date_id,
           freshness_status_id,
-          quantity_unit_id,
           init_quantity,
           days_left,
           expiry_date (
@@ -481,11 +480,6 @@ const fetchRecipes = async () => {
             id, 
             status_color
           ),
-          unit:quantity_unit_id (
-            id,
-            unit_tag, 
-            unit_description
-          ),
           ingredients (
             id,
             name,
@@ -494,11 +488,21 @@ const fetchRecipes = async () => {
               unit_tag,
               unit_description,
               conversion_rate_to_grams 
+            ),
+            unitInv:quantity_unitInv_id (
+              id,
+              unitInv_tag,
+              conversion_rate_to_grams_for_check
             )
           )
         `)
         .eq("user_id", userData.id) // Filter by user_id
         .gt("days_left", 0); // Filter for items with days_left > 0
+        // unit:quantity_unit_id (
+        //   id,
+        //   unit_tag, 
+        //   unit_description
+        // ),
   
       // Add `ingredient_id` filter if provided
       if (ingredientId) {
@@ -633,7 +637,6 @@ const fetchRecipes = async () => {
             ),
             days_left,
             freshness_status_id,
-            quantity_unit_id,
             init_quantity,
             condition:condition_id (
               condition
@@ -717,7 +720,6 @@ const fetchRecipes = async () => {
           expiry_date:expiry_date_id (date),
           days_left,
           freshness_status_id,
-          quantity_unit_id,
           init_quantity,
           condition:condition_id (condition)
         ),
