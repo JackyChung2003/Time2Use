@@ -9,7 +9,16 @@ import { useRecipeContext } from '../../Contexts/RecipeContext';
 
 const RecipeDetail = () => {
 
-    const { recipes, fetchRecipeIngredients, fetchRecipeSteps, mealTypes, userData } = useRecipeContext();
+    const { 
+        recipes,
+        fetchRecipeIngredients, 
+        fetchRecipeSteps, 
+        mealTypes, 
+        userData,
+        handleFavorite
+        // toggleFavorite,
+        // isFavorite 
+    } = useRecipeContext();
 
     const { id } = useParams();
     const navigate = useNavigate();
@@ -19,7 +28,7 @@ const RecipeDetail = () => {
     const [steps, setSteps] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    const [isFavorite, setIsFavorite] = useState(false);
+    // const [isFavorite, setIsFavorite] = useState(false);
     const [isCookingMode, setIsCookingMode] = useState(false);
     const [currentStepIndex, setCurrentStepIndex] = useState(0); // Tracks the current step
     const [previousStepIndex, setPreviousStepIndex] = useState(null); // Tracks the previous step
@@ -56,22 +65,95 @@ const RecipeDetail = () => {
         planned_date: "",
         recipe_id: "",
       });
+      
+      const [isFavoriteRecipe, setIsFavoriteRecipe] = useState(false);
+      
+    //   useEffect(() => {
+    //     const selectedRecipe = recipes.find((recipe) => recipe.id === parseInt(id));
+    //     if (selectedRecipe) {
+    //         setRecipe(selectedRecipe);
+    //         // fetchRecipeIngredients(selectedRecipe.id).then(setIngredients);
+    //         fetchRecipeIngredients(selectedRecipe.id).then((data) => {
+    //             setIngredients(data);
+    //             calculateNutrition(data); // Calculate nutrition when ingredients are fetched
+    //         });
+    //         fetchRecipeSteps(selectedRecipe.id).then(setSteps);
+    //     } else {
+    //         setRecipe(null);
+    //     }
+    //     setLoading(false);
+    // }, [id, recipes, fetchRecipeIngredients, fetchRecipeSteps]);
 
+    //   useEffect(() => {
+    //     const fetchRecipeData = async () => {
+    //         const selectedRecipe = recipes.find((recipe) => recipe.id === parseInt(id));
+    //         if (selectedRecipe) {
+    //             setRecipe(selectedRecipe);
+    
+    //             // Fetch ingredients and calculate nutrition
+    //             const ingredientsData = await fetchRecipeIngredients(selectedRecipe.id);
+    //             setIngredients(ingredientsData);
+    //             calculateNutrition(ingredientsData);
+    
+    //             // Fetch steps
+    //             const stepsData = await fetchRecipeSteps(selectedRecipe.id);
+    //             setSteps(stepsData);
+    
+    //             // Check favorite status
+    //             if (userData) {
+    //                 const favoriteStatus = await isFavorite(selectedRecipe.id, userData.id);
+    //                 setIsFavoriteRecipe(favoriteStatus);
+    //             }
+    //         } else {
+    //             setRecipe(null);
+    //         }
+    //         setLoading(false);
+    //     };
+    
+    //     fetchRecipeData();
+    // }, [id, recipes, fetchRecipeIngredients, fetchRecipeSteps, userData, isFavorite]);
+    
     useEffect(() => {
-        const selectedRecipe = recipes.find((recipe) => recipe.id === parseInt(id));
-        if (selectedRecipe) {
-            setRecipe(selectedRecipe);
-            // fetchRecipeIngredients(selectedRecipe.id).then(setIngredients);
-            fetchRecipeIngredients(selectedRecipe.id).then((data) => {
-                setIngredients(data);
-                calculateNutrition(data); // Calculate nutrition when ingredients are fetched
-            });
-            fetchRecipeSteps(selectedRecipe.id).then(setSteps);
-        } else {
-            setRecipe(null);
-        }
-        setLoading(false);
-    }, [id, recipes, fetchRecipeIngredients, fetchRecipeSteps]);
+        const fetchRecipeData = async () => {
+            const selectedRecipe = recipes.find((recipe) => recipe.id === parseInt(id));
+            if (selectedRecipe) {
+                setRecipe(selectedRecipe);
+    
+                // Fetch ingredients and calculate nutrition
+                const ingredientsData = await fetchRecipeIngredients(selectedRecipe.id);
+                setIngredients(ingredientsData);
+                calculateNutrition(ingredientsData);
+    
+                // Fetch steps
+                const stepsData = await fetchRecipeSteps(selectedRecipe.id);
+                setSteps(stepsData);
+    
+                // Check if the recipe is favorited
+                if (userData) {
+                    try {
+                        const { data, error } = await supabase
+                            .from('favorites')
+                            .select('id')
+                            .eq('recipe_id', selectedRecipe.id)
+                            .eq('user_id', userData.id)
+                            .single();
+    
+                        if (!error && data) {
+                            setIsFavoriteRecipe(true);
+                        }
+                    } catch (err) {
+                        console.error('Error checking favorite status:', err.message);
+                    }
+                }
+            } else {
+                setRecipe(null);
+            }
+            setLoading(false);
+        };
+    
+        fetchRecipeData();
+    }, [id, recipes, fetchRecipeIngredients, fetchRecipeSteps, userData]);
+    
 
     const calculateNutrition = (ingredients) => {
         let totalNutrition = {
@@ -164,25 +246,25 @@ const RecipeDetail = () => {
         });
     };
 
-    const toggleFavorite = async () => {
-        try {
-            const { data } = await supabase
-                .from('favorites')
-                .select('*')
-                .eq('recipe_id', id)
-                .single();
+    // const toggleFavorite = async () => {
+    //     try {
+    //         const { data } = await supabase
+    //             .from('favorites')
+    //             .select('*')
+    //             .eq('recipe_id', id)
+    //             .single();
     
-            if (data) {
-                await supabase.from('favorites').delete().eq('recipe_id', id);
-                setIsFavorite(false);
-            } else {
-                await supabase.from('favorites').insert({ recipe_id: id, user_id: '7863d141-7c8f-4779-9ac8-2b45e9a9d752' });
-                setIsFavorite(true);
-            }
-        } catch (error) {
-            console.error('Error toggling favorite:', error);
-        }
-    };
+    //         if (data) {
+    //             await supabase.from('favorites').delete().eq('recipe_id', id);
+    //             setIsFavorite(false);
+    //         } else {
+    //             await supabase.from('favorites').insert({ recipe_id: id, user_id: '7863d141-7c8f-4779-9ac8-2b45e9a9d752' });
+    //             setIsFavorite(true);
+    //         }
+    //     } catch (error) {
+    //         console.error('Error toggling favorite:', error);
+    //     }
+    // };
 
     // const toggleCookingMode = () => setIsCookingMode((prev) => !prev);
 
@@ -335,14 +417,24 @@ const RecipeDetail = () => {
       
         setShowAddModal(true);
       };
-    
+
+      const handleFavoriteClick = async () => {
+        const response = await handleFavorite(recipe.id);
+        if (response.success) {
+          setIsFavoriteRecipe((prev) => !prev);
+          alert(response.message);
+        } else {
+          alert(response.message);
+        }
+      };
 
     return (
         <div style={{ padding: '20px' }}>
             <BackButton />
             <h1>{recipe.name}</h1>
-            <button onClick={toggleFavorite}>
-                {isFavorite ? 'Remove from Favorites' : 'Save to Favorites'}
+            <button onClick={handleFavoriteClick}>
+                {/* {isFavorite ? 'Remove from Favorites' : 'Save to Favorites'} */}
+                {isFavoriteRecipe ? 'Remove from Favorites' : 'Save to Favorites'}
             </button>
             <button onClick={shareRecipe}>Share Recipe</button>
 

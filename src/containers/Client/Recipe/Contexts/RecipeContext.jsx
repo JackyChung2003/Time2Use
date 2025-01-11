@@ -707,7 +707,57 @@ const fetchRecipes = async () => {
     }
   };
   
-  
+  const handleFavorite = async (recipeId) => {
+    try {
+      if (!userData) {
+        alert("Please log in to save recipes to your favorites.");
+        return { success: false, message: "User not logged in." };
+      }
+
+      // Check if the favorite already exists
+      const { data, error } = await supabase
+        .from("favorites")
+        .select("id")
+        .eq("recipe_id", recipeId)
+        .eq("user_id", userData.id)
+        .single();
+
+      if (error && error.code !== "PGRST116") {
+        console.error("Error checking favorite status:", error.message);
+        return { success: false, message: "Failed to check favorite status." };
+      }
+
+      if (data) {
+        // If favorite exists, delete it
+        const { error: deleteError } = await supabase
+          .from("favorites")
+          .delete()
+          .eq("id", data.id);
+
+        if (deleteError) {
+          console.error("Error removing favorite:", deleteError.message);
+          return { success: false, message: "Failed to remove from favorites." };
+        }
+
+        return { success: true, message: "Removed from favorites." };
+      } else {
+        // If favorite doesn't exist, insert it
+        const { error: insertError } = await supabase
+          .from("favorites")
+          .insert({ recipe_id: recipeId, user_id: userData.id });
+
+        if (insertError) {
+          console.error("Error adding to favorites:", insertError.message);
+          return { success: false, message: "Failed to add to favorites." };
+        }
+
+        return { success: true, message: "Added to favorites." };
+      }
+    } catch (err) {
+      console.error("Unexpected error handling favorite:", err.message);
+      return { success: false, message: "An unexpected error occurred." };
+    }
+  };
 
   return (
     // <RecipeContext.Provider value={{ recipes, tags, filters, fetchRecipes, fetchTags, applyFilters, loading }}>
@@ -739,6 +789,7 @@ const fetchRecipes = async () => {
         enrichInventory,
         fetchInventoryData,
         applyFilters,
+        handleFavorite,
         loading,
       }}
     >
