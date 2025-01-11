@@ -265,7 +265,10 @@ const fetchRecipes = async () => {
 
   const fetchMealTypes = async () => {
     try {
-        const { data, error } = await supabase.from("meal_type").select("id, name");
+        const { data, error } = await supabase
+          .from("meal_type")
+          // .select("id, name");
+          .select("*");
         if (error) {
             console.error("Error fetching meal types:", error);
         } else {

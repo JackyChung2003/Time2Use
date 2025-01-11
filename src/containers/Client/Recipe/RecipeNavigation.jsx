@@ -45,7 +45,7 @@ const RecipeNavigation = () => {
                     <Route path="favorites" element={<RecipeFavorites />} />
 
                     {/* shopping list Page*/}
-                    <Route path="shopping-list" element={<ShoppingList />} />
+                    {/* <Route path="shopping-list" element={<ShoppingList />} /> */}
 
                     {/* Fallback */}
                     <Route path="*" element={<Navigate to="dashboard" />} />
