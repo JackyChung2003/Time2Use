@@ -15,7 +15,7 @@ const RecipeDetail = () => {
         fetchRecipeSteps, 
         mealTypes, 
         userData,
-        handleFavorite
+        toggleFavorite
         // toggleFavorite,
         // isFavorite 
     } = useRecipeContext();
@@ -419,7 +419,7 @@ const RecipeDetail = () => {
       };
 
       const handleFavoriteClick = async () => {
-        const response = await handleFavorite(recipe.id);
+        const response = await toggleFavorite(recipe.id);
         if (response.success) {
           setIsFavoriteRecipe((prev) => !prev);
           alert(response.message);

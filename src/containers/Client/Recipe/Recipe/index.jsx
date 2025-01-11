@@ -10,7 +10,18 @@ import { useRecipeContext } from '../Contexts/RecipeContext';
 
 const RecipeExplore = () => {
     // const { recipes, filters, applyFilters, loading } = useRecipeContext();
-    const { recipes, filters,  applyFilters, loading, fetchRecipes, mealTypes, userData } = useRecipeContext(); // Get recipes and filters
+    // const { recipes, filters,  applyFilters, loading, fetchRecipes, mealTypes, userData } = useRecipeContext(); // Get recipes and filters
+    const {
+        recipes,
+        filters,
+        applyFilters,
+        loading,
+        fetchRecipes,
+        mealTypes,
+        userData,
+        favorites,
+        toggleFavorite, 
+      } = useRecipeContext();
     const [categories, setCategories] = useState([]);
     const [tags, setTags] = useState([]);
     const [equipment, setEquipment] = useState([]);
@@ -399,6 +410,21 @@ const RecipeExplore = () => {
                                 <p>Prep Time: {recipe.prep_time} mins</p>
                                 <p>Cook Time: {recipe.cook_time} mins</p>
 
+                                {/* Favorite Icon */}
+                                <button
+                                    onClick={(e) => {
+                                    e.stopPropagation(); // Prevent click propagation
+                                    toggleFavorite(recipe.id); // Toggle favorite status
+                                    }}
+                                    style={{
+                                    background: "transparent",
+                                    border: "none",
+                                    cursor: "pointer",
+                                    fontSize: "24px",
+                                    }}
+                                >
+                                    {favorites.includes(recipe.id) ? "❤️" : "🤍"}
+                                </button>
                                 {/* Add to Meal Button */}
                                 {/* <button
                                     // onClick={() => handleOpenAddModal(recipe.id)}
