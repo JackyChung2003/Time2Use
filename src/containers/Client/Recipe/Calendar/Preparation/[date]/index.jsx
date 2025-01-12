@@ -63,6 +63,8 @@ const RecipePreparationPage = () => {
   const [isCookingMode, setIsCookingMode] = useState(false);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [previousStepIndex, setPreviousStepIndex] = useState(null);
+
+  const [convertedItems, setConvertedItems] = useState({}); // Track converted state
   
   useEffect(() => {
     const loadData = async () => {
@@ -750,14 +752,14 @@ const RecipePreparationPage = () => {
       }));
   
       // Log data for debugging
-      // console.log("Filtered and Enriched Data to Insert:", dataToInsert);
+      console.log("Filtered and Enriched Data to Insert:", dataToInsert);
   
       // Insert into the database (uncomment when using Supabase)
 
-      const { data, error } = await supabase.from("inventory_meal_plan").insert(dataToInsert);
-      if (error) {
-        throw error;
-      }
+      // const { data, error } = await supabase.from("inventory_meal_plan").insert(dataToInsert);
+      // if (error) {
+      //   throw error;
+      // }
       // console.log("Inserted Data:", data);
       
       // Reset states after processing
@@ -931,29 +933,72 @@ const RecipePreparationPage = () => {
     return <div>No recipes found for this meal plan.</div>;
   }
 
+  // const autoAdjustQuantities = () => {
+  //   let remainingRequired = selectedIngredient.quantity;
+  
+  //   const adjustedInventory = (selectedInventory || []).map((item) => {
+  //     if (!item.preselected || remainingRequired <= 0) {
+  //       // Skip items not selected or when no more is required
+  //       return { ...item, selectedQuantity: 0 };
+  //     }
+  
+  //     const allocatedQuantity = Math.min(item.quantity, remainingRequired);
+  //     remainingRequired -= allocatedQuantity;
+  
+  //     return { ...item, selectedQuantity: allocatedQuantity };
+  //   });
+  
+  //   setSelectedInventory(adjustedInventory);
+  
+  //   if (remainingRequired > 0) {
+  //     alert(
+  //       `Not enough inventory to fulfill the required amount of ${selectedIngredient.quantity}.`
+  //     );
+  //   }
+  // };
+
   const autoAdjustQuantities = () => {
-    let remainingRequired = selectedIngredient.quantity;
+    const baseConversionRate = selectedIngredient.ingredients.unit?.conversion_rate_to_grams || 1; // Ingredient base unit conversion rate
+    let remainingRequired = selectedIngredient.quantity * baseConversionRate; // Convert required quantity to base unit (grams)
   
     const adjustedInventory = (selectedInventory || []).map((item) => {
+      const inventoryConversionRate = item.ingredients.unitInv?.conversion_rate_to_grams_for_check || 1; // Inventory unit conversion rate
+  
+      // Calculate available quantity in base unit
+      const availableQuantityInBaseUnit = item.quantity * inventoryConversionRate;
+  
       if (!item.preselected || remainingRequired <= 0) {
         // Skip items not selected or when no more is required
-        return { ...item, selectedQuantity: 0 };
+        return {
+          ...item,
+          selectedQuantity: 0,
+          convertedUnit: item.ingredients.unitInv?.unitInv_tag || "unit not specified", // Keep original unit
+        };
       }
   
-      const allocatedQuantity = Math.min(item.quantity, remainingRequired);
-      remainingRequired -= allocatedQuantity;
+      // Determine the quantity to allocate
+      const allocatedQuantityInBaseUnit = Math.min(availableQuantityInBaseUnit, remainingRequired);
+      const allocatedQuantityInIngredientUnit = allocatedQuantityInBaseUnit / baseConversionRate;
   
-      return { ...item, selectedQuantity: allocatedQuantity };
+      // Deduct the allocated amount from the remaining required
+      remainingRequired -= allocatedQuantityInBaseUnit;
+  
+      return {
+        ...item,
+        selectedQuantity: allocatedQuantityInIngredientUnit,
+        convertedUnit: selectedIngredient.ingredients.unit?.unit_description || "unit not specified", // Update to target unit
+      };
     });
   
     setSelectedInventory(adjustedInventory);
   
     if (remainingRequired > 0) {
       alert(
-        `Not enough inventory to fulfill the required amount of ${selectedIngredient.quantity}.`
+        `Not enough inventory to fulfill the required amount of ${selectedIngredient.quantity} ${selectedIngredient.ingredients.unit?.unit_tag}.`
       );
     }
   };
+  
 
   const getRecipeNameById = (recipeId) => {
     const recipe = recipes.find((r) => r.id === recipeId);
@@ -1854,6 +1899,9 @@ const RecipePreparationPage = () => {
                   {selectedInventory
                     .filter((item) => item.preselected) // Only include preselected items
                     .map((item) => {
+                      // Check if the item is currently converted
+                      const isConverted = item.isConverted || false;
+
                       // Check if the unit conversion rates match
                       const isConversionRateMatching =
                         item.ingredients.unit?.conversion_rate_to_grams ===
@@ -1873,14 +1921,28 @@ const RecipePreparationPage = () => {
                         ? adjustedQuantity // Display as an integer if it's a whole number
                         : `~${Math.round(adjustedQuantity)}`; // Display with ~ if not a whole number
 
-                      // Format the display string based on conversion status
-                      return isConversionRateMatching ? (
-                        `${item.selectedQuantity} ${item.ingredients.unit?.unit_tag || "unit not specified"}`
-                      ) : (
-                        // `${item.selectedQuantity} ${item.ingredients.unitInv?.unitInv_tag || "unit not specified"} (${displayAdjustedQuantity} ${item.ingredients.unit?.unit_tag || "unit not specified"})`
-                        `${displayAdjustedQuantity} ${item.ingredients.unit?.unit_tag || "unit not specified"} 
-                        (${item.selectedQuantity} ${item.ingredients.unitInv?.unitInv_tag || "unit not specified"})`
-                      );
+                      const displayConvertedQuantity = item.selectedQuantity * item.ingredients.unit?.conversion_rate_to_grams;
+
+                      // // Format the display string based on conversion status
+                      // return isConversionRateMatching ? (
+                      //   `${item.selectedQuantity} ${item.ingredients.unit?.unit_tag || "unit not specified"}`
+                      // ) : (
+                      //   // `${item.selectedQuantity} ${item.ingredients.unitInv?.unitInv_tag || "unit not specified"} (${displayAdjustedQuantity} ${item.ingredients.unit?.unit_tag || "unit not specified"})`
+                      //   `${displayAdjustedQuantity} ${item.ingredients.unit?.unit_tag || "unit not specified"} 
+                      //   (${item.selectedQuantity} ${item.ingredients.unitInv?.unitInv_tag || "unit not specified"})`
+                      // );
+                      // Handle display logic based on isConverted
+                      if (isConverted) {
+                        // Display when converted
+                        return `${item.selectedQuantity} ${item.ingredients.unit?.unit_tag || "unit not specified"} 
+                                (${displayConvertedQuantity} ${item.ingredients.unitInv?.unitInv_tag || "unit not specified"})`;
+                      } else {
+                        // Display normal logic when not converted
+                        return isConversionRateMatching
+                          ? `${item.selectedQuantity} ${item.ingredients.unit?.unit_tag || "unit not specified"}`
+                          : `${displayAdjustedQuantity} ${item.ingredients.unit?.unit_tag || "unit not specified"} 
+                            (${item.selectedQuantity} ${item.ingredients.unitInv?.unitInv_tag || "unit not specified"})`;
+                      }
                     })
                     .join(", ")}{" "}
                   {/* {selectedIngredient.ingredients.unit?.unit_tag || ""} */}
@@ -2058,6 +2120,8 @@ const RecipePreparationPage = () => {
                             ? (item.selectedQuantity * inventoryConversionRate) / baseConversionRate // Perform unit conversion
                             : item.selectedQuantity; // Use original quantity if conversion rates match
 
+                        const isUnitTagMatching = item.ingredients.unitInv?.unitInv_tag === item.ingredients.unit?.unit_tag;
+                          
                         // Determine the display unit
                         const displayUnit = item.ingredients.unit?.unit_description || "unit not specified";
                         const inventoryUnit = item.ingredients.unitInv?.unitInv_tag || "unit not specified";
@@ -2070,28 +2134,72 @@ const RecipePreparationPage = () => {
                           ? item.quantity // If matching, use the normal quantity
                           : item.quantity / (item.ingredients.unit?.conversion_rate_to_grams || 1); // Else, divide by the unit's conversion rate
 
+                        // const adjustedQuantity =
+                        //   item.ingredients.unit?.conversion_rate_to_grams &&
+                        //   item.ingredients.unitInv?.conversion_rate_to_grams_for_check
+                        //     ? item.quantity / item.ingredients.unit.conversion_rate_to_grams
+                        //     : 0;
 
                         // Handle unit conversion logic
-                        const handleConvertUnit = () => {
-                          if (baseConversionRate !== inventoryConversionRate) {
-                            // Trigger conversion and update quantity and unit
-                            const updatedQuantity =
-                              (item.selectedQuantity * inventoryConversionRate) / baseConversionRate;
+                        // const handleConvertUnit = (item) => {
+                        //   // Get base and inventory conversion rates
+                        //   const baseConversionRate = item.ingredients.unit?.conversion_rate_to_grams || 1;
+                        //   const inventoryConversionRate = item.ingredients.unitInv?.conversion_rate_to_grams_for_check || 1;
+                        
+                        //   const updatedInventory = selectedInventory.map((inventoryItem) => {
+                        //     if (inventoryItem.id === item.id) {
+                        //       if (inventoryItem.isConverted) {
+                        //         // Multiply back to original value
+                        //         const originalQuantity = (inventoryItem.selectedQuantity * baseConversionRate) / inventoryConversionRate;
+                        //         return {
+                        //           ...inventoryItem,
+                        //           selectedQuantity: originalQuantity,
+                        //           isConverted: false, // Toggle back to original
+                        //         };
+                        //       } else {
+                        //         // Divide to convert
+                        //         const convertedQuantity = (inventoryItem.selectedQuantity * inventoryConversionRate) / baseConversionRate;
+                        //         return {
+                        //           ...inventoryItem,
+                        //           selectedQuantity: convertedQuantity,
+                        //           isConverted: true, // Mark as converted
+                        //         };
+                        //       }
+                        //     }
+                        //     return inventoryItem;
+                        //   });
+                        
+                        //   // Update state with the modified inventory
+                        //   setSelectedInventory(updatedInventory);
+                        // };
 
-                            // Update item in the state (assuming `setSelectedInventory` updates the state)
-                            setSelectedInventory((prev) =>
-                              prev.map((inv) =>
-                                inv.id === item.id
-                                  ? {
-                                      ...inv,
-                                      selectedQuantity: updatedQuantity, // Update the converted quantity
-                                      unitTag: displayUnit, // Update the displayed unit
-                                    }
-                                  : inv
-                              )
-                            );
-                          }
-                        }
+                        const handleConvertUnit = (itemId) => {
+                          setSelectedInventory((prevSelectedInventory) =>
+                            prevSelectedInventory.map((item) => {
+                              if (item.id === itemId) {
+                                const baseConversionRate = item.ingredients.unit?.conversion_rate_to_grams || 1;
+                                const inventoryConversionRate = item.ingredients.unitInv?.conversion_rate_to_grams_for_check || 1;
+                        
+                                const isCurrentlyConverted = item.isConverted || false;
+                                const newSelectedQuantity = isCurrentlyConverted
+                                  ? (item.selectedQuantity * baseConversionRate) / inventoryConversionRate // Convert back
+                                  : (item.selectedQuantity * inventoryConversionRate) / baseConversionRate; // Convert
+                                
+                                console.log("Converted Quantity:", newSelectedQuantity);
+                                console.log("Is Currently Converted:", isCurrentlyConverted);
+                                return {
+                                  ...item,
+                                  selectedQuantity: newSelectedQuantity,
+                                  isConverted: !isCurrentlyConverted,
+                                };
+                              }
+                              return item;
+                            })
+                          );
+                        };
+                        
+                        
+                        
 
                         return (
                           <li
@@ -2173,7 +2281,12 @@ const RecipePreparationPage = () => {
                                   borderRadius: "5px",
                                 }}
                               />
-                              {isConversionRateMatching ? displayUnit : inventoryUnit}
+                              {/* {isConversionRateMatching ? displayUnit : inventoryUnit} */}
+                              <span>
+                                {item.isConverted
+                                  ? item.ingredients.unit?.unit_description || "unit not specified"
+                                  : item.ingredients.unitInv?.unitInv_tag || "unit not specified"}
+                              </span>
                               {/* + Button */}
                               <button
                                 onClick={() => adjustQuantity(item.id, 1)}
@@ -2189,7 +2302,8 @@ const RecipePreparationPage = () => {
                               {/* Convert Button */}
                               {!isConversionRateMatching && (
                                 <button
-                                  onClick={handleConvertUnit}
+                                  // onClick={handleConvertUnit}
+                                  onClick={() => handleConvertUnit(item.id)} 
                                   style={{
                                     backgroundColor: "orange",
                                     color: "white",
