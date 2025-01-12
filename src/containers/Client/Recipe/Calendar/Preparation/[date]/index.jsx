@@ -1422,20 +1422,103 @@ const RecipePreparationPage = () => {
     });
   };
 
+  // const handleAutoDistribute = async () => {
+  //   try {
+  //     // Iterate through all recipes and their respective ingredients
+  //     for (const recipe of recipes) {
+  //       const recipeIngredients = ingredients.find((ri) => ri.recipeId === recipe.id)?.ingredients || [];
+  
+  //       for (const ingredient of recipeIngredients) {
+  //         // Simulate handleIngredientClick
+  //         const inventory = await fetchUserInventory(ingredient.ingredients.id);
+  //         const linkedInventory = (await fetchInventoryMealPlanByMealPlanId(mealPlanIds)).filter(
+  //           (item) =>
+  //             item.inventory.ingredient_id === ingredient.ingredients.id &&
+  //             item.meal_plan?.recipe_id === recipe.id
+  //         );
+  
+  //         let allocatedInventory;
+  //         if (linkedInventory.length > 0) {
+  //           allocatedInventory = preselectLinkedInventory(linkedInventory, inventory);
+  //         } else {
+  //           allocatedInventory = allocateInventoryFIFO(ingredient, inventory);
+  //         }
+  
+  //         // Prepare the selected inventory and finalize
+  //         const enrichedInventory = allocatedInventory.map((item) => ({
+  //           ...item,
+  //           selectedQuantity: item.selectedQuantity || 0, // Ensure proper quantity
+  //           preselected: true,
+  //         }));
+  
+  //         setSelectedIngredient(ingredient); // Track the current ingredient for updates
+  //         setSelectedInventory(enrichedInventory); // Update the selected inventory
+  
+  //         // Simulate handleFinalizeQuantities for this ingredient
+  //         const filteredInventory = enrichedInventory.filter((item) => item.selectedQuantity > 0);
+  
+  //         if (filteredInventory.length > 0) {
+  //           const statusId = await getStatusIdByName("Planning");
+  //           const enrichedData = await enrichInventory(
+  //             filteredInventory,
+  //             ingredient,
+  //             planned_date
+  //           );
+  
+  //           const dataToInsert = enrichedData.map((item) => ({
+  //             inventory_id: item.id,
+  //             meal_plan_id: item.meal_plan_id,
+  //             used_quantity: item.selectedQuantity,
+  //             status_id: statusId,
+  //             created_at: new Date().toISOString(),
+  //             ingredient_id: ingredient.ingredients.id,
+  //           }));
+  
+  //           const { error } = await supabase.from("inventory_meal_plan").insert(dataToInsert);
+  //           if (error) {
+  //             throw error;
+  //           }
+  //         }
+  //       }
+  //     }
+  
+  //     // Refresh the page after all distributions
+  //     setRefreshCounter((prev) => prev + 1);
+  //     alert("All ingredients have been auto-distributed!");
+  //   } catch (error) {
+  //     console.error("Error during auto distribution:", error.message);
+  //     alert("Failed to auto-distribute inventory. Please try again.");
+  //   }
+  // };
+
   const handleAutoDistribute = async () => {
     try {
+      const failedDistributions = []; // Track ingredients that fail to distribute
+      const completedIngredients = []; // Track ingredients already complete
+  
       // Iterate through all recipes and their respective ingredients
       for (const recipe of recipes) {
         const recipeIngredients = ingredients.find((ri) => ri.recipeId === recipe.id)?.ingredients || [];
   
         for (const ingredient of recipeIngredients) {
-          // Simulate handleIngredientClick
-          const inventory = await fetchUserInventory(ingredient.ingredients.id);
+          // Check if ingredient is already complete
           const linkedInventory = (await fetchInventoryMealPlanByMealPlanId(mealPlanIds)).filter(
             (item) =>
               item.inventory.ingredient_id === ingredient.ingredients.id &&
               item.meal_plan?.recipe_id === recipe.id
           );
+  
+          const totalAllocated = linkedInventory.reduce((sum, item) => sum + item.used_quantity, 0);
+          if (totalAllocated >= ingredient.quantity) {
+            completedIngredients.push({
+              ingredient: ingredient.ingredients.name,
+              totalAllocated,
+            });
+            continue; // Skip this ingredient as it is already complete
+          }
+  
+          // Simulate handleIngredientClick
+          const inventory = await fetchUserInventory(ingredient.ingredients.id);
   
           let allocatedInventory;
           if (linkedInventory.length > 0) {
@@ -1459,11 +1542,7 @@ const RecipePreparationPage = () => {
   
           if (filteredInventory.length > 0) {
             const statusId = await getStatusIdByName("Planning");
-            const enrichedData = await enrichInventory(
-              filteredInventory,
-              ingredient,
-              planned_date
-            );
+            const enrichedData = await enrichInventory(filteredInventory, ingredient, planned_date);
   
             const dataToInsert = enrichedData.map((item) => ({
               inventory_id: item.id,
@@ -1478,19 +1557,52 @@ const RecipePreparationPage = () => {
             if (error) {
               throw error;
             }
+  
+            // Check if fully distributed
+            const totalDistributed = filteredInventory.reduce((sum, item) => sum + item.selectedQuantity, 0);
+            if (totalDistributed < ingredient.quantity) {
+              failedDistributions.push({
+                ingredient: ingredient.ingredients.name,
+                required: ingredient.quantity,
+                distributed: totalDistributed,
+              });
+            }
+          } else {
+            // Log failure for zero distributed inventory
+            failedDistributions.push({
+              ingredient: ingredient.ingredients.name,
+              required: ingredient.quantity,
+              distributed: 0,
+            });
           }
         }
       }
   
       // Refresh the page after all distributions
       setRefreshCounter((prev) => prev + 1);
-      alert("All ingredients have been auto-distributed!");
+  
+      // Notify the user of the results
+      alert(`Auto-distribution complete!`);
+  
+      if (completedIngredients.length > 0) {
+        console.log("Ingredients already completed:", completedIngredients);
+        alert(`The following ingredients were already complete and skipped:\n${completedIngredients.map(i => `${i.ingredient} (Allocated: ${i.totalAllocated})`).join('\n')}`);
+      }
+  
+      if (failedDistributions.length > 0) {
+        console.warn("Failed to distribute for some ingredients:", failedDistributions);
+        alert(
+          `The following ingredients could not be fully distributed due to insufficient inventory:\n${failedDistributions.map(i => `${i.ingredient} (Required: ${i.required}, Distributed: ${i.distributed})`).join('\n')}`
+        );
+      }
+  
     } catch (error) {
-      console.error("Error during auto distribution:", error.message);
+      console.error("Error during auto-distribution:", error.message);
       alert("Failed to auto-distribute inventory. Please try again.");
     }
   };
 
+  
   const handleDeleteAll = async () => {
     try {
       // Ensure we have meal plans to process
