@@ -793,6 +793,86 @@ const RecipePreparationPage = () => {
     });
   };
   
+  // const handleFinalizeQuantities = async () => {
+  //   try {
+  //     // Check if selectedIngredient and selectedInventory are valid
+  //     if (!selectedIngredient || !selectedInventory || selectedInventory.length === 0) {
+  //       console.warn("Ingredient or inventory selection is missing.");
+  //       return;
+  //     }
+
+  //     // Filter out entries with used_quantity === 0
+  //     const filteredInventory = selectedInventory.filter((item) => item.selectedQuantity > 0);
+  
+  //     if (filteredInventory.length === 0) {
+  //       alert("No valid inventory selected. Please select quantities to proceed.");
+  //       return;
+  //     }
+
+  //     // Fetch the `status_id` for "Planning"
+  //     const statusId = await getStatusIdByName("Planning");
+  //     if (!statusId) {
+  //       alert("Failed to fetch status ID for 'Planning'.");
+  //       return;
+  //     }
+
+  //      // Use the `enrichInventory` function to enrich the inventory
+  //     const enrichedInventory = await enrichInventory(
+  //       filteredInventory,
+  //       selectedIngredient,
+  //       planned_date
+  //     );
+  //     // inventory_id
+  //     // meal_plan_id
+  //     // used_quantity
+  //     // status_id
+  //     // created_at
+  //     // updated_at
+
+  //     // Validate that no selectedQuantity exceeds the required cap
+  //     for (const item of enrichedInventory) {
+  //       if (item.selectedQuantity > requiredQuantity) {
+  //         alert(
+  //           `Selected quantity (${item.selectedQuantity}) exceeds the required cap (${requiredQuantity}) for inventory ID ${item.id}. Please adjust and try again.`
+  //         );
+  //         return; // Exit the function
+  //       }
+  //     }
+
+  //     // Prepare the data for insertion
+  //     const dataToInsert = enrichedInventory.map((item) => ({
+  //       inventory_id: item.id,
+  //       meal_plan_id: item.meal_plan_id,
+  //       used_quantity: item.selectedQuantity,
+  //       status_id: statusId, // Use the dynamically fetched status_id
+  //       created_at: new Date().toISOString(), // Track when the entry was created
+  //       ingredient_id: selectedIngredient.ingredients.id,
+  //     }));
+  
+  //     // Log data for debugging
+  //     console.log("Filtered and Enriched Data to Insert:", dataToInsert);
+  
+  //     // Insert into the database (uncomment when using Supabase)
+
+  //     // const { data, error } = await supabase.from("inventory_meal_plan").insert(dataToInsert);
+  //     // if (error) {
+  //     //   throw error;
+  //     // }
+  //     // console.log("Inserted Data:", data);
+      
+  //     // Reset states after processing
+  //     setSelectedIngredient(null); // Close modal
+  //     setSelectedInventory([]); // Reset inventory
+  //     setAdjustingQuantity(false); // Exit adjusting mode
+  
+  //     // alert("Quantities successfully logged to the console!");
+  //     setRefreshCounter((prev) => prev + 1);
+  //   } catch (err) {
+  //     console.error("Error finalizing quantities:", err.message);
+  //     alert("Failed to finalize quantities. Please try again.");
+  //   }
+  // };
+
   const handleFinalizeQuantities = async () => {
     try {
       // Check if selectedIngredient and selectedInventory are valid
@@ -800,79 +880,92 @@ const RecipePreparationPage = () => {
         console.warn("Ingredient or inventory selection is missing.");
         return;
       }
-
-      // Filter out entries with used_quantity === 0
-      const filteredInventory = selectedInventory.filter((item) => item.selectedQuantity > 0);
   
+      // Filter out entries with selectedQuantity === 0
+      const filteredInventory = selectedInventory.filter((item) => item.selectedQuantity > 0);
+      
       if (filteredInventory.length === 0) {
         alert("No valid inventory selected. Please select quantities to proceed.");
         return;
       }
-
+  
       // Fetch the `status_id` for "Planning"
       const statusId = await getStatusIdByName("Planning");
       if (!statusId) {
         alert("Failed to fetch status ID for 'Planning'.");
         return;
       }
-
-       // Use the `enrichInventory` function to enrich the inventory
+  
+      // Use the `enrichInventory` function to enrich the inventory
       const enrichedInventory = await enrichInventory(
         filteredInventory,
         selectedIngredient,
         planned_date
       );
-      // inventory_id
-      // meal_plan_id
-      // used_quantity
-      // status_id
-      // created_at
-      // updated_at
-
+      
+  
       // Validate that no selectedQuantity exceeds the required cap
       for (const item of enrichedInventory) {
-        if (item.selectedQuantity > requiredQuantity) {
+        const baseConversionRate = selectedIngredient.ingredients.unit?.conversion_rate_to_grams || 1;
+        const inventoryConversionRate = item.ingredients.unitInv?.conversion_rate_to_grams_for_check || 1;
+        const isCurrentlyConverted = item.isConverted || false;
+        
+        // Determine the adjusted required quantity in the item's unit
+        const requiredQuantityInItemUnit = isCurrentlyConverted
+          ? requiredQuantity
+          : (requiredQuantity * baseConversionRate) / inventoryConversionRate; // Use cap in base unit
+
+        if (item.selectedQuantity > requiredQuantityInItemUnit) {
           alert(
-            `Selected quantity (${item.selectedQuantity}) exceeds the required cap (${requiredQuantity}) for inventory ID ${item.id}. Please adjust and try again.`
+            `Selected quantity (${item.selectedQuantity}) exceeds the required cap (${requiredQuantityInItemUnit}) for inventory ID ${item.id}. Please adjust and try again.`
           );
           return; // Exit the function
         }
       }
-
+  
       // Prepare the data for insertion
-      const dataToInsert = enrichedInventory.map((item) => ({
-        inventory_id: item.id,
-        meal_plan_id: item.meal_plan_id,
-        used_quantity: item.selectedQuantity,
-        status_id: statusId, // Use the dynamically fetched status_id
-        created_at: new Date().toISOString(), // Track when the entry was created
-        ingredient_id: selectedIngredient.ingredients.id,
-      }));
+      const dataToInsert = enrichedInventory.map((item) => {
+        const baseConversionRate = item.ingredients.unit?.conversion_rate_to_grams || 1;
+        const inventoryConversionRate = item.ingredients.unitInv?.conversion_rate_to_grams_for_check || 1;
+        const isCurrentlyConverted = item.isConverted || false;
+
+        // Ensure used_quantity is in the base unit (non-converted)
+        const usedQuantity = isCurrentlyConverted
+          ? (item.selectedQuantity * baseConversionRate) / inventoryConversionRate // Convert back to base unit
+          : item.selectedQuantity; // Already in base unit
+  
+        return {
+          inventory_id: item.id,
+          meal_plan_id: item.meal_plan_id,
+          used_quantity: usedQuantity, // Push non-converted quantity
+          status_id: statusId, // Use the dynamically fetched status_id
+          created_at: new Date().toISOString(), // Track when the entry was created
+          ingredient_id: selectedIngredient.ingredients.id,
+        };
+      });
   
       // Log data for debugging
-      console.log("Filtered and Enriched Data to Insert:", dataToInsert);
+      console.log("Filtered and Enriched Data to Insert (Base Unit):", dataToInsert);
   
       // Insert into the database (uncomment when using Supabase)
-
-      // const { data, error } = await supabase.from("inventory_meal_plan").insert(dataToInsert);
-      // if (error) {
-      //   throw error;
-      // }
+      const { data, error } = await supabase.from("inventory_meal_plan").insert(dataToInsert);
+      if (error) {
+        throw error;
+      }
       // console.log("Inserted Data:", data);
-      
+  
       // Reset states after processing
       setSelectedIngredient(null); // Close modal
       setSelectedInventory([]); // Reset inventory
       setAdjustingQuantity(false); // Exit adjusting mode
   
-      // alert("Quantities successfully logged to the console!");
       setRefreshCounter((prev) => prev + 1);
     } catch (err) {
       console.error("Error finalizing quantities:", err.message);
       alert("Failed to finalize quantities. Please try again.");
     }
   };
-
+  
   const handleUpdateQuantities = async () => {
     try {
       // Check if selectedIngredient and selectedInventory are valid
