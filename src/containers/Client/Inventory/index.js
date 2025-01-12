@@ -157,69 +157,94 @@ const calculatePredictedDaysLeft = (predShelfLife) => {
 
 
 // Update quantity in the database
-export const updateQuantityInDatabase = async (itemId, newQuantity) => {
+export const updateQuantityInDatabase = async (itemId, newQuantity, userId) => {
   try {
+    if (!userId) throw new Error("User ID is required.");
+    if (!itemId) throw new Error("Item ID is required.");
+    if (newQuantity === undefined || newQuantity === null) {
+      throw new Error("New quantity is required.");
+    }
+
     const { data, error } = await supabase
       .from('inventory')
       .update({
         quantity: newQuantity,
-        updated_at: new Date().toISOString(), 
+        updated_at: new Date().toISOString(),
       })
-      .match({ ingredient_id: itemId });
+      .match({ ingredient_id: itemId, user_id: userId }); // Ensure it matches both item ID and user ID
 
     if (error) {
       throw error;
     }
 
-    console.log('Quantity and updated_at timestamp updated:', data);
+    console.log('Quantity and updated_at timestamp updated for user:', data);
   } catch (err) {
-    console.error('Error updating quantity:', err);
+    console.error('Error updating quantity:', err.message || err);
+    throw err; // Re-throw for higher-level handling
   }
 };
 
 
+
 // Handle portion click
-export const handlePortionClick = async (item, portion) => {
+export const handlePortionClick = async (item, portion, userId) => {
   try {
-    console.log('Item before update:', item);
-    console.log('Portion to deduct:', portion);
+    if (!userId) throw new Error("User ID is required.");
+    if (!item) throw new Error("Item is required.");
+    if (!portion || portion <= 0) throw new Error("Portion must be greater than 0.");
+
+    console.log("Item before update:", item);
+    console.log("Portion to deduct:", portion);
 
     // Calculate the new quantity
     let newQuantity = item.quantity - portion;
 
-    // Round to 2 decimal places
-    newQuantity = parseFloat(newQuantity.toFixed(2));
+    // Ensure the quantity doesn't go below 0
+    newQuantity = Math.max(0, parseFloat(newQuantity.toFixed(2)));
 
-    console.log('New quantity:', newQuantity);
+    console.log("New quantity:", newQuantity);
 
     // Update the quantity in the database
-    await updateQuantityInDatabase(item.id, newQuantity);
+    await updateQuantityInDatabase(item.id, newQuantity, userId);
 
     return newQuantity; // Return for UI updates
   } catch (err) {
-    console.error('Error handling portion click:', err);
+    console.error("Error handling portion click:", err.message || err);
     throw err;
   }
 };
 
-export const handleQuantityChange = async (item, newQuantity, setItems) => {
-  const parsedQuantity = parseFloat(newQuantity);
-  if (!isNaN(parsedQuantity) && parsedQuantity >= 0) {
-    try {
-      // Update the database with the new quantity
-      await updateQuantityInDatabase(item.id, parsedQuantity);
 
-      // After database update, update the UI state
-      setItems((prevItems) =>
-        prevItems.map((i) =>
-          i.id === item.id ? { ...i, quantity: parsedQuantity } : i
-        )
-      );
-    } catch (err) {
-      console.error('Error handling quantity change:', err);
+
+export const handleQuantityChange = async (item, newQuantity, setItems, userId) => {
+  try {
+    if (!userId) throw new Error("User ID is required.");
+    if (!item) throw new Error("Item is required.");
+    if (newQuantity === undefined || newQuantity === null || newQuantity < 0) {
+      throw new Error("New quantity must be a non-negative number.");
     }
+
+    const parsedQuantity = parseFloat(newQuantity);
+
+    if (isNaN(parsedQuantity)) {
+      throw new Error("Invalid quantity entered.");
+    }
+
+    // Update the database with the new quantity
+    await updateQuantityInDatabase(item.id, parsedQuantity, userId);
+
+    // After database update, update the UI state
+    setItems((prevItems) =>
+      prevItems.map((i) =>
+        i.id === item.id ? { ...i, quantity: parsedQuantity } : i
+      )
+    );
+    console.log("Quantity updated successfully in UI.");
+  } catch (err) {
+    console.error('Error handling quantity change:', err.message || err);
   }
 };
+
 
 export const updateItemCondition = async (itemId, conditionId) => {
   console.log('Attempting to update item condition...');
