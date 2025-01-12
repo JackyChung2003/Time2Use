@@ -1874,13 +1874,33 @@ const RecipePreparationPage = () => {
                               ) : (
                                 // If conversion rates and unit tags differ, show adjusted quantities with a ~ for approximations
                                 <>
-                                  {inventory.used_quantity} {inventory.ingredients.unitInv?.unitInv_tag || ""} /
+                                  {/* {inventory.used_quantity} {inventory.ingredients.unitInv?.unitInv_tag || ""} /
                                   ~{Math.round(
                                     (inventory.used_quantity *
                                       (inventory.ingredients.unitInv?.conversion_rate_to_grams_for_check || 1)) /
                                       (inventory.ingredients.unit?.conversion_rate_to_grams || 1)
                                   )}{" "}
+                                  {inventory.ingredients.unit?.unit_tag || ""} */}
+                                  {inventory.used_quantity} {inventory.ingredients.unitInv?.unitInv_tag || ""} /{" "}
+                                  {
+                                    Number.isInteger(
+                                      (inventory.used_quantity *
+                                        (inventory.ingredients.unitInv?.conversion_rate_to_grams_for_check || 1)) /
+                                        (inventory.ingredients.unit?.conversion_rate_to_grams || 1)
+                                    )
+                                      ? Math.round(
+                                          (inventory.used_quantity *
+                                            (inventory.ingredients.unitInv?.conversion_rate_to_grams_for_check || 1)) /
+                                            (inventory.ingredients.unit?.conversion_rate_to_grams || 1)
+                                        )
+                                      : `~${Math.round(
+                                          (inventory.used_quantity *
+                                            (inventory.ingredients.unitInv?.conversion_rate_to_grams_for_check || 1)) /
+                                            (inventory.ingredients.unit?.conversion_rate_to_grams || 1)
+                                        )}`
+                                  }{" "}
                                   {inventory.ingredients.unit?.unit_tag || ""}
+
                                 </>
                               )}
                             </p>
