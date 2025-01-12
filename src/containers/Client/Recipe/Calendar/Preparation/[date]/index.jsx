@@ -1712,11 +1712,37 @@ const RecipePreparationPage = () => {
                     mealPlans.some((mealPlan) => mealPlan.id === item.meal_plan_id)
                 );
 
-                // Calculate the total allocated quantity
-                const totalAllocated = linkedInventory.reduce(
-                  (sum, inventory) => sum + inventory.used_quantity,
-                  0
-                );
+                // // Calculate the total allocated quantity
+                // const totalAllocated = linkedInventory.reduce(
+                //   (sum, inventory) => sum + inventory.used_quantity,
+                //   0
+                // );
+                // Calculate the total allocated quantity with unit conversion checks
+                const totalAllocated = linkedInventory.reduce((sum, inventory) => {
+                  const baseConversionRate = ingredient.ingredients.unit?.conversion_rate_to_grams || 1;
+                  const inventoryConversionRate =
+                    inventory.ingredients.unitInv?.conversion_rate_to_grams_for_check || 1;
+
+                  // If units match, no conversion needed
+                  if (
+                    ingredient.ingredients.unit?.unit_tag === inventory.ingredients.unitInv?.unitInv_tag
+                  ) {
+                    return sum + inventory.used_quantity;
+                  }
+
+                  // If conversion rates match but units differ, add without adjustment
+                  if (baseConversionRate === inventoryConversionRate) {
+                    return sum + inventory.used_quantity;
+                  }
+
+                  // Convert allocated quantity to the ingredient's unit
+                  const convertedQuantity =
+                    (inventory.used_quantity * inventoryConversionRate) / baseConversionRate;
+                  return sum + convertedQuantity;
+                }, 0);
+
+                console.log("inventory used_quantity:", linkedInventory);
+                console.log("totalAllocated:", totalAllocated);
 
                 // Determine if the status is "Complete"
                 const isComplete = totalAllocated >= ingredient.quantity;
@@ -1824,8 +1850,8 @@ const RecipePreparationPage = () => {
                                   {inventory.inventory.init_quantity} {inventory.ingredients.unitInv?.unitInv_tag || ""} /
                                   {Math.round(
                                     (inventory.inventory.init_quantity *
-                                      (inventory.ingredients.unitInv?.conversion_rate_to_grams_for_check || 1) /
-                                      (inventory.ingredients.unit?.conversion_rate_to_grams || 1)) 
+                                      (inventory.ingredients.unitInv?.conversion_rate_to_grams_for_check || 1)) /
+                                      (inventory.ingredients.unit?.conversion_rate_to_grams || 1)
                                   )}{" "}
                                   {inventory.ingredients.unit?.unit_tag || ""}
                                 </>
@@ -1833,8 +1859,30 @@ const RecipePreparationPage = () => {
                             </p>
                             <p>
                               <strong>Quantity allocated:</strong>{" "}
-                              {inventory.used_quantity}{" "}
-                              {inventory.ingredients.unit?.unit_tag || ""}
+                              {inventory.ingredients.unit?.unit_tag === inventory.ingredients.unitInv?.unitInv_tag ? (
+                                // If the unit tags match, display allocated quantity in a single unit
+                                <>
+                                  {inventory.used_quantity} {inventory.ingredients.unit?.unit_tag || ""}
+                                </>
+                              ) : inventory.ingredients.unit?.conversion_rate_to_grams ===
+                                inventory.ingredients.unitInv?.conversion_rate_to_grams_for_check ? (
+                                // If conversion rates match but units differ, display both units
+                                <>
+                                  {inventory.used_quantity} {inventory.ingredients.unitInv?.unitInv_tag || ""} /
+                                  {inventory.used_quantity} {inventory.ingredients.unit?.unit_tag || ""}
+                                </>
+                              ) : (
+                                // If conversion rates and unit tags differ, show adjusted quantities with a ~ for approximations
+                                <>
+                                  {inventory.used_quantity} {inventory.ingredients.unitInv?.unitInv_tag || ""} /
+                                  ~{Math.round(
+                                    (inventory.used_quantity *
+                                      (inventory.ingredients.unitInv?.conversion_rate_to_grams_for_check || 1)) /
+                                      (inventory.ingredients.unit?.conversion_rate_to_grams || 1)
+                                  )}{" "}
+                                  {inventory.ingredients.unit?.unit_tag || ""}
+                                </>
+                              )}
                             </p>
                             <p>
                               <strong>Expiry Date:</strong>{" "}
