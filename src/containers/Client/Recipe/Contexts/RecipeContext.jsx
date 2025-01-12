@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useState, useEffect, useCallback } from "react";
 import supabase from "../../../../config/supabaseClient";
 
 // Create context
@@ -136,8 +136,7 @@ const fetchRecipes = async () => {
     }
   };
 
-  const fetchFavorites = async () => {
-    // if (!userData) return;
+  const fetchFavorites = useCallback(async () => {
     if (!userData) {
       console.error("User not logged in. Skipping fetchFavorites.");
       return;
@@ -159,7 +158,7 @@ const fetchRecipes = async () => {
     } catch (err) {
       console.error("Unexpected error fetching favorites:", err.message);
     }
-  };
+  }, [userData]);
 
   const applyFilters = (newFilters) => {
     setFilters((prevFilters) => ({
@@ -205,7 +204,7 @@ const fetchRecipes = async () => {
     if (userData) {
       fetchFavorites(); // Fetch favorites when userData is available
     }
-  }, [userData]);
+  }, [userData, fetchFavorites]);
 
   const fetchRecipeIngredients = async (recipeId) => {
     try {
