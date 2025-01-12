@@ -649,6 +649,11 @@ const fetchRecipes = async () => {
               unit_tag,
               unit_description,
               conversion_rate_to_grams 
+            ),
+            unitInv:quantity_unitInv_id (
+              id,
+              unitInv_tag,
+              conversion_rate_to_grams_for_check
             )
           )
         `)
@@ -726,7 +731,12 @@ const fetchRecipes = async () => {
           id,
           name,
           nutritional_info,
-          unit:quantity_unit_id (unit_tag, unit_description, conversion_rate_to_grams)
+          unit:quantity_unit_id (unit_tag, unit_description, conversion_rate_to_grams),
+          unitInv:quantity_unitInv_id (
+              id,
+              unitInv_tag,
+              conversion_rate_to_grams_for_check
+            )
         )
       `);
   

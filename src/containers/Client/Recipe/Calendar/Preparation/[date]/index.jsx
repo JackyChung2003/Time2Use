@@ -1802,11 +1802,34 @@ const RecipePreparationPage = () => {
                               border: "1px solid #ccc",
                               borderRadius: "5px",
                             }}
-                          >
+                          > 
+                            {console.log("Inventory:", inventory)}
                             <p>
                               <strong>Original quantity:</strong>{" "}
-                              {inventory.inventory.init_quantity}{" "}
-                              {inventory.ingredients.unit?.unit_tag || ""}
+                              {inventory.ingredients.unit?.unit_tag === inventory.ingredients.unitInv?.unitInv_tag ? (
+                                // If the unit tags match, display quantity in a single unit
+                                <>
+                                  {inventory.inventory.init_quantity} {inventory.ingredients.unit?.unit_tag || ""}
+                                </>
+                              ) : inventory.ingredients.unit?.conversion_rate_to_grams ===
+                                inventory.ingredients.unitInv?.conversion_rate_to_grams_for_check ? (
+                                // If conversion rates match but units differ, display both units
+                                <>
+                                  {inventory.inventory.init_quantity} {inventory.ingredients.unitInv?.unitInv_tag || ""} /
+                                  {inventory.inventory.init_quantity} {inventory.ingredients.unit?.unit_tag || ""}
+                                </>
+                              ) : (
+                                // If conversion rates and unit tags differ, show adjusted quantities
+                                <>
+                                  {inventory.inventory.init_quantity} {inventory.ingredients.unitInv?.unitInv_tag || ""} /
+                                  {Math.round(
+                                    (inventory.inventory.init_quantity *
+                                      (inventory.ingredients.unitInv?.conversion_rate_to_grams_for_check || 1) /
+                                      (inventory.ingredients.unit?.conversion_rate_to_grams || 1)) 
+                                  )}{" "}
+                                  {inventory.ingredients.unit?.unit_tag || ""}
+                                </>
+                              )}
                             </p>
                             <p>
                               <strong>Quantity allocated:</strong>{" "}
