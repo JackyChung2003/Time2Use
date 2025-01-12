@@ -351,14 +351,26 @@ const Item = ({
                   {/* Display days left for items without expiry date */}
                   {item.daysLeft != null && (
                     <div className="days-left">
-                      Predicted {item.daysLeft}d left
+                      {item.daysLeft === 0 ? (
+                        <span>Expired today</span>
+                      ) : item.daysLeft < 0 ? (
+                        <span style={{ color: 'red' }}>Expired {Math.abs(item.daysLeft)} day(s) ago</span>
+                      ) : (
+                        <span>Predicted {item.daysLeft}d left</span>
+                      )}
                     </div>
                   )}
                 </>
               ) : (
                 // Display days left if expiryDate is not null
                 <div className="days-left">
-                  {item.daysLeft}d left
+                  {item.daysLeft === 0 ? (
+                    <span>Expired today</span>
+                  ) : item.daysLeft < 0 ? (
+                    <span style={{ color: 'red' }}>Expired {Math.abs(item.daysLeft)} day ago</span>
+                  ) : (
+                    <span>{item.daysLeft}d left</span>
+                  )}
                 </div>
               )}
             </div>
