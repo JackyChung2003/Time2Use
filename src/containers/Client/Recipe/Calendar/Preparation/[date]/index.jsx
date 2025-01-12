@@ -636,41 +636,139 @@ const RecipePreparationPage = () => {
     });
   };  
   
+  // const handleQuantityInputChange = (itemId, newQuantity) => {
+  //   setSelectedInventory((prevSelected) => {
+  //     const target = selectedIngredient.quantity;
+  
+  //     // Parse and ensure valid quantity input
+  //     const parsedQuantity = Math.max(1, parseInt(newQuantity) || 1);
+  
+  //     // Validate against the maximum allowed quantity for the item
+  //     const updatedInventory = prevSelected.map((item) => {
+  //       if (item.id === itemId) {
+  //         if (parsedQuantity > item.quantity) {
+  //           alert(`You cannot exceed the available quantity of ${item.quantity}.`);
+  //           return item; // Return the item unchanged
+  //         }
+  //         return { ...item, selectedQuantity: parsedQuantity };
+  //       }
+  //       return item;
+  //     });
+  
+  //     // if (capped) {
+  //     //   const total = updatedInventory.reduce((sum, item) => sum + item.selectedQuantity, 0);
+  
+  //     //   if (total > target) {
+  //     //     const excess = total - target;
+  //     //     return redistributeExcessToMaintainTarget(updatedInventory, itemId, excess);
+  //     //   }
+  
+  //     //   return updatedInventory; // Allow setting when within or exactly at the target
+  //     // }
+  
+  //     // Allow unrestricted input in uncapped mode
+  //     return updatedInventory;
+  //   });
+  // };
+
+  // const handleQuantityInputChange = (itemId, newQuantity) => {
+  //   setSelectedInventory((prevSelected) => {
+  //     const target = selectedIngredient.quantity;
+  //     // console.log("target", target);
+  
+  //     // Parse and ensure valid quantity input
+  //     const parsedQuantity = Math.max(1, parseInt(newQuantity) || 1);
+  //     console.log("parsedQuantity", parsedQuantity);
+  
+  //     // Validate and update the inventory
+  //     const updatedInventory = prevSelected.map((item) => {
+  //       if (item.id === itemId) {
+  //         // Get conversion rates
+  //         const baseConversionRate = item.ingredients.unit?.conversion_rate_to_grams || 1;
+  //         const inventoryConversionRate = item.ingredients.unitInv?.conversion_rate_to_grams_for_check || 1;
+  
+  //         // Check if item is converted
+  //         const isCurrentlyConverted = item.isConverted || false;
+
+  //         console.log("isconverted",isCurrentlyConverted);
+  
+  //         // Determine the maximum allowable quantity based on conversion
+  //         const maxAllowedQuantity = isCurrentlyConverted
+  //           ? Math.floor(item.quantity * inventoryConversionRate / baseConversionRate) // Converted maximum quantity
+  //           : item.quantity; // Default maximum quantity
+  
+  //         // Validate input against the maximum allowable quantity
+  //         if (parsedQuantity > maxAllowedQuantity) {
+  //           alert(
+  //             `You cannot exceed the ${
+  //               isCurrentlyConverted ? "converted " : ""
+  //             }available quantity of ${maxAllowedQuantity}.`
+  //           );
+  //           return item; // Return the item unchanged
+  //         }
+  
+  //         // Update the selected quantity
+  //         return { ...item, selectedQuantity: parsedQuantity };
+  //       }
+  //       return item;
+  //     });
+  
+  //     return updatedInventory;
+  //   });
+  // };
+
   const handleQuantityInputChange = (itemId, newQuantity) => {
     setSelectedInventory((prevSelected) => {
-      const target = selectedIngredient.quantity;
-  
       // Parse and ensure valid quantity input
       const parsedQuantity = Math.max(1, parseInt(newQuantity) || 1);
   
-      // Validate against the maximum allowed quantity for the item
       const updatedInventory = prevSelected.map((item) => {
         if (item.id === itemId) {
-          if (parsedQuantity > item.quantity) {
-            alert(`You cannot exceed the available quantity of ${item.quantity}.`);
+          // Get conversion rates
+          const baseConversionRate = item.ingredients.unit?.conversion_rate_to_grams || 1;
+          const inventoryConversionRate = item.ingredients.unitInv?.conversion_rate_to_grams_for_check || 1;
+  
+          // Check if item is converted
+          const isCurrentlyConverted = item.isConverted || false;
+  
+          // Flip the logic for `target` calculation
+          const target = !isCurrentlyConverted
+            ? selectedIngredient.quantity * (baseConversionRate / inventoryConversionRate) // Convert target to inventory unit
+            : selectedIngredient.quantity; // Keep original target if already converted
+  
+          // Flip the logic for `maxAllowedQuantity` calculation
+          const maxAllowedQuantity = !isCurrentlyConverted
+            ? Math.floor(item.quantity * inventoryConversionRate / baseConversionRate) // Converted maximum quantity
+            : item.quantity; // Default maximum quantity
+  
+          // Log conversion details for debugging
+          console.log("isCurrentlyConverted:", isCurrentlyConverted);
+          console.log("parsedQuantity:", parsedQuantity);
+          console.log("maxAllowedQuantity:", maxAllowedQuantity);
+          console.log("target:", target);
+  
+          // Validate input against the maximum allowable quantity and target
+          if (parsedQuantity > maxAllowedQuantity || parsedQuantity > target) {
+            // alert(
+            //   `You cannot exceed the ${
+            //     !isCurrentlyConverted ? "converted " : ""
+            //   }available quantity of ${Math.min(maxAllowedQuantity, target)}.`
+            // );
             return item; // Return the item unchanged
           }
+  
+          // Update the selected quantity
           return { ...item, selectedQuantity: parsedQuantity };
         }
         return item;
       });
   
-      // if (capped) {
-      //   const total = updatedInventory.reduce((sum, item) => sum + item.selectedQuantity, 0);
-  
-      //   if (total > target) {
-      //     const excess = total - target;
-      //     return redistributeExcessToMaintainTarget(updatedInventory, itemId, excess);
-      //   }
-  
-      //   return updatedInventory; // Allow setting when within or exactly at the target
-      // }
-  
-      // Allow unrestricted input in uncapped mode
       return updatedInventory;
     });
   };
-
+  
+  
+  
   const redistributeExcessToMaintainTarget = (inventory, excludeItemId, excess) => {
     return inventory.map((item) => {
       if (item.id === excludeItemId || excess <= 0) return item;
