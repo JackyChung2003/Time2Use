@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useState, useEffect, useCallback } from "react";
 import supabase from "../../../../config/supabaseClient";
 
 // Create context
@@ -34,7 +34,8 @@ export const RecipeProvider = ({ children }) => {
       if (error) {
         console.error("Error fetching user data:", error);
       } else {
-        setUserData(data?.user || null);
+        setUserData(data?.user);
+        console.log("User data fetched:", data?.user);
       }
     } catch (err) {
       console.error("Unexpected error fetching user data:", err);
@@ -135,8 +136,12 @@ const fetchRecipes = async () => {
     }
   };
 
-  const fetchFavorites = async () => {
-    if (!userData) return;
+  const fetchFavorites = useCallback(async () => {
+    if (!userData) {
+      console.error("User not logged in. Skipping fetchFavorites.");
+      return;
+    }
+
     try {
       const { data, error } = await supabase
         .from("favorites")
@@ -148,11 +153,12 @@ const fetchRecipes = async () => {
         return;
       }
 
+      console.log("Favorites fetched:", data);
       setFavorites(data.map((fav) => fav.recipe_id)); // Store favorite recipe IDs
     } catch (err) {
       console.error("Unexpected error fetching favorites:", err.message);
     }
-  };
+  }, [userData]);
 
   const applyFilters = (newFilters) => {
     setFilters((prevFilters) => ({
@@ -162,21 +168,43 @@ const fetchRecipes = async () => {
     // console.log("Filters updated:", newFilters);
   };
 
+  // useEffect(() => {
+  //   fetchUserData(); // Fetch user data on mount
+  //   fetchRecipes(); // Fetch recipes on mount
+  //   fetchTags(); // Fetch tags on mount
+  //   fetchCategories(); // Fetch categories on mount
+  //   fetchEquipment(); // Fetch equipment on mount
+  //   fetchIngredients(); // Fetch ingredients on mount
+  //   fetchMealTypes(); // Fetch meal types on mount
+  //   fetchFavorites(); // Fetch favorites on mount
+  // }, []);
+
   useEffect(() => {
-    fetchUserData(); // Fetch user data on mount
-    fetchRecipes(); // Fetch recipes on mount
-    fetchTags(); // Fetch tags on mount
-    fetchCategories(); // Fetch categories on mount
-    fetchEquipment(); // Fetch equipment on mount
-    fetchIngredients(); // Fetch ingredients on mount
-    fetchMealTypes(); // Fetch meal types on mount
-    fetchFavorites(); // Fetch favorites on mount
+    const fetchInitialData = async () => {
+      await fetchUserData(); // Fetch user data first
+      await Promise.all([
+        fetchRecipes(), // Fetch recipes
+        fetchTags(),
+        fetchCategories(),
+        fetchEquipment(),
+        fetchIngredients(),
+        fetchMealTypes(),
+      ]);
+    };
+    fetchInitialData(); // Execute the initial data fetching
   }, []);
 
   useEffect(() => {
     // console.log("Filters changed:", filters);
     fetchRecipes(); // Re-fetch recipes based on new filters
-}, [filters]);
+  }, [filters]);
+
+  // Fetch favorites only after userData is available
+  useEffect(() => {
+    if (userData) {
+      fetchFavorites(); // Fetch favorites when userData is available
+    }
+  }, [userData, fetchFavorites]);
 
   const fetchRecipeIngredients = async (recipeId) => {
     try {
@@ -441,8 +469,11 @@ const fetchRecipes = async () => {
           quantity,
           expiry_date_id,
           freshness_status_id,
-          quantity_unit_id,
           init_quantity,
+          condition:condition_id (
+            id,
+            condition
+          ),
           days_left,
           expiry_date (
             id, 
@@ -452,11 +483,6 @@ const fetchRecipes = async () => {
             id, 
             status_color
           ),
-          unit:quantity_unit_id (
-            id,
-            unit_tag, 
-            unit_description
-          ),
           ingredients (
             id,
             name,
@@ -465,11 +491,22 @@ const fetchRecipes = async () => {
               unit_tag,
               unit_description,
               conversion_rate_to_grams 
+            ),
+            unitInv:quantity_unitInv_id (
+              id,
+              unitInv_tag,
+              conversion_rate_to_grams_for_check
             )
           )
         `)
         .eq("user_id", userData.id) // Filter by user_id
+        .eq("condition_id", 1) // Filter for items in good condition
         .gt("days_left", 0); // Filter for items with days_left > 0
+        // unit:quantity_unit_id (
+        //   id,
+        //   unit_tag, 
+        //   unit_description
+        // ),
   
       // Add `ingredient_id` filter if provided
       if (ingredientId) {
@@ -604,9 +641,9 @@ const fetchRecipes = async () => {
             ),
             days_left,
             freshness_status_id,
-            quantity_unit_id,
             init_quantity,
             condition:condition_id (
+              id, 
               condition
             )
           ),
@@ -618,10 +655,16 @@ const fetchRecipes = async () => {
               unit_tag,
               unit_description,
               conversion_rate_to_grams 
+            ),
+            unitInv:quantity_unitInv_id (
+              id,
+              unitInv_tag,
+              conversion_rate_to_grams_for_check
             )
           )
         `)
-        .in("meal_plan_id", mealPlanIds); // Query using multiple meal_plan_ids
+        .in("meal_plan_id", mealPlanIds)
+        .eq("condition_id", 1) ; // Query using multiple meal_plan_ids
   
       if (error) {
         console.error("Error fetching inventory meal plan data by meal_plan_id:", error);
@@ -688,17 +731,25 @@ const fetchRecipes = async () => {
           expiry_date:expiry_date_id (date),
           days_left,
           freshness_status_id,
-          quantity_unit_id,
           init_quantity,
-          condition:condition_id (condition)
+          condition:condition_id (
+            id,
+            condition
+          )
         ),
         ingredients (
           id,
           name,
           nutritional_info,
-          unit:quantity_unit_id (unit_tag, unit_description, conversion_rate_to_grams)
+          unit:quantity_unit_id (unit_tag, unit_description, conversion_rate_to_grams),
+          unitInv:quantity_unitInv_id (
+              id,
+              unitInv_tag,
+              conversion_rate_to_grams_for_check
+            )
         )
-      `);
+      `)
+      // .eq("condition_id", 1); // Filter for items in good condition
   
       // Apply filters dynamically
       if (mealPlanIds ) {
