@@ -2264,6 +2264,7 @@ const RecipePreparationPage = () => {
                                     }}
                                   >
                                     Not Enough for 1 Unit
+                                    {/* {console.log("Predisqualified Item:", item)} */}
                                   </span>
                                 )}
 

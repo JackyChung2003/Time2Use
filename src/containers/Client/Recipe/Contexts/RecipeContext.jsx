@@ -470,6 +470,10 @@ const fetchRecipes = async () => {
           expiry_date_id,
           freshness_status_id,
           init_quantity,
+          condition:condition_id (
+            id,
+            condition
+          ),
           days_left,
           expiry_date (
             id, 
@@ -496,6 +500,7 @@ const fetchRecipes = async () => {
           )
         `)
         .eq("user_id", userData.id) // Filter by user_id
+        .eq("condition_id", 1) // Filter for items in good condition
         .gt("days_left", 0); // Filter for items with days_left > 0
         // unit:quantity_unit_id (
         //   id,
@@ -638,6 +643,7 @@ const fetchRecipes = async () => {
             freshness_status_id,
             init_quantity,
             condition:condition_id (
+              id, 
               condition
             )
           ),
@@ -657,7 +663,8 @@ const fetchRecipes = async () => {
             )
           )
         `)
-        .in("meal_plan_id", mealPlanIds); // Query using multiple meal_plan_ids
+        .in("meal_plan_id", mealPlanIds)
+        .eq("condition_id", 1) ; // Query using multiple meal_plan_ids
   
       if (error) {
         console.error("Error fetching inventory meal plan data by meal_plan_id:", error);
@@ -725,7 +732,10 @@ const fetchRecipes = async () => {
           days_left,
           freshness_status_id,
           init_quantity,
-          condition:condition_id (condition)
+          condition:condition_id (
+            id,
+            condition
+          )
         ),
         ingredients (
           id,
@@ -738,7 +748,8 @@ const fetchRecipes = async () => {
               conversion_rate_to_grams_for_check
             )
         )
-      `);
+      `)
+      // .eq("condition_id", 1); // Filter for items in good condition
   
       // Apply filters dynamically
       if (mealPlanIds ) {
