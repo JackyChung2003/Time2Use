@@ -20,7 +20,8 @@ const RecipePreparationPage = () => {
     fetchInventoryMealPlanData,
     fetchInventoryMealPlanByMealPlanId,
     enrichInventory,
-    fetchInventoryData
+    fetchInventoryData,
+    fetchPax
   } = useRecipeContext();
 
   const navigate = useNavigate();
@@ -64,6 +65,10 @@ const RecipePreparationPage = () => {
   const [currentRecipeIndex, setCurrentRecipeIndex] = useState(0); // Index of the current recipe
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [previousStepIndex, setPreviousStepIndex] = useState(null);
+
+  // const [pax, setPax] = useState(1); // Added pax state
+  const [pax, setPax] = useState(1); // Default Pax value is 1
+
   
   useEffect(() => {
     const loadData = async () => {
@@ -97,13 +102,28 @@ const RecipePreparationPage = () => {
         const fetchedRecipes = await fetchRecipesByIds(recipeIds);
         setRecipes(fetchedRecipes);
   
-        // Fetch ingredients for recipes
+        // Fetch ingredients for recipes 
+        // const recipeIngredients = await Promise.all(
+        //   fetchedRecipes.map(async (recipe) => {
+        //     const ingredientsData = await fetchRecipeIngredients(recipe.id);
+        //     return { recipeId: recipe.id, ingredients: ingredientsData };
+        //   })
+        // );
+        // Fetch ingredients for recipes and adjust quantities based on pax
         const recipeIngredients = await Promise.all(
           fetchedRecipes.map(async (recipe) => {
             const ingredientsData = await fetchRecipeIngredients(recipe.id);
-            return { recipeId: recipe.id, ingredients: ingredientsData };
+  
+            // Adjust ingredient quantities based on pax
+            const adjustedIngredients = ingredientsData.map((ingredient) => ({
+              ...ingredient,
+              quantity: ingredient.quantity * pax,
+            }));
+  
+            return { recipeId: recipe.id, ingredients: adjustedIngredients };
           })
         );
+  
         setIngredients(recipeIngredients);
         
         // Fetch inventory meal plan data
@@ -132,6 +152,7 @@ const RecipePreparationPage = () => {
     fetchRecipesByIds,
     fetchRecipeIngredients,
     fetchInventoryData,
+    pax,
     refreshCounter,
   ]);
   
@@ -161,6 +182,59 @@ const RecipePreparationPage = () => {
 
     loadSteps();
   }, [recipes, fetchRecipeSteps]);
+
+  // useEffect(() => {
+  //   const loadInitialPax = async () => {
+  //     if (planned_date && meal_type_id) {
+  //       const fetchedPax = await fetchPax(planned_date, meal_type_id);
+  //       if (fetchedPax) {
+  //         setPax(fetchedPax); // Set the fetched Pax value
+  //       }
+  //     }
+  //   };
+  
+  //   loadInitialPax();
+  // }, [planned_date, meal_type_id, fetchPax]);
+
+  useEffect(() => {
+    const loadInitialPax = async () => {
+      if (planned_date && meal_type_id) {
+        try {
+          console.log("Fetching pax value...");
+          console.log("Planned Date:", planned_date);
+          console.log("Meal Type ID:", meal_type_id);
+          // Fetch the pax value using the provided fetchPax function
+          const fetchedPax = await fetchPax(planned_date, meal_type_id);
+          
+          console.log("Fetched Pax:", fetchedPax);
+          if (fetchedPax !== undefined && fetchedPax !== null) {
+            setPax(fetchedPax); // Set the fetched Pax value
+          } else {
+            console.warn("No pax value returned. Defaulting to 1.");
+            setPax(1); // Fallback to default value
+          }
+        } catch (error) {
+          console.error("Error fetching pax:", error.message);
+          setPax(1); // Fallback to default value in case of an error
+        }
+      }
+    };
+  
+    loadInitialPax();
+  }, [planned_date, meal_type_id, fetchPax]);
+  
+
+  useEffect(() => {
+    const updatedIngredients = ingredients.map((recipeIngredient) => ({
+      ...recipeIngredient,
+      ingredients: recipeIngredient.ingredients.map((ingredient) => ({
+        ...ingredient,
+        quantity: ingredient.quantity * pax, // Adjust based on Pax
+      })),
+    }));
+    setIngredients(updatedIngredients);
+  }, [pax]);
+  
 
   useEffect(() => {
     const loadStepsForCurrentRecipe = async () => {
@@ -233,6 +307,11 @@ const RecipePreparationPage = () => {
   };
   
   const startCooking = () => {
+    if (pax < 1) {
+      alert("Please select at least 1 pax.");
+      return;
+    }
+
     if (checkAllIngredientsComplete()) {
       setShowModal(true); // Open modal if all ingredients are complete
     } else {
@@ -1105,6 +1184,8 @@ const RecipePreparationPage = () => {
       }
   };
 
+
+
   const finishCooking = async () => {
     try {
         // Update `status_id` in `inventory_meal_plan` table to 2 (Complete)
@@ -1183,6 +1264,45 @@ const RecipePreparationPage = () => {
     }
   };
 
+  const handlePaxChange = (delta) => {
+    setPax((prevPax) => {
+      const newPax = Math.max(1, prevPax + delta); // Ensure Pax is at least 1
+      mealPlans.forEach((mealPlan) => {
+        updatePaxInSupabase(mealPlan.id, newPax); // Update Pax in Supabase for each meal plan
+      });
+      return newPax;
+    });
+  
+    // Recalculate ingredient quantities based on the new Pax value
+    const updatedIngredients = ingredients.map((recipeIngredient) => ({
+      ...recipeIngredient,
+      ingredients: recipeIngredient.ingredients.map((ingredient) => ({
+        ...ingredient,
+        quantity: ingredient.quantity * (pax + delta), // Multiply by the new Pax value
+      })),
+    }));
+    setIngredients(updatedIngredients);
+  };
+
+  const updatePaxInSupabase = async (mealPlanId, newPax) => {
+    try {
+      console.log("Updating Pax for meal plan ID:", mealPlanId);
+      console.log("New Pax Value:", newPax);
+      const { error } = await supabase
+        .from("meal_plan")
+        .update({ serving_packs: newPax, updated_at: new Date().toISOString() })
+        .eq("id", mealPlanId);
+  
+      if (error) throw error;
+  
+      console.log(`Pax updated to ${newPax} for meal plan ID ${mealPlanId}`);
+    } catch (err) {
+      console.error("Error updating pax:", err.message);
+      alert("Failed to update Pax. Please try again.");
+    }
+  };
+  
+
   return (
     <div className="recipe-preparation-page">
       <BackButton onClick={() => navigate(-1)} />
@@ -1243,6 +1363,34 @@ const RecipePreparationPage = () => {
             <strong>Cook Time:</strong> {recipe.cook_time} mins
           </p>
           <div>
+            <h3>Pax</h3>
+            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+              <button
+                onClick={() => handlePaxChange(-1)}
+                style={{
+                  padding: "5px 10px",
+                  border: "1px solid #ccc",
+                  background: "#f5f5f5",
+                  cursor: "pointer",
+                }}
+              >
+                -
+              </button>
+              <span style={{ fontSize: "18px", fontWeight: "bold" }}>{pax}</span>
+              <button
+                onClick={() => handlePaxChange(1)}
+                style={{
+                  padding: "5px 10px",
+                  border: "1px solid #ccc",
+                  background: "#f5f5f5",
+                  cursor: "pointer",
+                }}
+              >
+                +
+              </button>
+            </div>
+          </div>
+          <div>
             <h3>Ingredients</h3>
             <ul>
               {recipeIngredients.map((ingredient, index) => {
@@ -1276,8 +1424,8 @@ const RecipePreparationPage = () => {
                   return sum + convertedQuantity;
                 }, 0);
 
-                console.log("inventory used_quantity:", linkedInventory);
-                console.log("totalAllocated:", totalAllocated);
+                // console.log("inventory used_quantity:", linkedInventory);
+                // console.log("totalAllocated:", totalAllocated);
 
                 // Determine if the status is "Complete"
                 const isComplete = totalAllocated >= ingredient.quantity;
