@@ -64,8 +64,6 @@ const RecipePreparationPage = () => {
   const [currentRecipeIndex, setCurrentRecipeIndex] = useState(0); // Index of the current recipe
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [previousStepIndex, setPreviousStepIndex] = useState(null);
-
-  const [convertedItems, setConvertedItems] = useState({}); // Track converted state
   
   useEffect(() => {
     const loadData = async () => {
@@ -162,47 +160,42 @@ const RecipePreparationPage = () => {
     };
 
     loadSteps();
-}, [recipes, fetchRecipeSteps]);
+  }, [recipes, fetchRecipeSteps]);
 
-useEffect(() => {
-  const loadStepsForCurrentRecipe = async () => {
-      if (recipes.length > 0 && currentRecipeIndex < recipes.length) {
-          const currentRecipe = recipes[currentRecipeIndex];
+  useEffect(() => {
+    const loadStepsForCurrentRecipe = async () => {
+        if (recipes.length > 0 && currentRecipeIndex < recipes.length) {
+            const currentRecipe = recipes[currentRecipeIndex];
 
-          // Check if steps are already loaded for the current recipe
-          if (!currentRecipe?.steps || currentRecipe.steps.length === 0) {
-              try {
-                  // Fetch steps for the current recipe
-                  const recipeSteps = await fetchRecipeSteps(currentRecipe.id);
+            // Check if steps are already loaded for the current recipe
+            if (!currentRecipe?.steps || currentRecipe.steps.length === 0) {
+                try {
+                    // Fetch steps for the current recipe
+                    const recipeSteps = await fetchRecipeSteps(currentRecipe.id);
 
-                  // Update the current recipe's steps in the recipes array
-                  setRecipes((prevRecipes) =>
-                      prevRecipes.map((recipe, index) =>
-                          index === currentRecipeIndex
-                              ? { ...recipe, steps: recipeSteps }
-                              : recipe
-                      )
-                  );
+                    // Update the current recipe's steps in the recipes array
+                    setRecipes((prevRecipes) =>
+                        prevRecipes.map((recipe, index) =>
+                            index === currentRecipeIndex
+                                ? { ...recipe, steps: recipeSteps }
+                                : recipe
+                        )
+                    );
 
-                  // Optionally set the current steps state
-                  setSteps(recipeSteps);
-              } catch (error) {
-                  console.error("Failed to load steps for the current recipe:", error);
-              }
-          } else {
-              // Use already loaded steps
-              setSteps(currentRecipe.steps);
-          }
-      }
-  };
+                    // Optionally set the current steps state
+                    setSteps(recipeSteps);
+                } catch (error) {
+                    console.error("Failed to load steps for the current recipe:", error);
+                }
+            } else {
+                // Use already loaded steps
+                setSteps(currentRecipe.steps);
+            }
+        }
+    };
 
-  loadStepsForCurrentRecipe();
-}, [currentRecipeIndex, recipes, fetchRecipeSteps]);
-
-
-  // const startCooking = () => {
-  //   setShowModal(true);
-  // };
+    loadStepsForCurrentRecipe();
+  }, [currentRecipeIndex, recipes, fetchRecipeSteps]);
 
   const checkAllIngredientsComplete = () => {
     return recipes.every((recipe) => {
@@ -246,8 +239,6 @@ useEffect(() => {
       alert("Some ingredients are incomplete. Please ensure all ingredients are complete before starting."); // Show an alert for incomplete ingredients
     }
   };
-  
-
 
   const markAsCooked = async () => {
     try {
@@ -269,168 +260,17 @@ useEffect(() => {
   
   const confirmSequence = () => {
     setShowModal(false);
-    // console.log("Confirmed cooking sequence:", recipes);
-    // Proceed to cooking steps logic
   };
   
   const closeModal = () => {
     setShowModal(false);
   };
 
-  // const allocateInventoryFIFO = (ingredient, inventory) => {
-  //   const target = ingredient.quantity;
-  //   // console.log("Target Quantity Needed:", target);
-  
-  //   // Step 1: Sort inventory by expiry date first, then by quantity
-  //   const sortedInventory = [...inventory].sort((a, b) => {
-  //     const dateA = new Date(a.expiry_date?.date || "9999-12-31");
-  //     const dateB = new Date(b.expiry_date?.date || "9999-12-31");
-  //     if (dateA - dateB !== 0) {
-  //       return dateA - dateB; // Sort by expiry date first
-  //     }
-  //     return a.quantity - b.quantity; // Then by quantity
-  //   });
-  
-  //   // console.log("Sorted Inventory by Expiry and Quantity:", sortedInventory);
-  
-  //   // Step 2: Find the optimal combination of items
-  //   let remainingRequired = target;
-  //   const selectedItems = [];
-  //   for (let i = 0; i < sortedInventory.length; i++) {
-  //     const item = sortedInventory[i];
-  
-  //     // If the current item's quantity alone satisfies the requirement, take it and stop
-  //     if (item.quantity >= remainingRequired) {
-  //       selectedItems.push({
-  //         ...item,
-  //         selectedQuantity: remainingRequired,
-  //         preselected: true,
-  //       });
-  //       remainingRequired = 0;
-  //       break;
-  //     }
-  
-  //     // Otherwise, take the current item fully and subtract its quantity from the requirement
-  //     selectedItems.push({
-  //       ...item,
-  //       selectedQuantity: item.quantity,
-  //       preselected: true,
-  //     });
-  //     remainingRequired -= item.quantity;
-  
-  //     // If the requirement is satisfied, stop
-  //     if (remainingRequired <= 0) {
-  //       break;
-  //     }
-  //   }
-  
-  //   // console.log("Selected Items:", selectedItems);
-  
-  //   // Step 3: Mark the remaining inventory as unselected
-  //   const finalInventory = sortedInventory.map((item) => {
-  //     const selectedItem = selectedItems.find((selected) => selected.id === item.id);
-  //     return selectedItem
-  //       ? selectedItem
-  //       : { ...item, preselected: false, selectedQuantity: 0 }; // Mark unselected
-  //   });
-  
-  //   // console.log("Final Allocated Inventory:", finalInventory);
-  
-  //   return finalInventory;
-  // };
-  
-  // const allocateInventoryFIFO = (ingredient, inventory) => {
-  //   const target = ingredient.quantity; // Target quantity required
-  //   const ingredientConversionRate = ingredient.ingredients.unit?.conversion_rate_to_grams || 1; // Ingredient conversion rate
-  //   const targetInBaseUnit = target * ingredientConversionRate; // Convert target to base unit (grams)
-  
-  //   console.log("Ingredient:", ingredient);
-  //   console.log("Ingredient Conversion Rate:", ingredientConversionRate);
-  //   console.log("Target Quantity in Base Unit (grams):", targetInBaseUnit);
-  
-  //   // Step 1: Sort inventory by expiry date first, then by quantity
-  //   const sortedInventory = [...inventory].sort((a, b) => {
-  //     const dateA = new Date(a.expiry_date?.date || "9999-12-31");
-  //     const dateB = new Date(b.expiry_date?.date || "9999-12-31");
-  //     if (dateA - dateB !== 0) {
-  //       return dateA - dateB; // Sort by expiry date first
-  //     }
-  //     return a.quantity - b.quantity; // Then by quantity
-  //   });
-  
-  //   console.log("Sorted Inventory by Expiry Date and Quantity:", sortedInventory);
-  
-  //   // Step 2: Find the optimal combination of items
-  //   let remainingRequired = targetInBaseUnit; // Remaining required quantity in base unit
-  //   const selectedItems = [];
-  //   for (let i = 0; i < sortedInventory.length; i++) {
-  //     const item = sortedInventory[i];
-  //     const itemConversionRate = item.ingredients.unitInv?.conversion_rate_to_grams_for_check || 1; // Inventory item conversion rate
-  //     const itemQuantityInBaseUnit = item.quantity * itemConversionRate; // Convert item quantity to base unit (grams)
-  
-  //     // Adjust quantity in ingredient's unit
-  //     const adjustedQuantity = itemQuantityInBaseUnit / ingredientConversionRate;
-  
-  //     console.log(`Inventory Item ${i + 1}:`, item);
-  //     console.log("Item Conversion Rate:", itemConversionRate);
-  //     console.log("Item Quantity in Base Unit (grams):", itemQuantityInBaseUnit);
-  //     console.log("Adjusted Quantity in Ingredient's Unit:", adjustedQuantity);
-  
-  //     // If the current item's quantity alone satisfies the requirement, take it and stop
-  //     if (itemQuantityInBaseUnit >= remainingRequired) {
-  //       console.log("Item fully satisfies the remaining requirement.");
-  //       selectedItems.push({
-  //         ...item,
-  //         selectedQuantity: remainingRequired / itemConversionRate, // Convert back to item's unit
-  //         preselected: true,
-  //         adjustedQuantity: remainingRequired / ingredientConversionRate, // Adjusted quantity for ingredient's unit
-  //       });
-  //       remainingRequired = 0;
-  //       break;
-  //     }
-  
-  //     // Otherwise, take the current item fully and subtract its quantity from the requirement
-  //     selectedItems.push({
-  //       ...item,
-  //       selectedQuantity: item.quantity, // Use the full quantity in item's unit
-  //       preselected: true,
-  //       adjustedQuantity, // Adjusted quantity for ingredient's unit
-  //     });
-  //     remainingRequired -= itemQuantityInBaseUnit;
-  
-  //     console.log("Remaining Required Quantity in Base Unit (grams):", remainingRequired);
-  
-  //     // If the requirement is satisfied, stop
-  //     if (remainingRequired <= 0) {
-  //       console.log("Requirement fully satisfied.");
-  //       break;
-  //     }
-  //   }
-  
-  //   // Step 3: Mark the remaining inventory as unselected
-  //   const finalInventory = sortedInventory.map((item) => {
-  //     const selectedItem = selectedItems.find((selected) => selected.id === item.id);
-  //     return selectedItem
-  //       ? selectedItem
-  //       : { ...item, preselected: false, selectedQuantity: 0, adjustedQuantity: 0 }; // Mark unselected
-  //   });
-  
-  //   console.log("Selected Items:", selectedItems);
-  //   console.log("Final Allocated Inventory:", finalInventory);
-  
-  //   return finalInventory;
-  // };
-  
   const allocateInventoryFIFO = (ingredient, inventory) => {
     const target = ingredient.quantity; // Target quantity required
     const ingredientConversionRate = ingredient.ingredients.unit?.conversion_rate_to_grams || 1; // Ingredient conversion rate
     const targetInBaseUnit = target * ingredientConversionRate; // Convert target to base unit (grams)
     const minimumQuantity = 5 * ingredientConversionRate; // Minimum quantity in base unit
-  
-    console.log("Ingredient:", ingredient);
-    console.log("Ingredient Conversion Rate:", ingredientConversionRate);
-    console.log("Target Quantity in Base Unit (grams):", targetInBaseUnit);
-    console.log("Minimum Quantity in Base Unit (grams):", minimumQuantity);
   
     // Step 1: Sort inventory by expiry date first, then by quantity
     const sortedInventory = [...inventory].sort((a, b) => {
@@ -442,8 +282,6 @@ useEffect(() => {
       return a.quantity - b.quantity; // Then by quantity
     });
   
-    console.log("Sorted Inventory by Expiry Date and Quantity:", sortedInventory);
-  
     // Step 2: Find the optimal combination of items
     let remainingRequired = targetInBaseUnit; // Remaining required quantity in base unit
     const selectedItems = [];
@@ -454,13 +292,8 @@ useEffect(() => {
       const itemConversionRate = item.ingredients.unitInv?.conversion_rate_to_grams_for_check || 1; // Inventory item conversion rate
       const itemQuantityInBaseUnit = item.quantity * itemConversionRate; // Convert item quantity to base unit (grams)
   
-      console.log(`Inventory Item ${i + 1}:`, item);
-      console.log("Item Conversion Rate:", itemConversionRate);
-      console.log("Item Quantity in Base Unit (grams):", itemQuantityInBaseUnit);
-  
       // Check if the item meets the minimum quantity requirement
       if (itemQuantityInBaseUnit < minimumQuantity) {
-        console.log("Item does not meet the minimum quantity requirement. Marking as predisqualified.");
         disqualifiedItems.push({
           ...item,
           preselected: false,
@@ -476,7 +309,6 @@ useEffect(() => {
   
       // If the current item's quantity alone satisfies the requirement, take it and stop
       if (itemQuantityInBaseUnit >= remainingRequired) {
-        console.log("Item fully satisfies the remaining requirement.");
         selectedItems.push({
           ...item,
           selectedQuantity: remainingRequired / itemConversionRate, // Convert back to item's unit
@@ -498,11 +330,8 @@ useEffect(() => {
       });
       remainingRequired -= itemQuantityInBaseUnit;
   
-      console.log("Remaining Required Quantity in Base Unit (grams):", remainingRequired);
-  
       // If the requirement is satisfied, stop
       if (remainingRequired <= 0) {
-        console.log("Requirement fully satisfied.");
         break;
       }
     }
@@ -514,25 +343,18 @@ useEffect(() => {
       return selectedItem || disqualifiedItem || { ...item, preselected: false, predisqualified: false, selectedQuantity: 0, adjustedQuantity: 0 };
     });
   
-    console.log("Selected Items:", selectedItems);
-    console.log("Disqualified Items:", disqualifiedItems);
-    console.log("Final Allocated Inventory:", finalInventory);
   
     return finalInventory;
   };
   
 
   const preselectLinkedInventory = (linkedInventory, fullInventory) => {
-    console.log("Processing Linked Inventory for Preselection:", linkedInventory);
-  
     // Get IDs of the linked inventory items
     const linkedIds = linkedInventory.map((item) => item.inventory_id);
   
     // Map full inventory to match the linked IDs, deselecting others
     const updatedInventory = fullInventory.map((item) => {
     const linkedItem = linkedInventory.find((linked) => linked.inventory_id === item.id);
-    
-    console.log("Linked Item:", linkedItem);
 
       if (linkedItem) {
         return {
@@ -550,18 +372,12 @@ useEffect(() => {
       };
     });
   
-    // console.log("Updated Inventory with Preselection:", updatedInventory);
-  
     return updatedInventory;
   };
   
   const handleIngredientClick = async (ingredient, recipeId) => {
     try {
-      // setSelectedIngredient(null); // Clear previous selection
-      console.log("recipe id",recipeId )
-
       setSelectedIngredient(ingredient); // Set selected ingredient first
-      // setSelectedIngredient({ ...ingredient, recipeId }); // Store recipeId in state
       setInventoryItems([]); // Reset inventory items
       setSelectedInventory([]); // Reset selected inventory
       setAdjustingQuantity(false); // Reset adjusting state
@@ -574,26 +390,14 @@ useEffect(() => {
         return; // Exit the function early
       }
 
-      // console.log('inventory:', inventory);
-      // console.log('ingredient:', ingredient);
-      // console.log("Fetched Inventory:", inventory);
-
-      // Fetch linked inventory from the meal plan
-      // const mealPlanIds = recipes.map((recipe) => recipe.id); // Assuming you can derive meal plan IDs from recipes
-      // console.log("Meal Plan IDsHEREEEEE:", mealPlanIds);
       const inventoryMealPlanData = await fetchInventoryMealPlanByMealPlanId(mealPlanIds);
-      // console.log("Fetched Inventory Meal Plan Data:", inventoryMealPlanData);
 
       // Filter inventory meal plan data for the current ingredient
       const linkedInventory = inventoryMealPlanData.filter(
         (item) =>
           item.inventory.ingredient_id === ingredient.ingredients.id &&
-          item.meal_plan?.recipe_id === recipeId // Safely access recipe_id
-          // item.inventory.ingredient_id === ingredient.ingredients.id &&
-          // item.meal_plan?.recipe_id === recipeId // Safely access recipe_id
+          item.meal_plan?.recipe_id === recipeId
       );
-
-      // console.log("Linked Inventory from Meal Plan:", linkedInventory);
 
       let allocatedInventory;
       if (linkedInventory.length > 0) {
@@ -633,22 +437,11 @@ useEffect(() => {
             ? { ...selected, preselected: !selected.preselected }
             : selected
         );
-        // If already selected, toggle off
-        // const updatedSelection = prevSelected.map((selected) =>
-        //   selected.id === item.id
-        //     ? { ...selected, preselected: !selected.preselected }
-        //     : selected
-        // );
-        // console.log("After toggle off:", updatedSelection);
-        // return updatedSelection;
       }
-
-      // If not selected, add to selectedInventory
       return [
         ...prevSelected,
        {
           ...item,
-          // selectedQuantity: item.selectedQuantity || 0, // Default to a small quantity if none exists
           selectedQuantity: item.selectedQuantity || 1, // Default to 1 if not set
           preselected: true, // Mark as preselected
         },
@@ -664,9 +457,6 @@ useEffect(() => {
       0
     );
 
-    console.log("Currently Selected Inventory:", currentlySelected);
-    console.log("Total Selected Quantity:", totalSelectedQuantity);
-  
     // Validation for capped and uncapped
     if ((currentlySelected.length === 0) || (totalSelectedQuantity < selectedIngredient.quantity)) {
       alert(
@@ -676,9 +466,6 @@ useEffect(() => {
       return;
     }
   
-    // Proceed to adjustment
-    // console.log("Confirmed Inventory Selection:", currentlySelected);
-  
     setSelectedInventory((prevSelected) =>
       prevSelected.map((item) =>
         currentlySelected.find((selected) => selected.id === item.id)
@@ -687,11 +474,11 @@ useEffect(() => {
               selectedQuantity: item.selectedQuantity || item.quantity, // Initialize with current quantity
             }
           : item
-      )
-    );
+        )
+      );
   
-    setAdjustingQuantity(true); // Proceed to adjustment step
-  };
+      setAdjustingQuantity(true); // Proceed to adjustment step
+    };
   
   const adjustQuantity = (itemId, delta) => {
     setSelectedInventory((prevSelected) => {
@@ -699,10 +486,8 @@ useEffect(() => {
       const target = selectedIngredient.quantity;
   
       // Calculate the current total
-      // let totalSelected = prevSelected.reduce((sum, item) => sum + item.selectedQuantity, 0);
       let totalSelected = inventory.reduce((sum, item) => sum + item.selectedQuantity, 0);
       
-    
       // Map through inventory to adjust the quantity for the selected item
       const updatedInventory = inventory.map((item) => {
         if (item.id === itemId) {
@@ -717,105 +502,13 @@ useEffect(() => {
       });
   
       if (totalSelected > target) {
-        // If capped and total exceeds the target, redistribute excess
         const excess = totalSelected - target;
-        // alert(
-        //   `Cap is enabled, but you have exceeded the target of ${target} by selecting ${totalSelected}.`
-        // );
         return redistributeExcessToMaintainTarget(updatedInventory, itemId, excess);
       }
-      
-      // if (capped && totalSelected > target) {
-      //   alert(
-      //     `Cap is enabled, but you have exceeded the target of ${target} by selecting ${totalSelected}.`
-      //   );
-      // }
-  
       // Return updated inventory for both capped and uncapped modes
       return updatedInventory;
     });
   };  
-  
-  // const handleQuantityInputChange = (itemId, newQuantity) => {
-  //   setSelectedInventory((prevSelected) => {
-  //     const target = selectedIngredient.quantity;
-  
-  //     // Parse and ensure valid quantity input
-  //     const parsedQuantity = Math.max(1, parseInt(newQuantity) || 1);
-  
-  //     // Validate against the maximum allowed quantity for the item
-  //     const updatedInventory = prevSelected.map((item) => {
-  //       if (item.id === itemId) {
-  //         if (parsedQuantity > item.quantity) {
-  //           alert(`You cannot exceed the available quantity of ${item.quantity}.`);
-  //           return item; // Return the item unchanged
-  //         }
-  //         return { ...item, selectedQuantity: parsedQuantity };
-  //       }
-  //       return item;
-  //     });
-  
-  //     // if (capped) {
-  //     //   const total = updatedInventory.reduce((sum, item) => sum + item.selectedQuantity, 0);
-  
-  //     //   if (total > target) {
-  //     //     const excess = total - target;
-  //     //     return redistributeExcessToMaintainTarget(updatedInventory, itemId, excess);
-  //     //   }
-  
-  //     //   return updatedInventory; // Allow setting when within or exactly at the target
-  //     // }
-  
-  //     // Allow unrestricted input in uncapped mode
-  //     return updatedInventory;
-  //   });
-  // };
-
-  // const handleQuantityInputChange = (itemId, newQuantity) => {
-  //   setSelectedInventory((prevSelected) => {
-  //     const target = selectedIngredient.quantity;
-  //     // console.log("target", target);
-  
-  //     // Parse and ensure valid quantity input
-  //     const parsedQuantity = Math.max(1, parseInt(newQuantity) || 1);
-  //     console.log("parsedQuantity", parsedQuantity);
-  
-  //     // Validate and update the inventory
-  //     const updatedInventory = prevSelected.map((item) => {
-  //       if (item.id === itemId) {
-  //         // Get conversion rates
-  //         const baseConversionRate = item.ingredients.unit?.conversion_rate_to_grams || 1;
-  //         const inventoryConversionRate = item.ingredients.unitInv?.conversion_rate_to_grams_for_check || 1;
-  
-  //         // Check if item is converted
-  //         const isCurrentlyConverted = item.isConverted || false;
-
-  //         console.log("isconverted",isCurrentlyConverted);
-  
-  //         // Determine the maximum allowable quantity based on conversion
-  //         const maxAllowedQuantity = isCurrentlyConverted
-  //           ? Math.floor(item.quantity * inventoryConversionRate / baseConversionRate) // Converted maximum quantity
-  //           : item.quantity; // Default maximum quantity
-  
-  //         // Validate input against the maximum allowable quantity
-  //         if (parsedQuantity > maxAllowedQuantity) {
-  //           alert(
-  //             `You cannot exceed the ${
-  //               isCurrentlyConverted ? "converted " : ""
-  //             }available quantity of ${maxAllowedQuantity}.`
-  //           );
-  //           return item; // Return the item unchanged
-  //         }
-  
-  //         // Update the selected quantity
-  //         return { ...item, selectedQuantity: parsedQuantity };
-  //       }
-  //       return item;
-  //     });
-  
-  //     return updatedInventory;
-  //   });
-  // };
 
   const handleQuantityInputChange = (itemId, newQuantity) => {
     setSelectedInventory((prevSelected) => {
@@ -840,20 +533,9 @@ useEffect(() => {
           const maxAllowedQuantity = !isCurrentlyConverted
             ? Math.floor(item.quantity * inventoryConversionRate / baseConversionRate) // Converted maximum quantity
             : item.quantity; // Default maximum quantity
-  
-          // Log conversion details for debugging
-          console.log("isCurrentlyConverted:", isCurrentlyConverted);
-          console.log("parsedQuantity:", parsedQuantity);
-          console.log("maxAllowedQuantity:", maxAllowedQuantity);
-          console.log("target:", target);
-  
+
           // Validate input against the maximum allowable quantity and target
           if (parsedQuantity > maxAllowedQuantity || parsedQuantity > target) {
-            // alert(
-            //   `You cannot exceed the ${
-            //     !isCurrentlyConverted ? "converted " : ""
-            //   }available quantity of ${Math.min(maxAllowedQuantity, target)}.`
-            // );
             return item; // Return the item unchanged
           }
   
@@ -893,86 +575,6 @@ useEffect(() => {
     });
   };
   
-  // const handleFinalizeQuantities = async () => {
-  //   try {
-  //     // Check if selectedIngredient and selectedInventory are valid
-  //     if (!selectedIngredient || !selectedInventory || selectedInventory.length === 0) {
-  //       console.warn("Ingredient or inventory selection is missing.");
-  //       return;
-  //     }
-
-  //     // Filter out entries with used_quantity === 0
-  //     const filteredInventory = selectedInventory.filter((item) => item.selectedQuantity > 0);
-  
-  //     if (filteredInventory.length === 0) {
-  //       alert("No valid inventory selected. Please select quantities to proceed.");
-  //       return;
-  //     }
-
-  //     // Fetch the `status_id` for "Planning"
-  //     const statusId = await getStatusIdByName("Planning");
-  //     if (!statusId) {
-  //       alert("Failed to fetch status ID for 'Planning'.");
-  //       return;
-  //     }
-
-  //      // Use the `enrichInventory` function to enrich the inventory
-  //     const enrichedInventory = await enrichInventory(
-  //       filteredInventory,
-  //       selectedIngredient,
-  //       planned_date
-  //     );
-  //     // inventory_id
-  //     // meal_plan_id
-  //     // used_quantity
-  //     // status_id
-  //     // created_at
-  //     // updated_at
-
-  //     // Validate that no selectedQuantity exceeds the required cap
-  //     for (const item of enrichedInventory) {
-  //       if (item.selectedQuantity > requiredQuantity) {
-  //         alert(
-  //           `Selected quantity (${item.selectedQuantity}) exceeds the required cap (${requiredQuantity}) for inventory ID ${item.id}. Please adjust and try again.`
-  //         );
-  //         return; // Exit the function
-  //       }
-  //     }
-
-  //     // Prepare the data for insertion
-  //     const dataToInsert = enrichedInventory.map((item) => ({
-  //       inventory_id: item.id,
-  //       meal_plan_id: item.meal_plan_id,
-  //       used_quantity: item.selectedQuantity,
-  //       status_id: statusId, // Use the dynamically fetched status_id
-  //       created_at: new Date().toISOString(), // Track when the entry was created
-  //       ingredient_id: selectedIngredient.ingredients.id,
-  //     }));
-  
-  //     // Log data for debugging
-  //     console.log("Filtered and Enriched Data to Insert:", dataToInsert);
-  
-  //     // Insert into the database (uncomment when using Supabase)
-
-  //     // const { data, error } = await supabase.from("inventory_meal_plan").insert(dataToInsert);
-  //     // if (error) {
-  //     //   throw error;
-  //     // }
-  //     // console.log("Inserted Data:", data);
-      
-  //     // Reset states after processing
-  //     setSelectedIngredient(null); // Close modal
-  //     setSelectedInventory([]); // Reset inventory
-  //     setAdjustingQuantity(false); // Exit adjusting mode
-  
-  //     // alert("Quantities successfully logged to the console!");
-  //     setRefreshCounter((prev) => prev + 1);
-  //   } catch (err) {
-  //     console.error("Error finalizing quantities:", err.message);
-  //     alert("Failed to finalize quantities. Please try again.");
-  //   }
-  // };
-
   const handleFinalizeQuantities = async () => {
     try {
       // Check if selectedIngredient and selectedInventory are valid
@@ -1003,7 +605,6 @@ useEffect(() => {
         planned_date
       );
       
-  
       // Validate that no selectedQuantity exceeds the required cap
       for (const item of enrichedInventory) {
         const baseConversionRate = selectedIngredient.ingredients.unit?.conversion_rate_to_grams || 1;
@@ -1043,9 +644,6 @@ useEffect(() => {
           ingredient_id: selectedIngredient.ingredients.id,
         };
       });
-  
-      // Log data for debugging
-      console.log("Filtered and Enriched Data to Insert (Base Unit):", dataToInsert);
   
       // Insert into the database (uncomment when using Supabase)
       const { data, error } = await supabase.from("inventory_meal_plan").insert(dataToInsert);
@@ -1091,15 +689,6 @@ useEffect(() => {
         selectedIngredient,
         planned_date
       );
-  
-      // Log enriched inventory for debugging
-      // console.log("Enriched Inventory for Update:", enrichedInventory);
-  
-      // Log other key details
-      // console.log("Selected Ingredient for Update:", selectedIngredient);
-      // console.log("Meal Plan IDs for Update:", mealPlanIds);
-      // console.log("Selected Inventory for Update:", selectedInventory);
-      // console.log("Ingredient ID for Update:", selectedIngredient.ingredients.id);
   
       // Update rows based on `meal_plan_id`, `inventory_id`, and `ingredient_id`
       const updatePromises = enrichedInventory.map((item) => {
@@ -1182,8 +771,6 @@ useEffect(() => {
     }
   };
   
-  
-  
   const assignToRecipes = () => {
     const updatedMergedIngredients = mergedIngredients.map((ingredient) => {
       let remainingQuantity = ingredient.quantity;
@@ -1206,16 +793,6 @@ useEffect(() => {
     setMergedIngredients(updatedMergedIngredients);
   };
   
-
-  
-
-  // const handleToggleCapped = () => {
-  //   setCapped((prevCapped) => {
-  //     console.log("Previous capped value:", prevCapped);
-  //     return !prevCapped;
-  //   });
-  // };
-  
   if (loading) {
     return <div>Loading preparation details...</div>;
   }
@@ -1223,72 +800,6 @@ useEffect(() => {
   if (recipes.length === 0) {
     return <div>No recipes found for this meal plan.</div>;
   }
-
-  // const autoAdjustQuantities = () => {
-  //   let remainingRequired = selectedIngredient.quantity;
-  
-  //   const adjustedInventory = (selectedInventory || []).map((item) => {
-  //     if (!item.preselected || remainingRequired <= 0) {
-  //       // Skip items not selected or when no more is required
-  //       return { ...item, selectedQuantity: 0 };
-  //     }
-  
-  //     const allocatedQuantity = Math.min(item.quantity, remainingRequired);
-  //     remainingRequired -= allocatedQuantity;
-  
-  //     return { ...item, selectedQuantity: allocatedQuantity };
-  //   });
-  
-  //   setSelectedInventory(adjustedInventory);
-  
-  //   if (remainingRequired > 0) {
-  //     alert(
-  //       `Not enough inventory to fulfill the required amount of ${selectedIngredient.quantity}.`
-  //     );
-  //   }
-  // };
-
-  // const autoAdjustQuantities = () => {
-  //   const baseConversionRate = selectedIngredient.ingredients.unit?.conversion_rate_to_grams || 1; // Ingredient base unit conversion rate
-  //   let remainingRequired = selectedIngredient.quantity * baseConversionRate; // Convert required quantity to base unit (grams)
-  
-  //   const adjustedInventory = (selectedInventory || []).map((item) => {
-  //     const inventoryConversionRate = item.ingredients.unitInv?.conversion_rate_to_grams_for_check || 1; // Inventory unit conversion rate
-  
-  //     // Calculate available quantity in base unit
-  //     const availableQuantityInBaseUnit = item.quantity * inventoryConversionRate;
-  
-  //     if (!item.preselected || remainingRequired <= 0) {
-  //       // Skip items not selected or when no more is required
-  //       return {
-  //         ...item,
-  //         selectedQuantity: 0,
-  //         convertedUnit: item.ingredients.unitInv?.unitInv_tag || "unit not specified", // Keep original unit
-  //       };
-  //     }
-  
-  //     // Determine the quantity to allocate
-  //     const allocatedQuantityInBaseUnit = Math.min(availableQuantityInBaseUnit, remainingRequired);
-  //     const allocatedQuantityInIngredientUnit = allocatedQuantityInBaseUnit / baseConversionRate;
-  
-  //     // Deduct the allocated amount from the remaining required
-  //     remainingRequired -= allocatedQuantityInBaseUnit;
-  
-  //     return {
-  //       ...item,
-  //       selectedQuantity: allocatedQuantityInIngredientUnit,
-  //       convertedUnit: selectedIngredient.ingredients.unit?.unit_description || "unit not specified", // Update to target unit
-  //     };
-  //   });
-  
-  //   setSelectedInventory(adjustedInventory);
-  
-  //   if (remainingRequired > 0) {
-  //     alert(
-  //       `Not enough inventory to fulfill the required amount of ${selectedIngredient.quantity} ${selectedIngredient.ingredients.unit?.unit_tag}.`
-  //     );
-  //   }
-  // };
 
   const autoAdjustQuantities = () => {
     const baseConversionRate = selectedIngredient.ingredients.unit?.conversion_rate_to_grams || 1; // Ingredient base unit conversion rate
@@ -1316,31 +827,24 @@ useEffect(() => {
       console.log("Available Quantity in Base Unit:", availableQuantityInBaseUnit);
   
       if (!item.preselected || remainingRequired <= 0) {
-        // Skip items not selected or when no more is required
-        // console.log("Skipping item (not preselected or no remaining required).");
         return {
           ...item,
           selectedQuantity: 0,
           convertedUnit: item.ingredients.unitInv?.unitInv_tag || "unit not specified", // Keep original unit
         };
       }
-  
+
       // Determine the quantity to allocate
       const allocatedQuantityInBaseUnit = Math.min(availableQuantityInBaseUnit, remainingRequired);
-  
-      // console.log("Allocated Quantity in Base Unit:", allocatedQuantityInBaseUnit);
   
       // Adjust the allocated quantity based on `isCurrentlyConverted`
       const allocatedQuantityInIngredientUnit = isCurrentlyConverted
         ? (allocatedQuantityInBaseUnit * inventoryConversionRate) / baseConversionRate // Convert back to converted unit
         : allocatedQuantityInBaseUnit; // Convert to ingredient unit
   
-      // console.log("Allocated Quantity in Ingredient Unit:", allocatedQuantityInIngredientUnit);
   
       // Deduct the allocated amount from the remaining required
       remainingRequired -= allocatedQuantityInBaseUnit;
-  
-      // console.log("Remaining Required After Allocation:", remainingRequired);
   
       return {
         ...item,
@@ -1361,93 +865,6 @@ useEffect(() => {
       );
     }
   };
-  
-  
-  
-
-  const getRecipeNameById = (recipeId) => {
-    const recipe = recipes.find((r) => r.id === recipeId);
-    return recipe ? recipe.name : `Recipe ${recipeId}`; // Default to "Recipe {id}" if not found
-  };
-  
-  const adjustExceedAllocation = (recipeId, delta) => {
-    setSelectedIngredient((prev) => {
-      const totalExceedAllowed = Math.max(
-        0,
-        selectedInventory.reduce((sum, item) => sum + item.selectedQuantity, 0) -
-          (prev.quantity || 0)
-      );
-  
-      const updatedRecipes = prev.recipes.map((recipe) => {
-        // Clone the recipe object
-        return { ...recipe };
-      });
-  
-      const targetRecipe = updatedRecipes.find((recipe) => recipe.recipeId === recipeId);
-  
-      if (!targetRecipe) return prev; // If the target recipe is not found, return the original state
-  
-      // Adjust the target recipe's allocation
-      const currentAllocation = targetRecipe.exceedAllocation || 0;
-      const newAllocation = Math.max(
-        0,
-        Math.min(currentAllocation + delta, totalExceedAllowed)
-      );
-  
-      // Calculate the change in allocation
-      const allocationChange = newAllocation - currentAllocation;
-  
-      if (allocationChange === 0) {
-        return prev; // If no change, return the original state
-      }
-  
-      targetRecipe.exceedAllocation = newAllocation;
-  
-      if (allocationChange > 0) {
-        // If incrementing, find another recipe to deduct from
-        for (const recipe of updatedRecipes) {
-          if (recipe.recipeId !== recipeId && recipe.exceedAllocation > 0) {
-            recipe.exceedAllocation = Math.max(recipe.exceedAllocation - 1, 0);
-            break; // Deduct only one and stop
-          }
-        }
-      } else {
-        // If decrementing, add the freed allocation to another recipe
-        for (const recipe of updatedRecipes) {
-          if (recipe.recipeId !== recipeId) {
-            recipe.exceedAllocation = Math.min(
-              (recipe.exceedAllocation || 0) + 1,
-              totalExceedAllowed
-            );
-            break; // Add only one and stop
-          }
-        }
-      }
-  
-      return { ...prev, recipes: updatedRecipes };
-    });
-  };
-
-  // const autoAllocateExceed = () => {
-  //   setSelectedIngredient((prev) => {
-  //     const totalRecipes = prev.quantity;
-  //     // console.log("Total Recipes:", totalRecipes);
-  //     // console.log("prev:", prev);
-  //     // const totalRecipes = prev.recipes.length;
-  //     const allocationPerRecipe = Math.floor(exceedAmount / totalRecipes);
-
-  //     const updatedRecipes = prev.recipes.map((recipe, index) => {
-  //       const remainingExceed =
-  //         index === totalRecipes - 1 // Add remaining to the last recipe
-  //           ? exceedAmount - allocationPerRecipe * (totalRecipes - 1)
-  //           : allocationPerRecipe;
-
-  //       return { ...recipe, exceedAllocation: remainingExceed };
-  //     });
-
-  //     return { ...prev, recipes: updatedRecipes };
-  //   });
-  // };
 
   const autoAllocateExceed = () => {
     setSelectedIngredient((prev) => {
@@ -1496,100 +913,6 @@ useEffect(() => {
       };
     });
   };
-  
-
-  const handleExceedInputChange = (recipeId, value) => {
-    const parsedValue = Math.max(
-      0,
-      Math.min(
-        parseInt(value) || 0,
-        Math.max(
-          0,
-          selectedInventory.reduce((sum, item) => sum + item.selectedQuantity, 0) -
-            selectedIngredient.quantity
-        )
-      )
-    );
-  
-    setSelectedIngredient((prev) => {
-      const updatedRecipes = prev.recipes.map((recipe) => {
-        if (recipe.recipeId === recipeId) {
-          return { ...recipe, exceedAllocation: parsedValue };
-        }
-        return recipe;
-      });
-      return { ...prev, recipes: updatedRecipes };
-    });
-  };
-
-  // const handleAutoDistribute = async () => {
-  //   try {
-  //     // Iterate through all recipes and their respective ingredients
-  //     for (const recipe of recipes) {
-  //       const recipeIngredients = ingredients.find((ri) => ri.recipeId === recipe.id)?.ingredients || [];
-  
-  //       for (const ingredient of recipeIngredients) {
-  //         // Simulate handleIngredientClick
-  //         const inventory = await fetchUserInventory(ingredient.ingredients.id);
-  //         const linkedInventory = (await fetchInventoryMealPlanByMealPlanId(mealPlanIds)).filter(
-  //           (item) =>
-  //             item.inventory.ingredient_id === ingredient.ingredients.id &&
-  //             item.meal_plan?.recipe_id === recipe.id
-  //         );
-  
-  //         let allocatedInventory;
-  //         if (linkedInventory.length > 0) {
-  //           allocatedInventory = preselectLinkedInventory(linkedInventory, inventory);
-  //         } else {
-  //           allocatedInventory = allocateInventoryFIFO(ingredient, inventory);
-  //         }
-  
-  //         // Prepare the selected inventory and finalize
-  //         const enrichedInventory = allocatedInventory.map((item) => ({
-  //           ...item,
-  //           selectedQuantity: item.selectedQuantity || 0, // Ensure proper quantity
-  //           preselected: true,
-  //         }));
-  
-  //         setSelectedIngredient(ingredient); // Track the current ingredient for updates
-  //         setSelectedInventory(enrichedInventory); // Update the selected inventory
-  
-  //         // Simulate handleFinalizeQuantities for this ingredient
-  //         const filteredInventory = enrichedInventory.filter((item) => item.selectedQuantity > 0);
-  
-  //         if (filteredInventory.length > 0) {
-  //           const statusId = await getStatusIdByName("Planning");
-  //           const enrichedData = await enrichInventory(
-  //             filteredInventory,
-  //             ingredient,
-  //             planned_date
-  //           );
-  
-  //           const dataToInsert = enrichedData.map((item) => ({
-  //             inventory_id: item.id,
-  //             meal_plan_id: item.meal_plan_id,
-  //             used_quantity: item.selectedQuantity,
-  //             status_id: statusId,
-  //             created_at: new Date().toISOString(),
-  //             ingredient_id: ingredient.ingredients.id,
-  //           }));
-  
-  //           const { error } = await supabase.from("inventory_meal_plan").insert(dataToInsert);
-  //           if (error) {
-  //             throw error;
-  //           }
-  //         }
-  //       }
-  //     }
-  
-  //     // Refresh the page after all distributions
-  //     setRefreshCounter((prev) => prev + 1);
-  //     alert("All ingredients have been auto-distributed!");
-  //   } catch (error) {
-  //     console.error("Error during auto distribution:", error.message);
-  //     alert("Failed to auto-distribute inventory. Please try again.");
-  //   }
-  // };
 
   const handleAutoDistribute = async () => {
     try {
@@ -1738,27 +1061,6 @@ useEffect(() => {
       alert("Failed to delete all inventory allocations. Please try again.");
     }
   };
-  
-  // const toggleCookingMode = () => {
-  //     if (!isCookingMode) {
-  //         // Prompt user if they want to continue from the last step
-  //         if (previousStepIndex !== null) {
-  //             const continueFromLast = window.confirm(
-  //                 "Would you like to continue from your last step or start over?"
-  //             );
-  //             if (continueFromLast) {
-  //                 setCurrentStepIndex(previousStepIndex);
-  //             } else {
-  //                 setCurrentStepIndex(0);
-  //             }
-  //         } else {
-  //             setCurrentStepIndex(0);
-  //         }
-  //     } else {
-  //         setPreviousStepIndex(currentStepIndex); // Save the current step when exiting
-  //     }
-  //     setIsCookingMode((prev) => !prev);
-  // };
 
   const toggleCookingMode = () => {
     if (!isCookingMode) {
@@ -1802,31 +1104,6 @@ useEffect(() => {
           setCurrentStepIndex((prev) => prev - 1);
       }
   };
-
-  // const finishCooking = async () => {
-  //     try {
-  //         // Update `status_id` to 2 (Complete) in the database
-  //         const { data, error } = await supabase
-  //             .from("inventory_meal_plan")
-  //             .update({ status_id: 2, updated_at: new Date().toISOString() })
-  //             .in("meal_plan_id", mealPlanIds); // Match your conditions here
-
-  //         if (error) {
-  //             throw error;
-  //         }
-
-  //         alert("Cooking finished and status updated successfully!");
-  //         setIsCookingMode(false); // Exit cooking mode
-  //         setCurrentStepIndex(0); // Reset steps
-  //         setPreviousStepIndex(null); // Clear saved step
-  //         setRefreshCounter((prev) => prev + 1); // Refresh data
-  //     } catch (err) {
-  //         console.error("Error finishing cooking:", err.message);
-  //         alert("Failed to finish cooking. Please try again.");
-  //     }
-  // };
-    
-  //       console.log("Updated meal_plan status to Complete");
 
   const finishCooking = async () => {
     try {
@@ -1906,7 +1183,6 @@ useEffect(() => {
     }
   };
 
-
   return (
     <div className="recipe-preparation-page">
       <BackButton onClick={() => navigate(-1)} />
@@ -1922,9 +1198,6 @@ useEffect(() => {
           ? "Deadline Passed"
           : "Planning"}
       </h3>
-
-
-
 
       <button
         onClick={handleAutoDistribute}
@@ -1952,7 +1225,6 @@ useEffect(() => {
         Delete All
       </button>
 
-      
       {recipes.map((recipe) => {
       const recipeIngredients = ingredients.find((ri) => ri.recipeId === recipe.id)?.ingredients || [];
       return (
@@ -1980,12 +1252,6 @@ useEffect(() => {
                     item.inventory.ingredient_id === ingredient.ingredients.id &&
                     mealPlans.some((mealPlan) => mealPlan.id === item.meal_plan_id)
                 );
-
-                // // Calculate the total allocated quantity
-                // const totalAllocated = linkedInventory.reduce(
-                //   (sum, inventory) => sum + inventory.used_quantity,
-                //   0
-                // );
                 // Calculate the total allocated quantity with unit conversion checks
                 const totalAllocated = linkedInventory.reduce((sum, inventory) => {
                   const baseConversionRate = ingredient.ingredients.unit?.conversion_rate_to_grams || 1;
@@ -2033,7 +1299,6 @@ useEffect(() => {
                     {ingredient.ingredients.unit?.unit_tag || ""}
 
                     {/* Check and display inventory data if exists */}
-                    {/* {linkedInventory.length > 0 && ( */}
                     {linkedInventory
                     .filter((inventory) => inventory.meal_plan.recipe_id === recipe.id).length > 0 && (
                       <div
@@ -2143,13 +1408,6 @@ useEffect(() => {
                               ) : (
                                 // If conversion rates and unit tags differ, show adjusted quantities with a ~ for approximations
                                 <>
-                                  {/* {inventory.used_quantity} {inventory.ingredients.unitInv?.unitInv_tag || ""} /
-                                  ~{Math.round(
-                                    (inventory.used_quantity *
-                                      (inventory.ingredients.unitInv?.conversion_rate_to_grams_for_check || 1)) /
-                                      (inventory.ingredients.unit?.conversion_rate_to_grams || 1)
-                                  )}{" "}
-                                  {inventory.ingredients.unit?.unit_tag || ""} */}
                                   {inventory.used_quantity} {inventory.ingredients.unitInv?.unitInv_tag || ""} /{" "}
                                   {
                                     Number.isInteger(
@@ -2190,28 +1448,10 @@ useEffect(() => {
                 );
               })}
             </ul>
-
-
-
-
           </div>
         </div>
       );
     })}
-
-      {/* <button
-        // onClick={toggleCombineIngredients}
-        style={{
-          padding: "10px 20px",
-          background: isCombined ? "red" : "green",
-          color: "white",
-          borderRadius: "5px",
-          marginTop: "20px",
-        }}
-      >
-        {isCombined ? "Separate Ingredients" : "Combine Ingredients"}
-      </button> */}
-
       {mealPlans.some((mealPlan) => mealPlan.meal_plan_status.id === 3) ? (
         // Show the "Mark as Cooked" button if any meal plan has status id === 3
         <button
@@ -2241,9 +1481,6 @@ useEffect(() => {
           Start Cooking
         </button>
       ) : null}
-
-
-
       {selectedIngredient && (
         <div className="modal-overlay" onClick={() => setSelectedIngredient(null)}>
           <div
@@ -2260,21 +1497,13 @@ useEffect(() => {
                 </p>
                 
                 {inventoryItems.length === 0 ? (
-                  // Message when no inventory items exist
-                  // <p>
-                  //   <strong>No {selectedIngredient.ingredients.name} in your inventory.</strong>
-                  // </p>
-                  // Message and alternative button when no inventory items exist
                   <>
                   <p>
                     <strong>No {selectedIngredient.ingredients.name} in your inventory.</strong>
                   </p>
                   <button
                     onClick={() => {
-                      // Navigate or show a modal for missing ingredients
-                      // console.log("Navigating to Missing Ingredients for Weekly Plan");
                       navigate(`/recipes/shopping-list`); // Navigate to details page
-                      // You can replace this with navigation logic or modal display
                     }}
                     style={{
                       marginTop: "10px",
@@ -2284,7 +1513,7 @@ useEffect(() => {
                       borderRadius: "5px",
                     }}
                   >
-                    View Missing Ingredients for This Week's Plan
+                    View Missing Ingredients for This Week&apos;s Plan
                   </button>
                 </>
                   
@@ -2292,10 +1521,6 @@ useEffect(() => {
                   <>
                     <p>
                       <strong>Your Selection:</strong>{" "}
-                      {/* {selectedInventory
-                        .filter((item) => item.preselected) // Only count selected items
-                        .reduce((sum, item) => sum + item.quantity, 0)}{" "}
-                      {selectedIngredient.ingredients.unit?.unit_tag || ""} */}
                       {selectedInventory
                         .filter((item) => item.preselected) // Only count selected items
                         .map((item) => {
@@ -2322,33 +1547,6 @@ useEffect(() => {
                     </p>
 
                     {/* Inventory selection */}
-                    {/* <ul>
-                      {console.log("Inventory Items:", inventoryItems)}
-                      {inventoryItems.map((item) => (
-                        <li
-                          key={item.id}
-                          style={{
-                            backgroundColor: selectedInventory.find((selected) => selected.id === item.id)?.preselected
-                              ? "lightgreen"
-                              : "white",
-                            padding: "5px",
-                            borderRadius: "5px",
-                          }}
-                        >
-                          <label>
-                            <input
-                              type="checkbox"
-                              checked={
-                                selectedInventory.find((selected) => selected.id === item.id)?.preselected || false
-                              }
-                              onChange={() => toggleInventorySelection(item)}
-                            />
-                            {item.quantity || 0} {item.ingredients.unitInv.unitInv_tag || "unit not specified"} (Expiry:{" "}
-                            {item.expiry_date?.date || "No expiry date"})
-                          </label>
-                        </li>
-                      ))}
-                    </ul> */}
                     <ul>
                       {console.log("Inventory Items Before Sorting:", inventoryItems)}
                       {console.log("Selected Inventory Before Sorting:", selectedInventory)}
@@ -2362,7 +1560,6 @@ useEffect(() => {
                           if (dateA - dateB !== 0) {
                             return dateA - dateB; // Sort by date
                           }
-
                           // If dates are the same, compare quantities
                           return a.quantity - b.quantity;
                         })
@@ -2381,24 +1578,9 @@ useEffect(() => {
                           const isUnitTagMatching = item.ingredients.unitInv?.unitInv_tag === item.ingredients.unit?.unit_tag;
 
                           return (
-                          //   <li
-                          //     key={item.id}
-                          //     style={{
-                          //       backgroundColor: selectedInventory.find((selected) => selected.id === item.id)?.preselected
-                          //         ? "lightgreen"
-                          //         : "white",
-                          //       padding: "5px",
-                          //       borderRadius: "5px",
-                          //     }}
-                          //   >
                           <li
                             key={item.id}
                             style={{
-                              // backgroundColor: selectedInventory.find((selected) => selected.id === item.id)?.preselected
-                              //   ? "lightgreen"
-                              //   : item.predisqualified
-                              //   ? "red" // Red background for predisqualified items
-                              //   : "white", // Default background
                               backgroundColor: (() => {
                                 const selectedItem = selectedInventory.find((selected) => selected.id === item.id);
                                 if (selectedItem?.preselected) {
@@ -2468,10 +1650,6 @@ useEffect(() => {
                           );
                         })}
                     </ul>
-
-
-
-
                     <button
                       onClick={confirmSelection}
                       style={{
@@ -2486,30 +1664,6 @@ useEffect(() => {
                     </button>
                   </>
                 )}
-
-                {/* <div style={{ margin: "10px 0" }}>
-                  <label style={{ display: "block", margin: "10px 0" }}>
-                    <input
-                      type="checkbox"
-                      checked={capped}
-                      onChange={() => setCapped(!capped)}
-                    />
-                    Cap total to match required quantity
-                  </label>
-                </div> */}
-
-                {/* <button
-                  onClick={confirmSelection}
-                  style={{
-                    marginTop: "10px",
-                    padding: "10px 20px",
-                    background: "green",
-                    color: "white",
-                    borderRadius: "5px",
-                  }}
-                >
-                  Confirm Selection
-                </button> */}
                 <button
                   onClick={() => setSelectedIngredient(null)} // Close modal on cancel
                   style={{
@@ -2534,13 +1688,6 @@ useEffect(() => {
                 {/* {console.log("Selected Inventory before filtering:", selectedInventory)} */}
                 <p>
                   <strong>Your Adjusted Total:</strong>{" "}
-
-                  {/* {selectedInventory.reduce((sum, item) => sum + item.selectedQuantity, 0)}{" "} */}
-                  {/* {selectedInventory
-                    .filter((item) => item.preselected) // Only include preselected items
-                    .reduce((sum, item) => sum + item.selectedQuantity, 0)}{" "}
-                  {selectedIngredient.ingredients.unit?.unit_tag || ""} */}
-
                   {selectedInventory
                     .filter((item) => item.preselected) // Only include preselected items
                     .map((item) => {
@@ -2552,10 +1699,6 @@ useEffect(() => {
                         item.ingredients.unit?.conversion_rate_to_grams ===
                         item.ingredients.unitInv?.conversion_rate_to_grams_for_check;
 
-                      // console.log("Conversion Rate Matching:", isConversionRateMatching);
-
-                      // console.log("Conversion Rate Matching for Item ID", item.id, ":", isConversionRateMatching);
-                      
                       // Adjust quantity if conversion rates do not match
                       const adjustedQuantity = isConversionRateMatching
                         ? item.selectedQuantity // If matching, use the normal quantity
@@ -2568,14 +1711,6 @@ useEffect(() => {
 
                       const displayConvertedQuantity = item.selectedQuantity * item.ingredients.unit?.conversion_rate_to_grams;
 
-                      // // Format the display string based on conversion status
-                      // return isConversionRateMatching ? (
-                      //   `${item.selectedQuantity} ${item.ingredients.unit?.unit_tag || "unit not specified"}`
-                      // ) : (
-                      //   // `${item.selectedQuantity} ${item.ingredients.unitInv?.unitInv_tag || "unit not specified"} (${displayAdjustedQuantity} ${item.ingredients.unit?.unit_tag || "unit not specified"})`
-                      //   `${displayAdjustedQuantity} ${item.ingredients.unit?.unit_tag || "unit not specified"} 
-                      //   (${item.selectedQuantity} ${item.ingredients.unitInv?.unitInv_tag || "unit not specified"})`
-                      // );
                       // Handle display logic based on isConverted
                       if (isConverted) {
                         // Display when converted
@@ -2590,21 +1725,7 @@ useEffect(() => {
                       }
                     })
                     .join(", ")}{" "}
-                  {/* {selectedIngredient.ingredients.unit?.unit_tag || ""} */}
-
-
                 </p>
-
-                {/* <div>
-                  <label style={{ display: "block", margin: "10px 0" }}>
-                    <input
-                      type="checkbox"
-                      checked={capped}
-                      onChange={handleToggleCapped}
-                    />
-                    Cap total to match required quantity
-                  </label>
-                </div> */}
 
                 {!isUpdateMode && (
                   <button
@@ -2622,136 +1743,6 @@ useEffect(() => {
                 )}
 
                 <ul>
-                {/* {console.log("Selected Inventory before filtering:", selectedInventory)} */}
-                  {/* {console.log(
-                    "Filtered Inventory (only preselected items):",
-                    selectedInventory.filter((item) => item.preselected)
-                  )} */}
-                  {/* {selectedInventory
-
-                    .filter((item) => item.preselected) // Only show preselected items
-                    .map((item) => (
-                    <li key={item.id}>
-                      <label>
-                        {item.quantity} {item.unit?.unit_tag || ""} (Expiry:{" "}
-                        {item.expiry_date?.date || "No expiry date"})
-                      </label>
-                      <button
-                        onClick={() => adjustQuantity(item.id, -1)}
-                        disabled={item.selectedQuantity <= 1} // Prevent going below 1
-                        style={{ margin: "0 5px", backgroundColor: "blue", color: "white" }}
-                      >
-                        -
-                      </button>
-                      <input
-                        type="number"
-                        min="1"
-                        max={item.quantity}
-                        value={item.selectedQuantity}
-                        onChange={(e) => handleQuantityInputChange(item.id, e.target.value)}
-                        style={{
-                          width: "60px",
-                          margin: "0 10px",
-                          textAlign: "center",
-                        }}
-                      />
-                      <button
-                        onClick={() => adjustQuantity(item.id, 1)}
-                        disabled={
-                          (selectedInventory.filter((item) => item.preselected).length === 1 && item.selectedQuantity >= selectedIngredient.quantity) || // Check if only one preselected item
-                          // (selectedInventory.filter((item) => item.preselected).length === 1 && item.selectedQuantity >= item.quantity) || // Check if only one preselected item
-                          item.selectedQuantity >= item.quantity // Check if maximum quantity reached
-                        }
-                        style={{ margin: "0 5px", backgroundColor: "blue", color: "white" }}
-                      >
-                        +
-                      </button>
-                    </li>
-                  ))} */}
-                  {/* {console.log("Selected Inventory before filtering:", selectedInventory)} */}
-                  {/* {selectedInventory
-                    .filter((item) => item.preselected) // Only show preselected items
-                    .map((item) => {
-                      // Get conversion rates
-                      const baseConversionRate = item.ingredients.unit?.conversion_rate_to_grams || 1; // Base unit conversion rate
-                      const inventoryConversionRate = item.ingredients.unitInv?.conversion_rate_to_grams_for_check || 1; // Inventory unit conversion rate
-                  
-                      // Convert quantity to the desired unit
-                      const convertedQuantity =
-                        baseConversionRate !== inventoryConversionRate
-                          ? (item.quantity * inventoryConversionRate) / baseConversionRate // Perform unit conversion
-                          : item.quantity; // Use original quantity if conversion rates match
-                  
-                      // Display the correct unit description
-                      const displayUnit = item.ingredients.unit?.unit_description || "unit not specified";
-
-                      const adjustedQuantity =
-                            item.ingredients.unit?.conversion_rate_to_grams && item.ingredients.unitInv?.conversion_rate_to_grams_for_check
-                              ? item.quantity / item.ingredients.unit.conversion_rate_to_grams
-                              : 0;
-
-                      // Check if the conversion rates match
-                      const isConversionRateMatching = item.ingredients.unit?.conversion_rate_to_grams === item.ingredients.unitInv?.conversion_rate_to_grams_for_check;
-
-                      const isUnitTagMatching = item.ingredients.unitInv?.unitInv_tag === item.ingredients.unit?.unit_tag;
-                      return (
-                        <li key={item.id}>
-                          <label>
-                            {isUnitTagMatching ? (
-                                  // If unitInv_tag matches unit_tag, show one unit
-                                  <>
-                                    {item.quantity || 0} {item.ingredients.unit?.unit_description || "unit not specified"}
-                                  </>
-                                ) : isConversionRateMatching ? (
-                                  // Display quantity and units if conversion rates match
-                                  <>
-                                    {item.quantity || 0} {item.ingredients.unitInv?.unitInv_tag || "unit not specified"} /
-                                    {item.ingredients.unit?.unit_description || "unit not specified"}
-                                  </>
-                                ) : (
-                                  // Display adjusted quantity if conversion rates don't match
-                                  <>
-                                    {item.quantity || 0} {item.ingredients.unitInv?.unitInv_tag || "unit not specified"} /
-                                    ~{Math.round(adjustedQuantity)} {item.ingredients.unit?.unit_description || "unit not specified"}
-                                    
-                                  </>
-                                )}
-                                (Expiry: {item.expiry_date?.date || "No expiry date"})
-                          </label>
-                          <button
-                            onClick={() => adjustQuantity(item.id, -1)}
-                            disabled={item.selectedQuantity <= 1} // Prevent going below 1
-                            style={{ margin: "0 5px", backgroundColor: "blue", color: "white" }}
-                          >
-                            -
-                          </button>
-                          <input
-                            type="number"
-                            min="1"
-                            max={item.quantity}
-                            value={item.selectedQuantity}
-                            onChange={(e) => handleQuantityInputChange(item.id, e.target.value)}
-                            style={{
-                              width: "60px",
-                              margin: "0 10px",
-                              textAlign: "center",
-                            }}
-                          />
-                          <button
-                            onClick={() => adjustQuantity(item.id, 1)}
-                            disabled={
-                              (selectedInventory.filter((item) => item.preselected).length === 1 && item.selectedQuantity >= selectedIngredient.quantity) || // Check if only one preselected item
-                              // (selectedInventory.filter((item) => item.preselected).length === 1 && item.selectedQuantity >= item.quantity) || // Check if only one preselected item
-                              item.selectedQuantity >= item.quantity // Check if maximum quantity reached
-                            }
-                            style={{ margin: "0 5px", backgroundColor: "blue", color: "white" }}
-                          >
-                            +
-                          </button>
-                        </li>
-                      );
-                    })} */}
-
                     {selectedInventory
                       .filter((item) => item.preselected) // Only show preselected items
                       .map((item) => {
@@ -2779,45 +1770,6 @@ useEffect(() => {
                           ? item.quantity // If matching, use the normal quantity
                           : item.quantity / (item.ingredients.unit?.conversion_rate_to_grams || 1); // Else, divide by the unit's conversion rate
 
-                        // const adjustedQuantity =
-                        //   item.ingredients.unit?.conversion_rate_to_grams &&
-                        //   item.ingredients.unitInv?.conversion_rate_to_grams_for_check
-                        //     ? item.quantity / item.ingredients.unit.conversion_rate_to_grams
-                        //     : 0;
-
-                        // Handle unit conversion logic
-                        // const handleConvertUnit = (item) => {
-                        //   // Get base and inventory conversion rates
-                        //   const baseConversionRate = item.ingredients.unit?.conversion_rate_to_grams || 1;
-                        //   const inventoryConversionRate = item.ingredients.unitInv?.conversion_rate_to_grams_for_check || 1;
-                        
-                        //   const updatedInventory = selectedInventory.map((inventoryItem) => {
-                        //     if (inventoryItem.id === item.id) {
-                        //       if (inventoryItem.isConverted) {
-                        //         // Multiply back to original value
-                        //         const originalQuantity = (inventoryItem.selectedQuantity * baseConversionRate) / inventoryConversionRate;
-                        //         return {
-                        //           ...inventoryItem,
-                        //           selectedQuantity: originalQuantity,
-                        //           isConverted: false, // Toggle back to original
-                        //         };
-                        //       } else {
-                        //         // Divide to convert
-                        //         const convertedQuantity = (inventoryItem.selectedQuantity * inventoryConversionRate) / baseConversionRate;
-                        //         return {
-                        //           ...inventoryItem,
-                        //           selectedQuantity: convertedQuantity,
-                        //           isConverted: true, // Mark as converted
-                        //         };
-                        //       }
-                        //     }
-                        //     return inventoryItem;
-                        //   });
-                        
-                        //   // Update state with the modified inventory
-                        //   setSelectedInventory(updatedInventory);
-                        // };
-
                         const handleConvertUnit = (itemId) => {
                           setSelectedInventory((prevSelectedInventory) =>
                             prevSelectedInventory.map((item) => {
@@ -2826,18 +1778,11 @@ useEffect(() => {
                                 const inventoryConversionRate = item.ingredients.unitInv?.conversion_rate_to_grams_for_check || 1;
                         
                                 const isCurrentlyConverted = item.isConverted || false;
-                                // const isCurrentlyConverted = item.isConverted || false;
 
-                                // const newSelectedQuantity = isCurrentlyConverted
-                                //   ? (item.selectedQuantity * baseConversionRate) / inventoryConversionRate // Convert back
-                                //   : (item.selectedQuantity * inventoryConversionRate) / baseConversionRate; // Convert
-                                
                                   const newSelectedQuantity = isCurrentlyConverted
                                   ? Math.floor((item.selectedQuantity * baseConversionRate) / inventoryConversionRate) // Convert back and round
                                   : Math.floor((item.selectedQuantity * inventoryConversionRate) / baseConversionRate); // Convert and round
                         
-                                // console.log("Converted Quantity:", newSelectedQuantity);
-                                // console.log("Is Currently Converted:", isCurrentlyConverted);
                                 return {
                                   ...item,
                                   selectedQuantity: newSelectedQuantity,
@@ -2852,9 +1797,6 @@ useEffect(() => {
                           
                         };
                         
-                        
-                        
-
                         return (
                           <li
                             key={item.id}
@@ -2877,15 +1819,6 @@ useEffect(() => {
                                   {item.expiry_date?.date || "No expiry date"})
                                 </>
                               ) : (
-                                // Display adjusted quantity if conversion rates don't match
-                                // <>
-                                //   {item.selectedQuantity.toFixed(2)} {inventoryUnit}{" / "}
-                                //   {Number.isInteger(convertedQuantity) 
-                                //     ? convertedQuantity.toFixed(2) // Show without '~' if it's an integer
-                                //     : `~${convertedQuantity.toFixed(2)}`}{" "} 
-                                //   {displayUnit} (Expiry: {item.expiry_date?.date || "No expiry date"})
-                                // </>
-
                                 <>
                                   {item.quantity} {item.ingredients.unitInv?.unitInv_tag || "unit not specified"} {" / "}
                                   {Number.isInteger(adjustedQuantity) 
@@ -2944,15 +1877,6 @@ useEffect(() => {
                               {/* + Button */}
                               <button
                                 onClick={() => adjustQuantity(item.id, 1)}
-                                // disabled={
-                                //   (selectedInventory.filter((item) => item.preselected).length === 1 &&
-                                //     item.selectedQuantity >= selectedIngredient.quantity) ||
-                                //   item.selectedQuantity >= item.quantity // Check if maximum quantity reached
-                                //   // (selectedInventory.filter((item) => item.preselected).length === 1 &&
-                                //   //   item.selectedQuantity >= selectedIngredient.quantity) ||
-                                //   // item.selectedQuantity >= item.quantity // Check if maximum quantity reached
-                                // }
-                                  
                                 disabled={
                                   item.isConverted
                                     ? // If isConverted is true, check these conditions:
@@ -2969,9 +1893,6 @@ useEffect(() => {
                                           )) || // Check against converted quantity
                                       item.selectedQuantity >= item.quantity // Check if selected exceeds available inventory
                                 }
-                                
-                                
-
                                 style={{ backgroundColor: "blue", color: "white", borderRadius: "5px" }}
                               >
                                 +
@@ -3025,19 +1946,6 @@ useEffect(() => {
                 >
                   Auto Adjust Quantities
                 </button>
-
-                {/* <button
-                  onClick={finalizeQuantities}
-                  style={{
-                    marginTop: "10px",
-                    padding: "10px 20px",
-                    background: "green",
-                    color: "white",
-                    borderRadius: "5px",
-                  }}
-                >
-                  Finalize Quantities
-                </button> */}
                 {isUpdateMode ? (
                   <button
                     onClick={handleUpdateQuantities}
@@ -3067,122 +1975,11 @@ useEffect(() => {
                 )}
 
                 {/* Exceed Section */}
-                {/* {!capped && (
-                  <div style={{ marginTop: "20px" }}>
-                    <h4>Exceed Amount:</h4>
-                    <p>
-                      {Math.max(
-                        0,
-                        selectedInventory.reduce((sum, item) => sum + item.selectedQuantity, 0) -
-                          selectedIngredient.quantity
-                      )}{" "}
-                      {selectedIngredient.ingredients.unit?.unit_tag || ""}
-                    </p>
-
-                    <h4>Allocate Exceed Amount</h4>
-                    <ul>
-                      {selectedIngredient.recipes.map((recipe, index) => (
-                        <li key={index} style={{ marginBottom: "10px" }}>
-                          <div>
-                            <strong>{getRecipeNameById(recipe.recipeId)}:</strong>{" "}
-                            <span>
-                              Original: {recipe.quantity}{" "}
-                              {selectedIngredient.ingredients.unit?.unit_tag || ""}
-                            </span>{" "}
-                            |{" "}
-                            <span>
-                              Exceed Allocated: {recipe.exceedAllocation || 0}{" "}
-                              {selectedIngredient.ingredients.unit?.unit_tag || ""}
-                            </span>{" "}
-                            |{" "}
-                            <span>
-                              <strong>
-                                Total:{" "}
-                                {recipe.quantity + (recipe.exceedAllocation || 0)}{" "}
-                                {selectedIngredient.ingredients.unit?.unit_tag || ""}
-                              </strong>
-                            </span>
-                          </div>
-                          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                            <button
-                              onClick={() => adjustExceedAllocation(recipe.recipeId, -1)}
-                              disabled={recipe.exceedAllocation <= 0}
-                              style={{
-                                background: "blue",
-                                color: "white",
-                                borderRadius: "5px",
-                              }}
-                            >
-                              -
-                            </button>
-                            <input
-                              type="number"
-                              min="0"
-                              max={Math.max(
-                                0,
-                                selectedInventory.reduce(
-                                  (sum, item) => sum + item.selectedQuantity,
-                                  0
-                                ) - selectedIngredient.quantity
-                              )}
-                              value={recipe.exceedAllocation || 0}
-                              onChange={(e) =>
-                                handleExceedInputChange(recipe.recipeId, e.target.value)
-                              }
-                              style={{
-                                width: "60px",
-                                textAlign: "center",
-                                borderRadius: "5px",
-                                border: "1px solid #ccc",
-                                padding: "5px",
-                              }}
-                            />
-                            <button
-                              onClick={() => adjustExceedAllocation(recipe.recipeId, 1)}
-                              disabled={
-                                recipe.exceedAllocation >=
-                                Math.max(
-                                  0,
-                                  selectedInventory.reduce(
-                                    (sum, item) => sum + item.selectedQuantity,
-                                    0
-                                  ) - selectedIngredient.quantity
-                                )
-                              }
-                              style={{
-                                background: "blue",
-                                color: "white",
-                                borderRadius: "5px",
-                              }}
-                            >
-                              +
-                            </button>
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
-
-                    <button
-                      onClick={autoAllocateExceed}
-                      style={{
-                        marginTop: "10px",
-                        padding: "10px 20px",
-                        background: "blue",
-                        color: "white",
-                        borderRadius: "5px",
-                      }}
-                    >
-                      Auto Adjust Exceed Quantities
-                    </button>
-                  </div>
-                )} */}
-
               </>
             )}
           </div>
         </div>
       )}
-
 
       {showModal && (
         <div
