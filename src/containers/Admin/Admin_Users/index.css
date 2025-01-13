@@ -1,0 +1,80 @@
+.admin-users {
+  padding: 20px;
+  font-family: Arial, sans-serif;
+}
+
+.admin-users-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.create-user-btn {
+  padding: 10px 15px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.create-user-btn:hover {
+  background-color: #45a049;
+}
+
+.users-table-container {
+  overflow-x: auto;
+}
+
+.users-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.users-table th,
+.users-table td {
+  padding: 10px;
+  text-align: left;
+  border: 1px solid #ddd;
+  white-space: nowrap; /* Prevents text wrapping */
+}
+
+.users-table th:nth-child(4),
+.users-table td:nth-child(4) {
+  width: 150px; /* Set a fixed width for the Actions column */
+}
+
+.action-buttons {
+  display: flex;
+  justify-content: space-around; /* Distribute buttons evenly */
+  gap: 10px; /* Add spacing between buttons */
+}
+
+.edit-btn,
+.delete-btn {
+  padding: 5px 10px;
+  font-size: 14px;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.edit-btn {
+  background-color: #2196F3; /* Blue for Edit */
+}
+
+.edit-btn:hover {
+  background-color: #0b7dda; /* Darker Blue on hover */
+}
+
+.delete-btn {
+  background-color: #f44336; /* Red for Delete */
+}
+
+.delete-btn:hover {
+  background-color: #da190b; /* Darker Red on hover */
+}
+
+
