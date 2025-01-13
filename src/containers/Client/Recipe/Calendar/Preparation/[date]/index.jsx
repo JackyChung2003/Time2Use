@@ -1694,6 +1694,8 @@ const RecipePreparationPage = () => {
   //         alert("Failed to finish cooking. Please try again.");
   //     }
   // };
+    
+  //       console.log("Updated meal_plan status to Complete");
 
   const finishCooking = async () => {
     try {
@@ -1708,6 +1710,18 @@ const RecipePreparationPage = () => {
         }
 
         console.log("Updated inventory_meal_plan:", mealPlanData);
+
+         // Update `status_id` in `meal_plan` table to 2 (Complete)
+        const { error: mealPlanUpdateError } = await supabase
+          .from("meal_plan")
+          .update({ status_id: 2, updated_at: new Date().toISOString() })
+          .in("id", mealPlanIds);
+
+        if (mealPlanUpdateError) {
+            throw mealPlanUpdateError;
+        }
+
+        console.log("Updated meal_plan status to Complete");
 
         // Fetch all inventory rows affected
         const { data: affectedRows, error: fetchError } = await supabase
@@ -1768,6 +1782,18 @@ const RecipePreparationPage = () => {
       <h1>Recipe Preparation</h1>
       <h3>Date: {planned_date}</h3>
       <h3>Meal Type: {mealTypes.find((type) => type.id === meal_type_id)?.name || "Unknown"}</h3>
+      <h3>
+        {console.log("mealPlans:", mealPlans)}
+        Status:{" "}
+        {mealPlans.every((mealPlan) => mealPlan.meal_plan_status.id === 2)
+          ? "Complete"
+          : mealPlans.some((mealPlan) => mealPlan.meal_plan_status.id === 3)
+          ? "Deadline Passed"
+          : "Planning"}
+      </h3>
+
+
+
 
       <button
         onClick={handleAutoDistribute}
