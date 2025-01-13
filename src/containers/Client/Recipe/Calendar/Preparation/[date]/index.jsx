@@ -61,6 +61,7 @@ const RecipePreparationPage = () => {
 
   const [steps, setSteps] = useState([]);
   const [isCookingMode, setIsCookingMode] = useState(false);
+  const [currentRecipeIndex, setCurrentRecipeIndex] = useState(0); // Index of the current recipe
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [previousStepIndex, setPreviousStepIndex] = useState(null);
 
@@ -162,6 +163,42 @@ const RecipePreparationPage = () => {
 
     loadSteps();
 }, [recipes, fetchRecipeSteps]);
+
+useEffect(() => {
+  const loadStepsForCurrentRecipe = async () => {
+      if (recipes.length > 0 && currentRecipeIndex < recipes.length) {
+          const currentRecipe = recipes[currentRecipeIndex];
+
+          // Check if steps are already loaded for the current recipe
+          if (!currentRecipe?.steps || currentRecipe.steps.length === 0) {
+              try {
+                  // Fetch steps for the current recipe
+                  const recipeSteps = await fetchRecipeSteps(currentRecipe.id);
+
+                  // Update the current recipe's steps in the recipes array
+                  setRecipes((prevRecipes) =>
+                      prevRecipes.map((recipe, index) =>
+                          index === currentRecipeIndex
+                              ? { ...recipe, steps: recipeSteps }
+                              : recipe
+                      )
+                  );
+
+                  // Optionally set the current steps state
+                  setSteps(recipeSteps);
+              } catch (error) {
+                  console.error("Failed to load steps for the current recipe:", error);
+              }
+          } else {
+              // Use already loaded steps
+              setSteps(currentRecipe.steps);
+          }
+      }
+  };
+
+  loadStepsForCurrentRecipe();
+}, [currentRecipeIndex, recipes, fetchRecipeSteps]);
+
 
   // const startCooking = () => {
   //   setShowModal(true);
@@ -1702,26 +1739,57 @@ const RecipePreparationPage = () => {
     }
   };
   
+  // const toggleCookingMode = () => {
+  //     if (!isCookingMode) {
+  //         // Prompt user if they want to continue from the last step
+  //         if (previousStepIndex !== null) {
+  //             const continueFromLast = window.confirm(
+  //                 "Would you like to continue from your last step or start over?"
+  //             );
+  //             if (continueFromLast) {
+  //                 setCurrentStepIndex(previousStepIndex);
+  //             } else {
+  //                 setCurrentStepIndex(0);
+  //             }
+  //         } else {
+  //             setCurrentStepIndex(0);
+  //         }
+  //     } else {
+  //         setPreviousStepIndex(currentStepIndex); // Save the current step when exiting
+  //     }
+  //     setIsCookingMode((prev) => !prev);
+  // };
+
   const toggleCookingMode = () => {
-      if (!isCookingMode) {
-          // Prompt user if they want to continue from the last step
-          if (previousStepIndex !== null) {
-              const continueFromLast = window.confirm(
-                  "Would you like to continue from your last step or start over?"
-              );
-              if (continueFromLast) {
-                  setCurrentStepIndex(previousStepIndex);
-              } else {
-                  setCurrentStepIndex(0);
-              }
-          } else {
-              setCurrentStepIndex(0);
-          }
-      } else {
-          setPreviousStepIndex(currentStepIndex); // Save the current step when exiting
-      }
-      setIsCookingMode((prev) => !prev);
+    if (!isCookingMode) {
+        // Prompt user if they want to continue from the last step or start over
+        if (previousStepIndex !== null || currentRecipeIndex > 0) {
+            const continueFromLast = window.confirm(
+                "Would you like to continue from your last step or start over?"
+            );
+
+            if (continueFromLast) {
+                // Continue from the last saved recipe and step
+                setCurrentStepIndex(previousStepIndex || 0);
+            } else {
+                // Start over from the first recipe and first step
+                setCurrentRecipeIndex(0);
+                setCurrentStepIndex(0);
+            }
+        } else {
+            // No previous steps, start from the beginning
+            setCurrentRecipeIndex(0);
+            setCurrentStepIndex(0);
+        }
+    } else {
+        // Save the current recipe and step indices when exiting cooking mode
+        setPreviousStepIndex(currentStepIndex);
+    }
+
+    // Toggle the cooking mode state
+    setIsCookingMode((prev) => !prev);
   };
+
 
   const handleNextStep = () => {
       if (currentStepIndex < steps.length - 1) {
@@ -3184,93 +3252,145 @@ const RecipePreparationPage = () => {
         </div>
       )}
       {isCookingMode && (
-                <div
-                    style={{
-                        position: "fixed",
-                        top: 0,
-                        left: 0,
-                        width: "100%",
-                        height: "100%",
-                        background: "rgba(0, 0, 0, 0.8)",
-                        color: "#fff",
-                        zIndex: 1000,
-                        display: "flex",
-                        flexDirection: "column",
-                        justifyContent: "center",
-                        alignItems: "center",
-                    }}
-                >
-                    <h2>Step {currentStepIndex + 1}</h2>
-                    <p>{steps[currentStepIndex]?.instruction}</p>
+  <div
+    style={{
+      position: "fixed",
+      top: 0,
+      left: 0,
+      width: "100%",
+      height: "100%",
+      background: "rgba(0, 0, 0, 0.8)",
+      color: "#fff",
+      zIndex: 1000,
+      display: "flex",
+      flexDirection: "column",
+      justifyContent: "center",
+      alignItems: "center",
+    }}
+  >
+    <h2>
+      Recipe: {recipes[currentRecipeIndex]?.name || "Unknown Recipe"} - Step{" "}
+      {currentStepIndex + 1}
+    </h2>
+    <p>
+      {recipes[currentRecipeIndex]?.steps?.[currentStepIndex]?.instruction ||
+        "No instruction available"}
+    </p>
 
-                    <div
-                        style={{
-                            marginTop: "20px",
-                            display: "flex",
-                            gap: "10px",
-                        }}
-                    >
-                        <button
-                            onClick={handlePreviousStep}
-                            style={{
-                                padding: "10px 20px",
-                                background: "#007bff",
-                                color: "#fff",
-                                border: "none",
-                                borderRadius: "5px",
-                                cursor: "pointer",
-                                visibility: currentStepIndex === 0 ? "hidden" : "visible",
-                            }}
-                        >
-                            Previous
-                        </button>
-                        <button
-                            onClick={handleNextStep}
-                            style={{
-                                padding: "10px 20px",
-                                background: "#007bff",
-                                color: "#fff",
-                                border: "none",
-                                borderRadius: "5px",
-                                cursor: "pointer",
-                                visibility:
-                                    currentStepIndex === steps.length - 1 ? "hidden" : "visible",
-                            }}
-                        >
-                            Next
-                        </button>
-                        {currentStepIndex === steps.length - 1 && (
-                            <button
-                                onClick={finishCooking}
-                                style={{
-                                    padding: "10px 20px",
-                                    background: "green",
-                                    color: "#fff",
-                                    border: "none",
-                                    borderRadius: "5px",
-                                    cursor: "pointer",
-                                }}
-                            >
-                                Finish Cooking
-                            </button>
-                        )}
-                        <button
-                            onClick={toggleCookingMode}
-                            style={{
-                                padding: "10px 20px",
-                                background: "red",
-                                color: "#fff",
-                                border: "none",
-                                borderRadius: "5px",
-                                cursor: "pointer",
-                            }}
-                        >
-                            Exit Cooking Mode
-                        </button>
-                    </div>
-                </div>
-            )}
+    <div
+      style={{
+        marginTop: "20px",
+        display: "flex",
+        gap: "10px",
+      }}
+    >
+      {/* Previous Recipe Button */}
+      {currentRecipeIndex > 0 && currentStepIndex === 0 && (
+        <button
+          onClick={() => {
+            setCurrentRecipeIndex((prev) => prev - 1);
+            setCurrentStepIndex(recipes[currentRecipeIndex - 1]?.steps?.length - 1 || 0);
+          }}
+          style={{
+            padding: "10px 20px",
+            background: "#6c757d",
+            color: "#fff",
+            border: "none",
+            borderRadius: "5px",
+            cursor: "pointer",
+          }}
+        >
+          Go to Previous Recipe
+        </button>
+      )}
 
+      {/* Previous Step Button */}
+      <button
+        onClick={handlePreviousStep}
+        style={{
+          padding: "10px 20px",
+          background: "#007bff",
+          color: "#fff",
+          border: "none",
+          borderRadius: "5px",
+          cursor: "pointer",
+          visibility: currentStepIndex === 0 ? "hidden" : "visible",
+        }}
+      >
+        Previous Step
+      </button>
+
+      {/* Next Step Button */}
+      <button
+        onClick={handleNextStep}
+        style={{
+          padding: "10px 20px",
+          background: "#007bff",
+          color: "#fff",
+          border: "none",
+          borderRadius: "5px",
+          cursor: "pointer",
+          visibility:
+            currentStepIndex === (recipes[currentRecipeIndex]?.steps?.length - 1 || 0)
+              ? "hidden"
+              : "visible",
+        }}
+      >
+        Next Step
+      </button>
+
+      {/* Proceed to Next Recipe or Finish Cooking */}
+      {currentStepIndex === (recipes[currentRecipeIndex]?.steps?.length - 1 || 0) &&
+        (currentRecipeIndex < recipes.length - 1 ? (
+          <button
+            onClick={() => {
+              setCurrentRecipeIndex((prev) => prev + 1);
+              setCurrentStepIndex(0);
+            }}
+            style={{
+              padding: "10px 20px",
+              background: "green",
+              color: "#fff",
+              border: "none",
+              borderRadius: "5px",
+              cursor: "pointer",
+            }}
+          >
+            Proceed to Next Recipe
+          </button>
+        ) : (
+          <button
+            onClick={finishCooking}
+            style={{
+              padding: "10px 20px",
+              background: "green",
+              color: "#fff",
+              border: "none",
+              borderRadius: "5px",
+              cursor: "pointer",
+            }}
+          >
+            Finish Cooking
+          </button>
+        ))}
+
+      {/* Exit Cooking Mode */}
+      <button
+        onClick={toggleCookingMode}
+        style={{
+          padding: "10px 20px",
+          background: "red",
+          color: "#fff",
+          border: "none",
+          borderRadius: "5px",
+          cursor: "pointer",
+        }}
+      >
+        Exit Cooking Mode
+      </button>
+    </div>
+  </div>
+)}
     </div>
   );
 };
