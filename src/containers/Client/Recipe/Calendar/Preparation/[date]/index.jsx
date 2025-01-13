@@ -163,9 +163,54 @@ const RecipePreparationPage = () => {
     loadSteps();
 }, [recipes, fetchRecipeSteps]);
 
-  const startCooking = () => {
-    setShowModal(true);
+  // const startCooking = () => {
+  //   setShowModal(true);
+  // };
+
+  const checkAllIngredientsComplete = () => {
+    return recipes.every((recipe) => {
+      const recipeIngredients =
+        ingredients.find((ri) => ri.recipeId === recipe.id)?.ingredients || [];
+  
+      return recipeIngredients.every((ingredient) => {
+        const linkedInventory = inventoryData.filter(
+          (item) =>
+            item.inventory.ingredient_id === ingredient.ingredients.id &&
+            mealPlans.some((mealPlan) => mealPlan.id === item.meal_plan_id)
+        );
+  
+        const totalAllocated = linkedInventory.reduce((sum, inventory) => {
+          const baseConversionRate = ingredient.ingredients.unit?.conversion_rate_to_grams || 1;
+          const inventoryConversionRate =
+            inventory.ingredients.unitInv?.conversion_rate_to_grams_for_check || 1;
+  
+          // If units match, no conversion needed
+          if (
+            ingredient.ingredients.unit?.unit_tag === inventory.ingredients.unitInv?.unitInv_tag
+          ) {
+            return sum + inventory.used_quantity;
+          }
+  
+          // Convert allocated quantity to the ingredient's unit
+          const convertedQuantity =
+            (inventory.used_quantity * inventoryConversionRate) / baseConversionRate;
+          return sum + convertedQuantity;
+        }, 0);
+  
+        return totalAllocated >= ingredient.quantity; // Check if the status is "Complete"
+      });
+    });
   };
+  
+  const startCooking = () => {
+    if (checkAllIngredientsComplete()) {
+      setShowModal(true); // Open modal if all ingredients are complete
+    } else {
+      alert("Some ingredients are incomplete. Please ensure all ingredients are complete before starting."); // Show an alert for incomplete ingredients
+    }
+  };
+  
+
 
   const markAsCooked = async () => {
     try {
