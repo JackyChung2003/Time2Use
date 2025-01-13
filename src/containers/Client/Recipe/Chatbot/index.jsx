@@ -47,8 +47,32 @@ const Chatbot = () => {
     setUserInput(e.target.value);
   };
 
+// const handleModalResponse = (response) => {
+//   setIsModalOpen(false); // Close the modal
+//   if (response === "yes" && pendingAction === "NAVIGATE_TO_RECIPE_EXPLORE") {
+//     navigate("/recipes/explore"); // Navigate to the page
+//     setChatHistory((prev) => [
+//       ...prev,
+//       { type: "bot", message: "Navigated to RecipeExplore. What would you like me to help with?" },
+//     ]);
+//   } else {
+//     setChatHistory((prev) => [
+//       ...prev,
+//       { type: "bot", message: "No worries! Let me know if there's anything else you'd like me to help with." },
+//     ]);
+//   }
+//   setPendingAction(null); // Clear the pending action
+// };
+
 const handleModalResponse = (response) => {
   setIsModalOpen(false); // Close the modal
+
+  // Add user's response to chat history
+  setChatHistory((prev) => [
+    ...prev,
+    { type: "user", message: response === "yes" ? "Yes" : "No" }, // User's reply
+  ]);
+
   if (response === "yes" && pendingAction === "NAVIGATE_TO_RECIPE_EXPLORE") {
     navigate("/recipes/explore"); // Navigate to the page
     setChatHistory((prev) => [
@@ -61,8 +85,10 @@ const handleModalResponse = (response) => {
       { type: "bot", message: "No worries! Let me know if there's anything else you'd like me to help with." },
     ]);
   }
+
   setPendingAction(null); // Clear the pending action
 };
+
 
 
 const sendMessage = async () => {
@@ -103,6 +129,25 @@ const sendMessage = async () => {
         { type: "bot", message: interpretedText.replace("[GENERAL QUERY]", "").trim() },
       ]);
       return; // Exit early, no filters applied
+    }
+
+    // Check if action requires navigation to /recipes/explore
+    const intentRequiresExplore = interpretedText.toLowerCase().includes("apply") ||
+      interpretedText.toLowerCase().includes("filter");
+
+    if (intentRequiresExplore && currentPath !== "/recipes/explore") {
+      // Open modal to prompt navigation
+      setIsModalOpen(true);
+      setPendingAction("NAVIGATE_TO_RECIPE_EXPLORE");
+      setChatHistory((prev) => [
+        ...prev,
+        { type: "user", message: userInput },
+        { 
+          type: "bot", 
+          message: "It looks like you're not on the RecipeExplore page. Would you like to navigate there to apply filters? (Yes/No)" 
+        },
+      ]);
+      return; // Exit early, no filters applied yet
     }
 
     // Check for "apply all filters" intent
