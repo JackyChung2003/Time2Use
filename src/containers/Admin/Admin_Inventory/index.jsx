@@ -77,9 +77,9 @@ const AdminInventories = () => {
         <h2>Manage Inventory</h2>
         <button 
           className="create-inventory-btn"
-          onClick={() => navigate('/admin/inventories/create')}
+          onClick={() => navigate('/admin/inventories/create-expiry-date')}
         >
-          Create Inventory
+          Create Expiry Date
         </button>
       </div>
       
@@ -105,6 +105,7 @@ const AdminInventories = () => {
           </tbody>
         </table>
       </div>
+      
 
       {/* Pagination Controls */}
       <div className="pagination-controls">
@@ -120,6 +121,8 @@ const AdminInventories = () => {
       </div>
     </div>
   );
+
+  
 };
 
 export default AdminInventories;
