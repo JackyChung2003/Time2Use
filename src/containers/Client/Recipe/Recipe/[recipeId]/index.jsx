@@ -388,6 +388,7 @@ const RecipeDetail = () => {
               meal_type_id: newMeal.meal_type_id,
               notes: newMeal.notes,
               time: newMeal.time,
+              serving_packs: newMeal.servingPacks || 1, 
             },
           ]);
       
@@ -743,7 +744,7 @@ const RecipeDetail = () => {
                 Reschedule
             </button> */}
 
-            {!scheduleData ? (
+            {!scheduleData.activity_type ? (
                 // Default buttons for viewing recipes
                 <>
                     <button
@@ -764,7 +765,12 @@ const RecipeDetail = () => {
                     <button
                         onClick={() =>
                             navigate('/recipes/calendar', {
-                                state: { recipeId: id, recipeName: recipe.name },
+                                // state: { recipeId: id, recipeName: recipe.name },
+                                state: {
+                                    recipeId: id,
+                                    recipeName: recipe.name,
+                                    servingPacks: servingPacks, // Pass servingPacks value
+                                },
                             })
                         }
                         style={{
@@ -777,90 +783,64 @@ const RecipeDetail = () => {
                             marginTop: "20px",
                         }}
                     >
-                        Reschedule
+                        Reschedule {servingPacks}
                     </button>
                 </>
             ) : (
                 // Buttons for navigating from the Meal Planning page
                 <>
-                    {/* <button
-                        onClick={handleCancelSchedule}
-                        style={{
-                            padding: "10px 20px",
-                            background: "red",
-                            color: "#fff",
-                            border: "none",
-                            borderRadius: "5px",
-                            cursor: "pointer",
-                            marginTop: "20px",
-                        }}
-                    >
-                        Cancel Schedule for {scheduleData.planned_date}, {scheduleData.meal_type_id}
-                    </button> */}
-
-                    {/* <button
-                        onClick={handleCancelSchedule}
-                        style={{
-                            padding: "12px 20px",
-                            background: "#ff4d4d", // Softer red
-                            color: "#fff",
-                            border: "none",
-                            borderRadius: "8px",
-                            cursor: "pointer",
-                            marginTop: "20px",
-                            fontSize: "16px",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            gap: "8px",
-                            boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
-                            transition: "background 0.3s ease",
-                        }}
-                        onMouseEnter={(e) => (e.target.style.background = "#e63939")}
-                        onMouseLeave={(e) => (e.target.style.background = "#ff4d4d")}
-                    >
-                        <span style={{ fontSize: "20px", fontWeight: "bold" }}>✖</span>
-                        Cancel Schedule for{" "}
-                        {new Date(scheduleData.planned_date).toLocaleDateString("en-US", {
-                            month: "long",
-                            day: "numeric",
-                            year: "numeric",
-                        })}{" "}
-                        ({mealTypeMap[scheduleData.meal_type_id] || "Unknown"})
-                    </button> */}
-
                     {scheduleData?.activity_type === "view" ? (
-                        // Show the "Cancel Schedule" button for "view" activity type
-                        <button
-                            onClick={handleCancelSchedule}
-                            style={{
-                                padding: "12px 20px",
-                                background: "#ff4d4d", // Softer red
-                                color: "#fff",
-                                border: "none",
-                                borderRadius: "8px",
-                                cursor: "pointer",
-                                marginTop: "20px",
-                                fontSize: "16px",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                gap: "8px",
-                                boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
-                                transition: "background 0.3s ease",
-                            }}
-                            onMouseEnter={(e) => (e.target.style.background = "#e63939")}
-                            onMouseLeave={(e) => (e.target.style.background = "#ff4d4d")}
-                        >
-                            <span style={{ fontSize: "20px", fontWeight: "bold" }}>✖</span>
-                            Cancel Schedule for{" "}
-                            {new Date(scheduleData.planned_date).toLocaleDateString("en-US", {
-                                month: "long",
-                                day: "numeric",
-                                year: "numeric",
-                            })}{" "}
-                            ({mealTypeMap[scheduleData.meal_type_id] || "Unknown"})
-                        </button>
+                        <>
+                            <button
+                                onClick={handleCancelSchedule}
+                                style={{
+                                    padding: "12px 20px",
+                                    background: "#ff4d4d", // Softer red
+                                    color: "#fff",
+                                    border: "none",
+                                    borderRadius: "8px",
+                                    cursor: "pointer",
+                                    marginTop: "20px",
+                                    fontSize: "16px",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    gap: "8px",
+                                    boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
+                                    transition: "background 0.3s ease",
+                                }}
+                                onMouseEnter={(e) => (e.target.style.background = "#e63939")}
+                                onMouseLeave={(e) => (e.target.style.background = "#ff4d4d")}
+                            >
+                                <span style={{ fontSize: "20px", fontWeight: "bold" }}>✖</span>
+                                Cancel Schedule for{" "}
+                                {new Date(scheduleData.planned_date).toLocaleDateString("en-US", {
+                                    month: "long",
+                                    day: "numeric",
+                                    year: "numeric",
+                                })}{" "}
+                                ({mealTypeMap[scheduleData.meal_type_id] || "Unknown"})
+                            </button>
+
+                            <button
+                                onClick={() =>
+                                    navigate('/recipes/calendar', {
+                                        state: { recipeId: id, recipeName: recipe.name },
+                                    })
+                                }
+                                style={{
+                                    padding: "10px 20px",
+                                    background: "orange",
+                                    color: "#fff",
+                                    border: "none",
+                                    borderRadius: "5px",
+                                    cursor: "pointer",
+                                    marginTop: "20px",
+                                }}
+                                >
+                                Reschedule Another Meal
+                            </button>
+                        </>
                     ) : (
                         // Updated "Add Recipe to Meal Plan" button
                         // Add to Meal Button with Modal Trigger
@@ -884,9 +864,7 @@ const RecipeDetail = () => {
                         </button>
                     )}
 
-
-
-                    <button
+                    {/* <button
                         onClick={() =>
                             navigate('/recipes/calendar', {
                                 state: { recipeId: id, recipeName: recipe.name },
@@ -903,7 +881,7 @@ const RecipeDetail = () => {
                         }}
                     >
                         Reschedule Another Meal
-                    </button>
+                    </button> */}
                     {/* havnt do passing state for this */}
                 </>
             )}
@@ -954,6 +932,46 @@ const RecipeDetail = () => {
                             setNewMeal((prev) => ({ ...prev, time: e.target.value }))
                         }
                         />
+                    </label>
+                    <label>
+                        Pax (Serving Packs):
+                        <div style={{ display: "flex", alignItems: "center", gap: "10px", marginTop: "10px" }}>
+                        <button
+                            onClick={() =>
+                            setNewMeal((prev) => ({
+                                ...prev,
+                                servingPacks: Math.max(1, (prev.servingPacks || 1) - 1),
+                            }))
+                            }
+                            style={{
+                            padding: "5px 10px",
+                            border: "1px solid #ccc",
+                            background: "#f5f5f5",
+                            cursor: "pointer",
+                            }}
+                        >
+                            -
+                        </button>
+                        <span style={{ fontSize: "18px", fontWeight: "bold" }}>
+                            {newMeal.servingPacks || 1}
+                        </span>
+                        <button
+                            onClick={() =>
+                            setNewMeal((prev) => ({
+                                ...prev,
+                                servingPacks: (prev.servingPacks || 1) + 1,
+                            }))
+                            }
+                            style={{
+                            padding: "5px 10px",
+                            border: "1px solid #ccc",
+                            background: "#f5f5f5",
+                            cursor: "pointer",
+                            }}
+                        >
+                            +
+                        </button>
+                        </div>
                     </label>
                     <button onClick={handleAddMeal} style={{ marginRight: "10px" }}>
                         Save

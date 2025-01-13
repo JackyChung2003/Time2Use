@@ -20,7 +20,7 @@ const MealPlannerPage = () => {
   const [showScheduleOptions, setShowScheduleOptions] = useState({ show: false, mealTypeId: null });
 
   // Accessing the state passed via navigate
-  const { recipeId, recipeName, date: passedDate } = location.state || {};
+  const { recipeId, recipeName, date: passedDate, servingPacks } = location.state || {};
 
   const [newMeal, setNewMeal] = useState({
     notes: "",
@@ -140,6 +140,7 @@ const handleAddMeal = async () => {
         meal_type_id: showAddModal,
         notes: newMeal.notes,
         time: newMeal.time,
+        serving_packs: servingPacks, 
       },
     ]);
     console.log("Adding meal...");
@@ -148,6 +149,10 @@ const handleAddMeal = async () => {
     console.log("Meal Type ID:", showAddModal);
     console.log("Notes:", newMeal.notes);
     console.log("Time:", newMeal.time);
+    console.log("User ID:", userData.id);
+    console.log("Date:", date);
+    console.log("Passed Date:", passedDate);
+    console.log("Serving Packs:", servingPacks);
     
     if (error) {
       console.error("Error adding meal:", error.message);
@@ -162,6 +167,7 @@ const handleAddMeal = async () => {
         meal_type_id: showAddModal,
         notes: newMeal.notes,
         time: newMeal.time,
+        serving_packs: servingPacks,
       },
     ]);
     setShowAddModal(null); // Close the modal
@@ -446,6 +452,8 @@ const handleAddMeal = async () => {
             <h2>Add a Meal</h2>
             <p><strong>Recipe:</strong> {recipeName}</p>
             <p><strong>Meal Type:</strong> {mealTypes.find((type) => type.id === showAddModal)?.name || "Unknown"}</p>
+            <p><strong>Date:</strong> {passedDate || date}</p>
+            <p><strong>Serving packs:</strong> {servingPacks}</p>
             <label>
               Notes:
               <textarea

@@ -22,6 +22,7 @@ const RecipeCalendar = () => {
     const { state } = location || {};
     const recipeId = state?.recipeId;
     const recipeName = state?.recipeName;
+    const servingPacks  = state?.servingPacks;
 
     const hardcodedDetails = {
         breakfast: '2 dishes',
@@ -59,6 +60,7 @@ const RecipeCalendar = () => {
                 date: formattedDate,
                 recipeId,
                 recipeName,
+                servingPacks,
             },
         }); // Pass date and recipe details to the next page
     };
@@ -87,6 +89,7 @@ const RecipeCalendar = () => {
                     <h2>Reschedule Recipe</h2>
                     <p><strong>Recipe Name:</strong> {recipeName}</p>
                     {/* <p><strong>Recipe ID:</strong> {recipeId}</p> */}
+                    <p><strong>Serving Packs:</strong> {servingPacks}</p>
                 </div>
             )}
 

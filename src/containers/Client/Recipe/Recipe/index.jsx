@@ -260,6 +260,7 @@ const RecipeExplore = () => {
               meal_type_id: newMeal.meal_type_id,
               notes: newMeal.notes,
               time: newMeal.time,
+              serving_packs: newMeal.servingPacks,
             },
           ]);
     
@@ -985,44 +986,83 @@ const RecipeExplore = () => {
         )}
 
         {showAddModal && (
-            <div className="modal">
+        <div className="modal">
             <div className="modal-content">
-                <h2>Add a Meal</h2>
-                <p>
+            <h2>Add a Meal</h2>
+            <p>
                 <strong>Meal Type:</strong>{" "}
-                {mealTypes.find((type) => type.id === newMeal.meal_type_id)?.name ||
-                    "Unknown"}
-                </p>
-                <p>
+                {mealTypes.find((type) => type.id === newMeal.meal_type_id)?.name || "Unknown"}
+            </p>
+            <p>
                 <strong>Planned Date:</strong> {newMeal.planned_date}
-                </p>
-                <label>
+            </p>
+            <label>
                 Notes:
                 <textarea
-                    value={newMeal.notes}
-                    placeholder="Enter additional notes (e.g., extra ingredients, instructions)"
-                    onChange={(e) =>
+                value={newMeal.notes}
+                placeholder="Enter additional notes (e.g., extra ingredients, instructions)"
+                onChange={(e) =>
                     setNewMeal((prev) => ({ ...prev, notes: e.target.value }))
-                    }
-                    rows="3"
+                }
+                rows="3"
                 />
-                </label>
-                <label>
+            </label>
+            <label>
                 Time:
                 <input
-                    type="time"
-                    value={newMeal.time}
-                    onChange={(e) =>
+                type="time"
+                value={newMeal.time}
+                onChange={(e) =>
                     setNewMeal((prev) => ({ ...prev, time: e.target.value }))
-                    }
+                }
                 />
-                </label>
-                <button onClick={handleAddMeal} style={{ marginRight: "10px" }}>
-                Save
+            </label>
+            <label>
+                Pax (Serving Packs):
+                <div style={{ display: "flex", alignItems: "center", gap: "10px", marginTop: "10px" }}>
+                <button
+                    onClick={() =>
+                    setNewMeal((prev) => ({
+                        ...prev,
+                        servingPacks: Math.max(1, (prev.servingPacks || 1) - 1),
+                    }))
+                    }
+                    style={{
+                    padding: "5px 10px",
+                    border: "1px solid #ccc",
+                    background: "#f5f5f5",
+                    cursor: "pointer",
+                    }}
+                >
+                    -
                 </button>
-                <button onClick={() => setShowAddModal(null)}>Cancel</button>
+                <span style={{ fontSize: "18px", fontWeight: "bold" }}>
+                    {newMeal.servingPacks || 1}
+                </span>
+                <button
+                    onClick={() =>
+                    setNewMeal((prev) => ({
+                        ...prev,
+                        servingPacks: (prev.servingPacks || 1) + 1,
+                    }))
+                    }
+                    style={{
+                    padding: "5px 10px",
+                    border: "1px solid #ccc",
+                    background: "#f5f5f5",
+                    cursor: "pointer",
+                    }}
+                >
+                    +
+                </button>
+                </div>
+            </label>
+            <button onClick={handleAddMeal} style={{ marginRight: "10px" }}>
+                Save
+            </button>
+            <button onClick={() => setShowAddModal(null)}>Cancel</button>
             </div>
-            </div>
+        </div>
         )}
 
         </div>
