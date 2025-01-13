@@ -160,30 +160,6 @@ const fetchRecipes = async () => {
       console.error("Unexpected error fetching favorites:", err.message);
     }
   }, [userData]);
-
-  // const fetchPax = async (planned_date, meal_type_id) => {
-  //   try {
-  //     const { data, error } = await supabase
-  //       .from("meal_plan")
-  //       .select("serving_packs")
-  //       .eq("planned_date", planned_date)
-  //       .eq("meal_type_id", meal_type_id)
-  //       .single(); // Assuming one meal_plan per combination
-
-  //       console.log("Pax data:", data);
-  
-  //     if (error) {
-  //       console.error("Error fetching pax:", error);
-  //       return;
-  //     }
-  
-  //     if (data) {
-  //       setPax(data.pax || 1); // Default to 1 if pax is not available
-  //     }
-  //   } catch (err) {
-  //     console.error("Unexpected error fetching pax:", err.message);
-  //   }
-  // };
   
   const fetchPax = async (plannedDate, mealTypeId) => {
     try {
@@ -198,7 +174,7 @@ const fetchRecipes = async () => {
         return null; // Handle error gracefully
       }
   
-      console.log("Pax data:", data);
+      // console.log("Pax data:", data);
   
       // Ensure data exists and access the first element's serving_packs
       return data?.[0]?.serving_packs || null; // Safely access serving_packs
