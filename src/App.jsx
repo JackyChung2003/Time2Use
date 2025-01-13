@@ -2,7 +2,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { useEffect, useState } from "react";
 import Login from './containers/Authentication/Login/index';
 import Signup from './containers/Authentication/Registration';
-// import supabase from './config/supabaseClient';
+//import supabase from './config/supabaseClient';
 import ProtectedRoute from './components/ProtectedRoute';
 import { useAuth } from './context/AuthContext';
 
@@ -21,14 +21,17 @@ import AdminLayout from './components/AdminLayout';
 import SideNavBar from './containers/Admin/Admin_Navigation/SideNavBar';
 import AdminDashboard from './containers/Admin/Admin_Dashboard';
 import AdminRecipeNavigation from './containers/Admin/Admin_Recipe/AdminRecipeNavigation';
+import AdminUsers from './containers/Admin/Admin_Users';
+import CreateUser from './containers/Admin/Admin_Users/CreateUser';
+import AdminInventories from './containers/Admin/Admin_Inventory/index.jsx';
+import AdminIngredients from './containers/Admin/Admin_Ingredients/index.jsx';
+import CreateIngredient from './containers/Admin/Admin_Ingredients/CreateIngredient';
 
 const App = () => {
     const { userRole } = useAuth();
-    console.log(userRole);
     const [loading, setLoading] = useState(false);
     const [isCollapsed, setIsCollapsed] = useState(false);
 
-    
     useEffect(() => {
         const handleResize = () => {
             if (window.innerWidth <= 768) {
@@ -115,6 +118,46 @@ const App = () => {
                                 element={
                                     <AdminLayout isCollapsed={isCollapsed} toggleSidebar={toggleSidebar}>
                                         <AdminRecipeNavigation />
+                                    </AdminLayout>
+                                }
+                            />
+                            <Route
+                                path="/admin/users"
+                                element={
+                                    <AdminLayout isCollapsed={isCollapsed} toggleSidebar={toggleSidebar}>
+                                        <AdminUsers />
+                                    </AdminLayout>
+                                }
+                            />
+                            <Route
+                                path="/admin/users/create"
+                                element={
+                                    <AdminLayout isCollapsed={isCollapsed} toggleSidebar={toggleSidebar}>
+                                        <CreateUser />
+                                    </AdminLayout>
+                                }
+                            />
+                            <Route
+                                path="/admin/inventories"
+                                element={
+                                    <AdminLayout isCollapsed={isCollapsed} toggleSidebar={toggleSidebar}>
+                                        <AdminInventories />
+                                    </AdminLayout>
+                                }
+                            />
+                            <Route
+                                path="/admin/ingredients"
+                                element={
+                                    <AdminLayout isCollapsed={isCollapsed} toggleSidebar={toggleSidebar}>
+                                        <AdminIngredients />
+                                    </AdminLayout>
+                                }
+                            />
+                            <Route
+                                path="/admin/ingredients/create"
+                                element={
+                                    <AdminLayout isCollapsed={isCollapsed} toggleSidebar={toggleSidebar}>
+                                        <CreateIngredient />
                                     </AdminLayout>
                                 }
                             />
