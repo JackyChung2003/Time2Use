@@ -3,6 +3,52 @@ import { useNavigate } from 'react-router-dom';
 import supabase from '../../../config/supabaseClient';
 import './index.css';
 
+// Ingredients Table Component
+const IngredientsTable = ({ ingredients, handleEditIngredient, handleDeleteIngredient }) => {
+  return (
+    <div>
+      <h2>Manage Ingredients</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Category ID</th>
+            <th>Unit ID</th>
+            <th>Unit Inv ID</th>
+            <th>Fat</th>
+            <th>Protein</th>
+            <th>Calories</th>
+            <th>Carbohydrate</th>
+            <th>Shelf Life</th>
+            <th>Storage Tips</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {ingredients.map((ingredient) => (
+            <tr key={ingredient.id}>
+              <td>{ingredient.name}</td>
+              <td>{ingredient.ingredients_category_id}</td>
+              <td>{ingredient.quantity_unit_id}</td>
+              <td>{ingredient.quantity_unitInv_id}</td>
+              <td>{ingredient.nutritional_info?.fat || ""}</td>
+              <td>{ingredient.nutritional_info?.protein || ""}</td>
+              <td>{ingredient.nutritional_info?.calories || ""}</td>
+              <td>{ingredient.nutritional_info?.carbohydrate || ""}</td>
+              <td>{ingredient.pred_shelf_life}</td>
+              <td>{ingredient.storage_tips}</td>
+              <td>
+              <button className="edit-btn" onClick={() => handleEditIngredient(ingredient)}>Edit</button>
+              <button className="delete-btn" onClick={() => handleDeleteIngredient(ingredient.id)}>Delete</button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+};
+
 const AdminIngredients = () => {
   const [ingredients, setIngredients] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -18,27 +64,22 @@ const AdminIngredients = () => {
     try {
       const { data: ingredients, error: ingredientsError } = await supabase
         .from('ingredients')
-        .select('id, name, nutritional_info, pred_shelf_life, ingredients_category_id');
-  
+        .select('*');
+
       if (ingredientsError) throw ingredientsError;
 
       const { data: ingredientcategories, error: ingredientcategoriesError } = await supabase
         .from('ingredients_category')
-        .select('id, category_name, category_tag');
-  
+        .select('*');
+
       if (ingredientcategoriesError) throw ingredientcategoriesError;
-  
+
       // Merge the data
       const ingredientDetails = ingredients.map(ingredient => {
-        const catIngredient = ingredientcategories.find(ingredientcategory => ingredientcategory.id === ingredient.ingredients_category_id); // Match by ID
+        const catIngredient = ingredientcategories.find(cat => cat.id === ingredient.ingredients_category_id);
         return {
-          id: ingredient.id,
-          name: ingredient.name,
-          nutritional_info: Object.entries(ingredient.nutritional_info)
-            .map(([key, value]) => `${key}: ${value}`)
-            .join('\n'),
-          pred_shelf_life: ingredient.pred_shelf_life,
-          category: catIngredient.category_name
+          ...ingredient,
+          category_name: catIngredient ? catIngredient.category_name : "Unknown Category",
         };
       });
 
@@ -49,8 +90,35 @@ const AdminIngredients = () => {
       setLoading(false);
     }
   };
+
+  // Handle editing ingredient
+  const handleEditIngredient = (ingredient) => {
+    navigate(`/admin/ingredients/edit/${ingredient.id}`);
+  };
+
   
-  // Calculate the paginated data
+
+  // Handle deleting ingredient
+  const handleDeleteIngredient = async (id) => {
+    if (window.confirm('Are you sure you want to delete this ingredient?')) {
+      try {
+        const { error } = await supabase
+          .from('ingredients')
+          .delete()
+          .eq('id', id);
+
+        if (error) {
+          console.error("Error deleting ingredient:", error.message);
+        } else {
+          setIngredients(ingredients.filter(ingredient => ingredient.id !== id));
+        }
+      } catch (error) {
+        console.error('Error deleting ingredient:', error.message);
+      }
+    }
+  };
+
+  // Pagination logic
   const indexOfLastRow = currentPage * rowsPerPage;
   const indexOfFirstRow = indexOfLastRow - rowsPerPage;
   const currentRows = ingredients.slice(indexOfFirstRow, indexOfLastRow);
@@ -66,45 +134,26 @@ const AdminIngredients = () => {
   return (
     <div className="admin-ingredients">
       <div className="admin-ingredients-header">
-        <h2>Manage Ingredient</h2>
-        <button 
+        <h2>Manage Ingredients</h2>
+        <button
           className="create-ingredient-btn"
           onClick={() => navigate('/admin/ingredients/create')}
         >
           Create Ingredient
         </button>
       </div>
-      
-      <div className="users-table-container">
-        <table className="users-table">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Nutritional Info</th>
-              <th>Pred Shelf Life</th>
-              <th>Category</th>
-            </tr>
-          </thead>
-          <tbody>
-            {currentRows.map((ingredient) => (
-              <tr key={ingredient.id}>
-                <td>{ingredient.name}</td>
-                <td>
-                  <pre>{ingredient.nutritional_info}</pre>
-                </td>
-                <td>{ingredient.pred_shelf_life}</td>
-                <td>{ingredient.category}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+
+      <IngredientsTable
+        ingredients={currentRows}
+        handleEditIngredient={handleEditIngredient}
+        handleDeleteIngredient={handleDeleteIngredient}
+      />
 
       {/* Pagination Controls */}
       <div className="pagination-controls">
         {Array.from({ length: totalPages }, (_, index) => (
-          <button 
-            key={index + 1} 
+          <button
+            key={index + 1}
             className={`pagination-btn ${currentPage === index + 1 ? 'active' : ''}`}
             onClick={() => handlePageChange(index + 1)}
           >

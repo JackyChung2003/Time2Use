@@ -26,6 +26,7 @@ import CreateUser from './containers/Admin/Admin_Users/CreateUser';
 import AdminInventories from './containers/Admin/Admin_Inventory/index.jsx';
 import AdminIngredients from './containers/Admin/Admin_Ingredients/index.jsx';
 import CreateIngredient from './containers/Admin/Admin_Ingredients/CreateIngredient';
+import EditIngredient from './containers/Admin/Admin_Ingredients/EditIngredient';
 
 const App = () => {
     const { userRole } = useAuth();
@@ -161,6 +162,15 @@ const App = () => {
                                     </AdminLayout>
                                 }
                             />
+                            <Route
+                                 path="/admin/ingredients/edit/:id"
+                                element={
+                                    <AdminLayout isCollapsed={isCollapsed} toggleSidebar={toggleSidebar}>
+                                        <EditIngredient />
+                                    </AdminLayout>
+                                }
+                            />
+
                         </>
                     )}
 
