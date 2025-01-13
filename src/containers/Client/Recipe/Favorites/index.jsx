@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import supabase from "../../../../config/supabaseClient";
 import BackButton from "../../../../components/Button/BackButton";
 import { useRecipeContext } from "../Contexts/RecipeContext";
+import Loader from "../../../../components/Loader/CommonLoader";
 
 const RecipeFavorites = () => {
   const {
@@ -99,7 +100,7 @@ const RecipeFavorites = () => {
   });
 
   if (isLoading || loading) {
-    return <div>Loading your favorite recipes...</div>;
+    return <Loader />;
   }
 
   return (

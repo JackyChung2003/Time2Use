@@ -6,6 +6,7 @@ import BackButton from '../../../../components/Button/BackButton';
 
 
 import { useRecipeContext } from '../Contexts/RecipeContext';
+import Loader from '../../../../components/Loader/CommonLoader';
 
 
 const RecipeExplore = () => {
@@ -293,7 +294,7 @@ const RecipeExplore = () => {
       };
 
       if (loading) {
-        return <div>Loading recipes...</div>;
+        return <Loader />;
       }
     
 
@@ -962,8 +963,6 @@ const RecipeExplore = () => {
                         <p>No ingredients selected.</p>
                     )}
                 </div>
-
-                
 
                 {/* Search Button */}
                 <button

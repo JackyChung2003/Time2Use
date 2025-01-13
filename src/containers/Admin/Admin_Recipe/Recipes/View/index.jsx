@@ -5,6 +5,8 @@ import supabase from "../../../../../config/supabaseClient";
 import BackButton from "../../../../../components/Button/BackButton";
 import "./index.css";
 
+import Loader from "../../../../../components/Loader";
+
 
 const RecipeDetail = () => {
     const { id } = useParams(); // Get the recipe ID from the URL
@@ -174,7 +176,7 @@ const RecipeDetail = () => {
         }
     };
     
-    if (loading) return <p>Loading recipe...</p>;
+    if (loading) return  <Loader />;
     if (error) return <p style={{ color: "red" }}>{error}</p>;
 
     return (

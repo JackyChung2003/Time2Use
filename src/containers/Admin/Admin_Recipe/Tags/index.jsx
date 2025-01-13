@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import supabase from "../../../../config/supabaseClient";
 import "./index.css";
+import Loader from "../../../../components/Loader";
 
 const Tags = () => {
     const [tags, setTags] = useState([]);
@@ -126,7 +127,7 @@ const Tags = () => {
             </div>
     
             {/* Show loading state */}
-            {loading && <p className="loading-text">Loading tags...</p>}
+            {loading &&  <Loader />}
     
             {/* Show error state */}
             {error && <p className="error-text">{error}</p>}

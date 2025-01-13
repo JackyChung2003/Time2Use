@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import supabase from '../../../config/supabaseClient';
 import './index.css';
+import Loader from '../../../components/Loader';
 
 const AdminUsers = () => {
   const [users, setUsers] = useState([]);
@@ -68,7 +69,7 @@ const AdminUsers = () => {
     }
   };
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) return  <Loader />;
 
   return (
     

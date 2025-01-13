@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import supabase from "../../../../config/supabaseClient";
 import "./index.css";
+import Loader from "../../../../components/Loader";
 
 const Equipment = () => {
     const [equipment, setEquipment] = useState([]);
@@ -123,7 +124,7 @@ const Equipment = () => {
             </div>
     
             {/* Show loading state */}
-            {loading && <p className="loading-text">Loading equipment...</p>}
+            {loading &&  <Loader />}
     
             {/* Show error state */}
             {error && <p className="error-text">{error}</p>}

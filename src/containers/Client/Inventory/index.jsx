@@ -5,6 +5,8 @@ import './index.css';
 import inventoryUtils from './index.js';
 import supabase from '../../../config/supabaseClient';
 
+import Loader from '../../../components/Loader';
+
 const Inventory = () => {
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
@@ -50,7 +52,7 @@ const Inventory = () => {
   
   
   if (isLoading) {
-    return <div>Loading...</div>;
+    return  <Loader />;
   }
 
   const sortedItems = items
@@ -449,7 +451,7 @@ const Item = ({
                           <button onClick={() => handlePortionClickWithState(item, item.quantity * 0.8, user.id)}>4/5</button>
                         </>
                       ) : (
-                        <div>Loading...</div>  // Or any fallback content when user is undefined
+                        <Loader />  // Or any fallback content when user is undefined
                       )}
                     </div>
 

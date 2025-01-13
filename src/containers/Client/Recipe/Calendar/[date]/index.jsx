@@ -4,6 +4,7 @@ import supabase from "../../../../../config/supabaseClient";
 import { useRecipeContext } from "../../Contexts/RecipeContext";
 import BackButton from "../../../../../components/Button/BackButton";
 import "./index.css"; // Custom styles
+import Loader from "../../../../../components/Loader/CommonLoader";
 
 const MealPlannerPage = () => {
   const { date } = useParams(); // Get the date from the URL
@@ -211,7 +212,7 @@ const handleAddMeal = async () => {
 
 
   if (loading) {
-    return <div className="meal-planner-container">Loading...</div>;
+    return <Loader />;
   }
 
   return (
