@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import supabase from "../../../../config/supabaseClient";
 import "./index.css";
-import Loader from "../../../../components/Loader";
+import CommonLoader from "../../../../components/Loader/CommonLoader";
 
 const Categories = () => {
     const [categories, setCategories] = useState([]);
@@ -139,7 +139,7 @@ const Categories = () => {
             </div>
     
             {/* Show loading state */}
-            {loading &&  <Loader />}
+            {loading &&  <CommonLoader />}
             {/* {loading && <p className="categories-loading">Loading categories...</p>} */}
     
             {/* Show error state */}

@@ -27,7 +27,7 @@ import AdminInventories from './containers/Admin/Admin_Inventory/index.jsx';
 import AdminIngredients from './containers/Admin/Admin_Ingredients/index.jsx';
 import CreateIngredient from './containers/Admin/Admin_Ingredients/CreateIngredient';
 
-import Loader from './components/Loader/index.jsx';
+import CommonLoader from './components/Loader/CommonLoader/index.jsx';
 
 const App = () => {
     const { userRole } = useAuth();
@@ -53,7 +53,7 @@ const App = () => {
     };
 
     if (loading) {
-        return  <Loader />;
+        return  <CommonLoader />;
     }
 
     return (

@@ -7,7 +7,7 @@ import supabase from "../../../../../../config/supabaseClient";
 import SortableRecipeList from "../../../../../../components/SortableDragAndDrop/Recipes_List/SortableRecipeList";
 import "./index.css"; 
 import { set } from "date-fns";
-import Loader from "../../../../../../components/Loader";
+import CommonLoader from "../../../../../../components/Loader/CommonLoader";
 
 const RecipePreparationPage = () => { 
   const {
@@ -921,7 +921,7 @@ const RecipePreparationPage = () => {
   }, [exceedAmount]); // Dependency array includes exceedAmount
   
   if (loading) {
-    return <Loader />;
+    return <CommonLoader />;
   }
 
   if (recipes.length === 0) {

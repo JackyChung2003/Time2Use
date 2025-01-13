@@ -5,7 +5,7 @@ import './index.css';
 import inventoryUtils from './index.js';
 import supabase from '../../../config/supabaseClient';
 
-import Loader from '../../../components/Loader';
+import CommonLoader from '../../../components/Loader/CommonLoader/index.jsx';
 
 const Inventory = () => {
   const [user, setUser] = useState(null);
@@ -52,7 +52,7 @@ const Inventory = () => {
   
   
   if (isLoading) {
-    return  <Loader />;
+    return  <CommonLoader />;
   }
 
   const sortedItems = items
@@ -451,7 +451,7 @@ const Item = ({
                           <button onClick={() => handlePortionClickWithState(item, item.quantity * 0.8, user.id)}>4/5</button>
                         </>
                       ) : (
-                        <Loader />  // Or any fallback content when user is undefined
+                        <CommonLoader />  // Or any fallback content when user is undefined
                       )}
                     </div>
 

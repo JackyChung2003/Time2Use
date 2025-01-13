@@ -5,7 +5,7 @@ import supabase from "../../../../../config/supabaseClient";
 import BackButton from "../../../../../components/Button/BackButton";
 import "./index.css";
 
-import Loader from "../../../../../components/Loader";
+import CommonLoader from "../../../../../components/Loader/CommonLoader";
 
 
 const RecipeDetail = () => {
@@ -176,7 +176,7 @@ const RecipeDetail = () => {
         }
     };
     
-    if (loading) return  <Loader />;
+    if (loading) return  <CommonLoader />;
     if (error) return <p style={{ color: "red" }}>{error}</p>;
 
     return (

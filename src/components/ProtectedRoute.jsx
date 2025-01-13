@@ -21,7 +21,7 @@ import { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 // import supabase from '../../config/supabaseClient';
 import supabase from '../config/supabaseClient';
-import Loader from './Loader';
+import CommonLoader from './Loader/CommonLoader';
 
 // eslint-disable-next-line react/prop-types
 const ProtectedRoute = ({ children }) => {
@@ -40,7 +40,7 @@ const ProtectedRoute = ({ children }) => {
     }, []);
 
     if (isAuthenticated === null) {
-        return  <Loader />
+        return  <CommonLoader />
     }
 
     if (!isAuthenticated) {

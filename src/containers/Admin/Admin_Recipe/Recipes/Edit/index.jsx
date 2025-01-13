@@ -5,7 +5,7 @@ import SortableIngredientList from "../../../../../components/SortableDragAndDro
 
 import BackButton from "../../../../../components/Button/BackButton";
 import './index.css';
-import Loader from "../../../../../components/Loader";
+import CommonLoader from "../../../../../components/Loader/CommonLoader";
 
 const EditRecipe = () => {
     const { id } = useParams();
@@ -295,7 +295,7 @@ const EditRecipe = () => {
         navigate(-1);
     };
 
-    if (loading) return  <Loader />;
+    if (loading) return  <CommonLoader />;
 
     return (
         <div className="edit-recipe-container">

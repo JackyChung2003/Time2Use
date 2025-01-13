@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import supabase from "../../../../../config/supabaseClient";
 import "./index.css";
-import Loader from "../../../../../components/Loader";
+import CommonLoader from "../../../../../components/Loader/CommonLoader";
 
 const EditTag = () => {
     const { id } = useParams(); // Get the tag ID from the URL
@@ -61,14 +61,14 @@ const EditTag = () => {
         }
     };
 
-    if (loading) return  <Loader />;
+    if (loading) return  <CommonLoader />;
     if (error) return <p style={{ color: "red" }}>{error}</p>;
 
     return (
         <div className="edit-tag-container">
             <h1 className="edit-tag-title">Edit Tag</h1>
             {error && <p className="form-error">{error}</p>}
-            {loading &&  <Loader />}
+            {loading &&  <CommonLoader />}
     
             <form onSubmit={handleSubmit} className="form-container">
                 <div className="form-group">

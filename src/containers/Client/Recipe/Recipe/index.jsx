@@ -6,7 +6,7 @@ import BackButton from '../../../../components/Button/BackButton';
 
 
 import { useRecipeContext } from '../Contexts/RecipeContext';
-import Loader from '../../../../components/Loader/CommonLoader';
+import CommonLoader from './../../../../components/Loader/CommonLoader';
 
 
 const RecipeExplore = () => {
@@ -294,7 +294,7 @@ const RecipeExplore = () => {
       };
 
       if (loading) {
-        return <Loader />;
+        return <CommonLoader />;
       }
     
 

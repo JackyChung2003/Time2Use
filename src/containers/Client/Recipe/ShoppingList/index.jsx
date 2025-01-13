@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useRecipeContext } from "../Contexts/RecipeContext";
-import Loader from "../../../../components/Loader/CommonLoader";
+import CommonLoader from "../../../../components/Loader/CommonLoader";
 
 const ShoppingList = () => {
   const {
@@ -197,7 +197,7 @@ const ShoppingList = () => {
   }, [weekStartDay]); // Re-run when weekStartDay changes
 
   // if (loading) return <p>Loading shopping list...</p>;
-  if (loading) return <Loader />;
+  if (loading) return <CommonLoader />;
 
   return (
     <div>
