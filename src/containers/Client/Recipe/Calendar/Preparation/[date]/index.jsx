@@ -166,6 +166,24 @@ const RecipePreparationPage = () => {
   const startCooking = () => {
     setShowModal(true);
   };
+
+  const markAsCooked = async () => {
+    try {
+      // Update status for meal plans with status_id === 3
+      const { error } = await supabase
+        .from("meal_plan")
+        .update({ status_id: 2, updated_at: new Date().toISOString() })
+        .eq("status_id", 3);
+  
+      if (error) throw error;
+  
+      alert("Meal plans marked as cooked!");
+      setRefreshCounter((prev) => prev + 1); // Refresh data
+    } catch (err) {
+      console.error("Error marking as cooked:", err.message);
+      alert("Failed to mark meal plans as cooked. Please try again.");
+    }
+  };
   
   const confirmSequence = () => {
     setShowModal(false);
@@ -2081,18 +2099,37 @@ const RecipePreparationPage = () => {
         {isCombined ? "Separate Ingredients" : "Combine Ingredients"}
       </button> */}
 
-      <button
-        onClick={startCooking}
-        style={{
-          padding: "10px 20px",
-          background: "orange",
-          color: "white",
-          borderRadius: "5px",
-          marginTop: "20px",
-        }}
-      >
-        Start Cooking
-      </button>
+      {mealPlans.some((mealPlan) => mealPlan.meal_plan_status.id === 3) ? (
+        // Show the "Mark as Cooked" button if any meal plan has status id === 3
+        <button
+          onClick={markAsCooked}
+          style={{
+            padding: "10px 20px",
+            background: "green",
+            color: "white",
+            borderRadius: "5px",
+            marginTop: "20px",
+          }}
+        >
+          Mark as Cooked
+        </button>
+      ) : !mealPlans.every((mealPlan) => mealPlan.meal_plan_status.id === 2) ? (
+        // Show the "Start Cooking" button if not all meal plans have status id === 2
+        <button
+          onClick={startCooking}
+          style={{
+            padding: "10px 20px",
+            background: "orange",
+            color: "white",
+            borderRadius: "5px",
+            marginTop: "20px",
+          }}
+        >
+          Start Cooking
+        </button>
+      ) : null}
+
+
 
       {selectedIngredient && (
         <div className="modal-overlay" onClick={() => setSelectedIngredient(null)}>
