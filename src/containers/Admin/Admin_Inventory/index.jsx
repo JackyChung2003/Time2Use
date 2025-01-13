@@ -21,7 +21,6 @@ const AdminInventories = () => {
         .select('id, user_id, ingredient_id, quantity, expiry_date_id');
   
       if (inventoriesError) throw inventoriesError;
-      console.log(inventories);
   
       const { data: ingredients, error: ingredientsError } = await supabase
         .from('ingredients')
@@ -34,15 +33,12 @@ const AdminInventories = () => {
         .select('id, date');
   
       if (expirydatesError) throw expirydatesError;
-
-      console.log(expirydates);
   
-      // Merge the data
       const inventoryWithIngredients = inventories.map(inventory => {
         const temp = ingredients.find(ingredient => ingredient.id === inventory.ingredient_id); // Match by ID
         const exdate = expirydates.find(expirydate => expirydate.id === inventory.expiry_date_id);
         return {
-          id: inventory.id,
+          id: inventory.id,           // Add id here
           user: inventory.user_id,
           ingredient: temp.name,
           quantity: inventory.quantity,
@@ -57,8 +53,30 @@ const AdminInventories = () => {
       setLoading(false);
     }
   };
-  
-  // Calculate the paginated data
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this inventory item?')) return;
+    try {
+      const { error } = await supabase
+        .from('inventory')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      alert('Inventory item deleted successfully.');
+      setInventories(inventories.filter((inventory) => inventory.id !== id)); // Remove deleted item from state
+    } catch (error) {
+      console.error('Error deleting inventory:', error.message);
+      alert('Failed to delete inventory item.');
+    }
+  };
+
+  const handleEdit = (id) => {
+    navigate(`/admin/inventories/edit/${id}`); // Redirect to an edit page with the item's ID
+  };
+
+  // Pagination logic
   const indexOfLastRow = currentPage * rowsPerPage;
   const indexOfFirstRow = indexOfLastRow - rowsPerPage;
   const currentRows = inventories.slice(indexOfFirstRow, indexOfLastRow);
@@ -87,25 +105,41 @@ const AdminInventories = () => {
         <table className="users-table">
           <thead>
             <tr>
+              <th>ID</th> {/* Added a column for ID */}
               <th>User ID</th>
               <th>Name of Ingredient</th>
               <th>Quantities</th>
               <th>Expiry Date</th>
+              <th>Actions</th> {/* New column */}
             </tr>
           </thead>
           <tbody>
             {currentRows.map((inventory) => (
               <tr key={inventory.id}>
+                <td>{inventory.id}</td> {/* Display the inventory ID */}
                 <td>{inventory.user}</td>
                 <td>{inventory.ingredient}</td>
                 <td>{inventory.quantity}</td>
                 <td>{inventory.expiry_date}</td>
+                <td>
+                  <button 
+                    className="edit-btn"
+                    onClick={() => handleEdit(inventory.id)}
+                  >
+                    Edit
+                  </button>
+                  <button 
+                    className="delete-btn"
+                    onClick={() => handleDelete(inventory.id)}
+                  >
+                    Delete
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-      
 
       {/* Pagination Controls */}
       <div className="pagination-controls">
@@ -121,8 +155,6 @@ const AdminInventories = () => {
       </div>
     </div>
   );
-
-  
 };
 
 export default AdminInventories;

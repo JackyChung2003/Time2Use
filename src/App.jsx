@@ -28,6 +28,7 @@ import AdminIngredients from './containers/Admin/Admin_Ingredients/index.jsx';
 import CreateIngredient from './containers/Admin/Admin_Ingredients/CreateIngredient';
 import EditIngredient from './containers/Admin/Admin_Ingredients/EditIngredient';
 import CreateExpiryDate from './containers/Admin/Admin_Inventory/CreateExpiryDate';
+import EditInventory from './containers/Admin/Admin_Inventory/EditInventory';
 
 const App = () => {
     const { userRole } = useAuth();
@@ -152,6 +153,15 @@ const App = () => {
                                 element={
                                     <AdminLayout isCollapsed={isCollapsed} toggleSidebar={toggleSidebar}>
                                          <CreateExpiryDate />
+                                    </AdminLayout>
+                                 }
+                            />
+
+                            <Route
+                                path="/admin/inventories/edit/:id"
+                                element={
+                                    <AdminLayout isCollapsed={isCollapsed} toggleSidebar={toggleSidebar}>
+                                         <EditInventory />
                                     </AdminLayout>
                                  }
                             />
