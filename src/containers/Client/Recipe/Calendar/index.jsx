@@ -108,7 +108,7 @@ const RecipeCalendar = () => {
   
     return date > today ? "coming-date" : "past-date";
   };
-
+  
   return (
     <div className="calendar-container">
       <h1>Calendar</h1>
@@ -132,7 +132,7 @@ const RecipeCalendar = () => {
       if (totalPlanned === 0) {
         // No meals planned
         return (
-          <div className="tile-content">
+          <div className="tile-content no-plan-past-date">
             <span>(0/0)</span>
           </div>
         );
