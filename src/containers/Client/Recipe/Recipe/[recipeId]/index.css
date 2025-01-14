@@ -277,7 +277,7 @@ ul li {
 
 /* Ingredients */
 .ingredients-section {
-  margin-bottom: 20px;
+  margin-bottom: 10px;
 }
 
 .ingredients-list {
@@ -290,10 +290,12 @@ ul li {
   font-size: 1rem;
 } */
 
-.ingredient-item {
+.ingredients-list .ingredient-item {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 10px;
+  background-color: #f9f9f9;
   margin-bottom: 10px;
   font-size: 1rem;
 }
@@ -311,14 +313,18 @@ ul li {
   margin-bottom: 20px;
 }
 
-.steps-list {
+.steps-section .steps-list {
   border-top: 1px solid #ddd;
   padding-top: 10px;
+  margin: 0 5px;
 }
 
-.step-item {
+.steps-section .steps-list .step-item {
   margin-bottom: 10px;
   font-size: 1rem;
+  /* border: 1px solid red; */
+  display: flex;
+  gap: 10px;
 }
 
 /* Cooking Mode */

@@ -79,6 +79,10 @@ button:focus-visible {
   margin: 0;
 } */
 
+.App {
+  padding-bottom: 60px;
+}
+
 * {
   margin: 0;
   padding: 0;

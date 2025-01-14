@@ -1,0 +1,173 @@
+.linked-inventory-container {
+  margin-top: 10px;
+  padding: 10px;
+  background-color: #f8f9fa;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.linked-inventory-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.inventory-status {
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+.inventory-status.complete {
+  color: green;
+}
+
+.inventory-status.incomplete {
+  color: red;
+}
+
+.delete-all-button {
+  margin-left: 20px;
+  padding: 5px 10px;
+  background-color: red;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.delete-all-button:hover {
+  background-color: darkred;
+}
+.inventory-item {
+  margin-bottom: 10px;
+  padding: 10px;
+  background-color: #ffffff;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.inventory-item p {
+  margin: 5px 0;
+  font-size: 14px;
+  color: #333;
+}
+
+.progress-bar-container {
+  background-color: #f1f1f1;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  height: 20px;
+  margin-top: 10px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  background-color: #4caf50;
+  height: 100%;
+  color: white;
+  text-align: center;
+  line-height: 20px;
+  font-size: 12px;
+  border-radius: 5px 0 0 5px;
+  transition: width 0.3s ease-in-out;
+}
+
+/* Cooking Mode Overlay */
+.cooking-mode-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+/* Title */
+.cooking-mode-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 10px;
+  color: #fff;
+}
+
+/* Instruction Text */
+.cooking-mode-instruction {
+  font-size: 1rem;
+  text-align: center;
+  margin-bottom: 20px;
+  padding: 0 20px;
+  line-height: 1.5;
+}
+
+/* Button Container */
+.cooking-mode-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+}
+
+/* Button Styles */
+.cooking-mode-button {
+  padding: 10px 20px;
+  font-size: 1rem;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.2s;
+}
+
+/* Specific Button Colors */
+.previous-recipe-button {
+  background: #6c757d;
+  color: #fff;
+}
+
+.previous-recipe-button:hover {
+  background: #5a6268;
+}
+
+.cooking-mode-button:not(.hidden):hover {
+  transform: scale(1.05);
+}
+
+.hidden {
+  display: none;
+}
+
+.next-recipe-button,
+.finish-cooking-button {
+  background: green;
+  color: #fff;
+}
+
+.next-recipe-button:hover,
+.finish-cooking-button:hover {
+  background: #218838;
+}
+
+.exit-cooking-button {
+  background: red;
+  color: #fff;
+}
+
+.exit-cooking-button:hover {
+  background: #cc0000;
+}
+
+.cooking-mode-button:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}

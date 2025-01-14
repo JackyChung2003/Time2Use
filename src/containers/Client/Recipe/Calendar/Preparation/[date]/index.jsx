@@ -9,6 +9,8 @@ import "./index.css";
 import { set } from "date-fns";
 import CommonLoader from "../../../../../../components/Loader/CommonLoader";
 
+import InventoryVisualization from "../../../../../../components/InventoryVisualization";
+
 const RecipePreparationPage = () => { 
   const {
     fetchMealPlansByDate,
@@ -22,7 +24,9 @@ const RecipePreparationPage = () => {
     fetchInventoryMealPlanByMealPlanId,
     enrichInventory,
     fetchInventoryData,
-    fetchPax
+    fetchPax,
+    toggleFavorite,
+    favorites
   } = useRecipeContext();
 
   const navigate = useNavigate();
@@ -67,9 +71,77 @@ const RecipePreparationPage = () => {
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [previousStepIndex, setPreviousStepIndex] = useState(null);
 
+  
+  const [totalWeightInGrams, setTotalWeightInGrams] = useState(0);
+  const [nutritionFacts, setNutritionFacts] = useState({
+    calories: 0,
+    protein: 0,
+    carbohydrate: 0,
+    fat: 0,
+});
+
+
+const [activeTab, setActiveTab] = useState("ingredients");
+
   // const [pax, setPax] = useState(1); // Added pax state
   const [pax, setPax] = useState(1); // Default Pax value is 1
 
+  const calculateNutrition = (ingredients) => {
+    let totalNutrition = {
+        calories: 0,
+        protein: 0,
+        carbohydrate: 0,
+        fat: 0,
+    };
+    let totalWeightInGrams = 0; // Total weight of all ingredients in grams
+
+    ingredients.forEach((ingredient) => {
+        const { nutritional_info, unit } = ingredient.ingredients;
+        const { quantity } = ingredient;
+
+        // Parse and sanitize nutritional info
+        let { calories, protein, carbohydrate, fat } = nutritional_info;
+        protein = typeof protein === "string" ? parseFloat(protein.replace("g", "")) || 0 : protein || 0;
+        carbohydrate = typeof carbohydrate === "string" ? parseFloat(carbohydrate.replace("g", "")) || 0 : carbohydrate || 0;
+        fat = typeof fat === "string" ? parseFloat(fat.replace("g", "")) || 0 : fat || 0;
+
+        const conversionRate = unit?.conversion_rate_to_grams || 1;
+        const quantityInGrams = conversionRate > 0 ? quantity * conversionRate : 0;
+
+        if (quantityInGrams > 0) {
+            totalWeightInGrams += quantityInGrams;
+            const factor = quantityInGrams / 100;
+            totalNutrition.calories += calories * factor;
+            totalNutrition.protein += protein * factor;
+            totalNutrition.carbohydrate += carbohydrate * factor;
+            totalNutrition.fat += fat * factor;
+        } else {
+            console.warn(`Invalid conversion rate for unit: ${unit?.unit_tag}`);
+        }
+    });
+
+    setTotalWeightInGrams(totalWeightInGrams);
+
+    // Calculate per 100g values
+    const per100gNutrition = totalWeightInGrams
+        ? {
+              calories: (totalNutrition.calories / (totalWeightInGrams / 100)).toFixed(2),
+              protein: (totalNutrition.protein / (totalWeightInGrams / 100)).toFixed(2),
+              carbohydrate: (totalNutrition.carbohydrate / (totalWeightInGrams / 100)).toFixed(2),
+              fat: (totalNutrition.fat / (totalWeightInGrams / 100)).toFixed(2),
+          }
+        : { calories: 0, protein: 0, carbohydrate: 0, fat: 0 };
+
+    setNutritionFacts({
+        total: {
+            calories: totalNutrition.calories.toFixed(2),
+            protein: totalNutrition.protein.toFixed(2),
+            carbohydrate: totalNutrition.carbohydrate.toFixed(2),
+            fat: totalNutrition.fat.toFixed(2),
+        },
+        per100g: per100gNutrition,
+    });
+};
   
   useEffect(() => {
     const loadData = async () => {
@@ -114,7 +186,9 @@ const RecipePreparationPage = () => {
         const recipeIngredients = await Promise.all(
           fetchedRecipes.map(async (recipe) => {
             const ingredientsData = await fetchRecipeIngredients(recipe.id);
-  
+            // setIngredients(ingredientsData);
+            // calculateNutrition(ingredientsData);
+
             // Adjust ingredient quantities based on pax
             const adjustedIngredients = ingredientsData.map((ingredient) => ({
               ...ingredient,
@@ -126,6 +200,7 @@ const RecipePreparationPage = () => {
         );
   
         setIngredients(recipeIngredients);
+        calculateNutrition(recipeIngredients.flatMap((ri) => ri.ingredients));
         
         // Fetch inventory meal plan data
         const mealPlanIds = relevantPlans.map((plan) => plan.id);
@@ -1147,7 +1222,7 @@ const RecipePreparationPage = () => {
         // Prompt user if they want to continue from the last step or start over
         if (previousStepIndex !== null || currentRecipeIndex > 0) {
             const continueFromLast = window.confirm(
-                "Would you like to continue from your last step or start over?"
+                "Would you like to continue from your last step(Yes) or start over(No)?"
             );
 
             if (continueFromLast) {
@@ -1302,11 +1377,94 @@ const RecipePreparationPage = () => {
       alert("Failed to update Pax. Please try again.");
     }
   };
+
+//   const calculateNutrition = (ingredients) => {
+//     let totalNutrition = {
+//         calories: 0,
+//         protein: 0,
+//         carbohydrate: 0,
+//         fat: 0,
+//     };
+//     let totalWeightInGrams = 0; // Total weight of all ingredients in grams
+
+//     ingredients.forEach((ingredient) => {
+//         const { nutritional_info, unit } = ingredient.ingredients;
+//         // const { nutritional_info, quantity, unit } = ingredient.ingredients;
+//         const { quantity } = ingredient;
+        
+//         console.log("nutritional_info:", nutritional_info);
+//         console.log("quantity:", quantity);
+//         console.log("unit:", unit);
+
+//         let { calories, protein, carbohydrate, fat } = nutritional_info;
+//         console.log("calories:", calories);
+//         console.log("protein (raw):", protein);
+//         console.log("carbohydrate (raw):", carbohydrate);
+//         console.log("fat (raw):", fat);
+
+//         // Strip "g" and convert to number for protein, carbohydrate, and fat
+//         protein = typeof protein === "string" ? parseFloat(protein.replace("g", "")) || 0 : protein || 0;
+//         carbohydrate = typeof carbohydrate === "string" ? parseFloat(carbohydrate.replace("g", "")) || 0 : carbohydrate || 0;
+//         fat = typeof fat === "string" ? parseFloat(fat.replace("g", "")) || 0 : fat || 0;
+
+
+//         console.log("protein (parsed):", protein);
+//         console.log("carbohydrate (parsed):", carbohydrate);
+//         console.log("fat (parsed):", fat);
+
+//         const conversionRate = unit.conversion_rate_to_grams;
+//         console.log("conversionRate:", conversionRate);
+
+//         // Handle unit conversion to grams (example for common units)
+//         let quantityInGrams = quantity;
+//         if (conversionRate && conversionRate > 0) {
+//             quantityInGrams *= conversionRate;
+//         } else {
+//             console.warn(`Unit ${unit.unit_tag} does not have a valid conversion rate.`);
+//             return; // Skip this ingredient if no valid conversion rate
+//         }
+
+//         // Update the total weight
+//         totalWeightInGrams += quantityInGrams;
+
+//         // Nutritional info is per 100 grams; calculate based on quantity
+//         const factor = quantityInGrams / 100;
+//         totalNutrition.calories += calories * factor;
+//         totalNutrition.protein += protein * factor;
+//         totalNutrition.carbohydrate += carbohydrate * factor;
+//         totalNutrition.fat += fat * factor;
+//     });
+
+//     setTotalWeightInGrams(totalWeightInGrams);
+
+//     // Calculate per 100g nutrition values
+//     const per100gNutrition = {
+//         calories: (totalNutrition.calories / (totalWeightInGrams / 100)).toFixed(2),
+//         protein: (totalNutrition.protein / (totalWeightInGrams / 100)).toFixed(2),
+//         carbohydrate: (totalNutrition.carbohydrate / (totalWeightInGrams / 100)).toFixed(2),
+//         fat: (totalNutrition.fat / (totalWeightInGrams / 100)).toFixed(2),
+//     };
+
+//     console.log(`Total Weight of Recipe: ${totalWeightInGrams.toFixed(2)}g`);
+//     console.log("Total Nutrition:", totalNutrition);
+//     console.log("Per 100g Nutrition:", per100gNutrition);
+
+//     // Update state with both total and per 100g nutrition facts
+//     setNutritionFacts({
+//         total: {
+//             calories: totalNutrition.calories.toFixed(2),
+//             protein: totalNutrition.protein.toFixed(2),
+//             carbohydrate: totalNutrition.carbohydrate.toFixed(2),
+//             fat: totalNutrition.fat.toFixed(2),
+//         },
+//         per100g: per100gNutrition,
+//     });
+// };
   
 
   return (
     <div className="recipe-preparation-page">
-      <BackButton onClick={() => navigate(-1)} />
+      {/* <BackButton onClick={() => navigate(-1)} />
       <h1>Recipe Preparation</h1>
       <h3>Date: {planned_date}</h3>
       <h3>Meal Type: {mealTypes.find((type) => type.id === meal_type_id)?.name || "Unknown"}</h3>
@@ -1318,286 +1476,559 @@ const RecipePreparationPage = () => {
           : mealPlans.some((mealPlan) => mealPlan.meal_plan_status.id === 3)
           ? "Deadline Passed"
           : "Planning"}
-      </h3>
-
-      <button
-        onClick={handleAutoDistribute}
-        style={{
-          padding: "10px 20px",
-          background: "purple",
-          color: "white",
-          borderRadius: "5px",
-          marginTop: "20px",
-        }}
-      >
-        Auto Distribute All
-      </button>
-
-      <button
-        onClick={handleDeleteAll}
-        style={{
-          padding: "10px 20px",
-          background: "red",
-          color: "white",
-          borderRadius: "5px",
-          marginTop: "20px",
-        }}
-      >
-        Delete All
-      </button>
+      </h3> */}
 
       {recipes.map((recipe) => {
       const recipeIngredients = ingredients.find((ri) => ri.recipeId === recipe.id)?.ingredients || [];
       return (
         <div key={recipe.id} className="recipe-details">
-          <h2>{recipe.name}</h2>
-          <img
-            src={`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/${recipe.image_path}`}
-            alt={recipe.name}
-            style={{ width: "300px", borderRadius: "10px" }}
-          />
-          <p>{recipe.description}</p>
-          <p>
-            <strong>Prep Time:</strong> {recipe.prep_time} mins
-          </p>
-          <p>
-            <strong>Cook Time:</strong> {recipe.cook_time} mins
-          </p>
-          <div>
-            <h3>Pax</h3>
-            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-              <button
-                onClick={() => handlePaxChange(-1)}
-                style={{
-                  padding: "5px 10px",
-                  border: "1px solid #ccc",
-                  background: "#f5f5f5",
-                  cursor: "pointer",
-                }}
-              >
-                -
-              </button>
-              <span style={{ fontSize: "18px", fontWeight: "bold" }}>{pax}</span>
-              <button
-                onClick={() => handlePaxChange(1)}
-                style={{
-                  padding: "5px 10px",
-                  border: "1px solid #ccc",
-                  background: "#f5f5f5",
-                  cursor: "pointer",
-                }}
-              >
-                +
-              </button>
-            </div>
-          </div>
-          <div>
-            <h3>Ingredients</h3>
-            <ul>
-              {recipeIngredients.map((ingredient, index) => {
-                // Map `mealPlanId` to the corresponding ingredient
-                const linkedInventory = inventoryData.filter(
-                  (item) =>
-                    item.inventory.ingredient_id === ingredient.ingredients.id &&
-                    mealPlans.some((mealPlan) => mealPlan.id === item.meal_plan_id)
-                );
-                // Calculate the total allocated quantity with unit conversion checks
-                const totalAllocated = linkedInventory.reduce((sum, inventory) => {
-                  const baseConversionRate = ingredient.ingredients.unit?.conversion_rate_to_grams || 1;
-                  const inventoryConversionRate =
-                    inventory.ingredients.unitInv?.conversion_rate_to_grams_for_check || 1;
-
-                  // If units match, no conversion needed
-                  if (
-                    ingredient.ingredients.unit?.unit_tag === inventory.ingredients.unitInv?.unitInv_tag
-                  ) {
-                    return sum + inventory.used_quantity;
-                  }
-
-                  // If conversion rates match but units differ, add without adjustment
-                  if (baseConversionRate === inventoryConversionRate) {
-                    return sum + inventory.used_quantity;
-                  }
-
-                  // Convert allocated quantity to the ingredient's unit
-                  const convertedQuantity =
-                    (inventory.used_quantity * inventoryConversionRate) / baseConversionRate;
-                  return sum + convertedQuantity;
-                }, 0);
-
-                // console.log("inventory used_quantity:", linkedInventory);
-                // console.log("totalAllocated:", totalAllocated);
-
-                // Determine if the status is "Complete"
-                const isComplete = totalAllocated >= ingredient.quantity;
-
-                return (
-                  <li
-                    key={index}
-                    // onClick={() => handleIngredientClick(ingredient)}
-                    onClick={() => handleIngredientClick(ingredient, recipe.id)}
-                    style={{
-                      cursor: "pointer",
-                      color: "blue",
-                      fontWeight: "bold",
-                      fontSize: "16px",
-                    }}
-                  >
-                    {/* Display ingredient details */}
-                    {ingredient.ingredients.name} - {ingredient.quantity}{" "}
-                    {ingredient.ingredients.unit?.unit_tag || ""}
-
-                    {/* Check and display inventory data if exists */}
-                    {linkedInventory
-                    .filter((inventory) => inventory.meal_plan.recipe_id === recipe.id).length > 0 && (
-                      <div
-                        style={{
-                          marginTop: "10px",
-                          padding: "10px",
-                          backgroundColor: "#f8f9fa",
-                          border: "1px solid #ccc",
-                          borderRadius: "5px",
-                        }}
-                      >
-                        <h4
-                          style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                          }}
-                        >
-                          Linked Inventory Data{" "}
-                          <span
-                            style={{
-                              color: isComplete ? "green" : "red",
-                              fontWeight: "bold",
-                            }}
-                          >
-                            ({isComplete ? "Complete" : "Incomplete"})
-                          </span>
-                          <button
+          <section className="recipe-image-detail-section">
+                <img
+                    src={`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/${recipe.image_path}`}
+                    alt={recipe.name}
+                    className="recipe-detail-image"
+                />
+                <div className="image-overlay">
+                    <BackButton />
+                    {/* <h1 className="recipe-title">{recipe.name}</h1> */}
+                    <div className="action-buttons">
+                        <button
                             onClick={(e) => {
-                              e.stopPropagation(); // Prevent triggering the parent onClick
-                              // Delete all linked inventory
-                              linkedInventory.forEach((inventory) =>
-                                handleDeleteInventory(
-                                  inventory.inventory_id,
-                                  inventory.meal_plan_id,
-                                  inventory.ingredients.id
-                                )
-                              );
+                                e.stopPropagation();
+                                toggleFavorite(recipe.id);
                             }}
-                            style={{
-                              marginLeft: "20px",
-                              padding: "5px 10px",
-                              backgroundColor: "red",
-                              color: "white",
-                              border: "none",
-                              borderRadius: "5px",
-                              cursor: "pointer",
-                            }}
-                          >
-                            Delete All
-                          </button>
-                        </h4>
-                        {linkedInventory
-                        .filter((inventory) => inventory.meal_plan.recipe_id === recipe.id) 
-                        .map((inventory) => (
-                          <div
-                            key={inventory.id}
-                            style={{
-                              marginBottom: "10px",
-                              padding: "10px",
-                              border: "1px solid #ccc",
-                              borderRadius: "5px",
-                            }}
-                          > 
-                            {console.log("Inventory:", inventory)}
-                            <p>
-                              <strong>Original quantity:</strong>{" "}
-                              {inventory.ingredients.unit?.unit_tag === inventory.ingredients.unitInv?.unitInv_tag ? (
-                                // If the unit tags match, display quantity in a single unit
-                                <>
-                                  {inventory.inventory.init_quantity} {inventory.ingredients.unit?.unit_tag || ""}
-                                </>
-                              ) : inventory.ingredients.unit?.conversion_rate_to_grams ===
-                                inventory.ingredients.unitInv?.conversion_rate_to_grams_for_check ? (
-                                // If conversion rates match but units differ, display both units
-                                <>
-                                  {inventory.inventory.init_quantity} {inventory.ingredients.unitInv?.unitInv_tag || ""} /
-                                  {inventory.inventory.init_quantity} {inventory.ingredients.unit?.unit_tag || ""}
-                                </>
-                              ) : (
-                                // If conversion rates and unit tags differ, show adjusted quantities
-                                <>
-                                  {inventory.inventory.init_quantity} {inventory.ingredients.unitInv?.unitInv_tag || ""} /
-                                  {Math.round(
-                                    (inventory.inventory.init_quantity *
-                                      (inventory.ingredients.unitInv?.conversion_rate_to_grams_for_check || 1)) /
-                                      (inventory.ingredients.unit?.conversion_rate_to_grams || 1)
-                                  )}{" "}
-                                  {inventory.ingredients.unit?.unit_tag || ""}
-                                </>
-                              )}
-                            </p>
-                            <p>
-                              <strong>Quantity allocated:</strong>{" "}
-                              {inventory.ingredients.unit?.unit_tag === inventory.ingredients.unitInv?.unitInv_tag ? (
-                                // If the unit tags match, display allocated quantity in a single unit
-                                <>
-                                  {inventory.used_quantity} {inventory.ingredients.unit?.unit_tag || ""}
-                                </>
-                              ) : inventory.ingredients.unit?.conversion_rate_to_grams ===
-                                inventory.ingredients.unitInv?.conversion_rate_to_grams_for_check ? (
-                                // If conversion rates match but units differ, display both units
-                                <>
-                                  {inventory.used_quantity} {inventory.ingredients.unitInv?.unitInv_tag || ""} /
-                                  {inventory.used_quantity} {inventory.ingredients.unit?.unit_tag || ""}
-                                </>
-                              ) : (
-                                // If conversion rates and unit tags differ, show adjusted quantities with a ~ for approximations
-                                <>
-                                  {inventory.used_quantity} {inventory.ingredients.unitInv?.unitInv_tag || ""} /{" "}
-                                  {
-                                    Number.isInteger(
-                                      (inventory.used_quantity *
-                                        (inventory.ingredients.unitInv?.conversion_rate_to_grams_for_check || 1)) /
-                                        (inventory.ingredients.unit?.conversion_rate_to_grams || 1)
-                                    )
-                                      ? Math.round(
-                                          (inventory.used_quantity *
-                                            (inventory.ingredients.unitInv?.conversion_rate_to_grams_for_check || 1)) /
-                                            (inventory.ingredients.unit?.conversion_rate_to_grams || 1)
-                                        )
-                                      : `~${Math.round(
-                                          (inventory.used_quantity *
-                                            (inventory.ingredients.unitInv?.conversion_rate_to_grams_for_check || 1)) /
-                                            (inventory.ingredients.unit?.conversion_rate_to_grams || 1)
-                                        )}`
-                                  }{" "}
-                                  {inventory.ingredients.unit?.unit_tag || ""}
+                            className="favorite-button"
+                        >
+                            {favorites.includes(recipe.id) ? "❤️" : "🤍"}
+                        </button>
+                    </div>
+                </div>
+            </section>
+            <section className="recipe-details">
+                <h2 className="recipe-detail-title">{recipe.name}</h2>
+                <p className="recipe-description">{recipe.description}</p>
+                <div className="left-right-space-evenly-section">
+                    <p className="prep-time">Prep Time: {recipe.prep_time} mins</p>
+                    <p className="cook-time">Cook Time: {recipe.cook_time} mins</p>
+                </div>
 
-                                </>
+
+                <div className="total-meal-weight">
+                    <p><strong>Total Meal Weight: </strong>{(totalWeightInGrams * (pax / 1)).toFixed(2)} g</p>
+                </div>
+            </section>
+            <section className="nutrition-facts">
+                <h3>Nutrition Facts</h3>
+                <div className="nutrition-content">
+                    <div className="total-nutrition">
+                        <h4>Total Nutrition</h4>
+                        <ul>
+                            <li>Calories: {nutritionFacts.total?.calories || 0} kcal</li>
+                            <li>Protein: {nutritionFacts.total?.protein || 0} g</li>
+                            <li>Carbohydrate: {nutritionFacts.total?.carbohydrate || 0} g</li>
+                            <li>Fats: {nutritionFacts.total?.fat || 0} g</li>
+                        </ul>
+                    </div>
+                    <div className="per-100g-nutrition">
+                        <h4>Per 100g</h4>
+                        <ul>
+                            <li>Calories: {nutritionFacts.per100g?.calories || 0} kcal</li>
+                            <li>Protein: {nutritionFacts.per100g?.protein || 0} g</li>
+                            <li>Carbohydrate: {nutritionFacts.per100g?.carbohydrate || 0} g</li>
+                            <li>Fats: {nutritionFacts.per100g?.fat || 0} g</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            {/* Toggle Buttons */}
+            <div className="radio-inputs">
+                <label className="radio">
+                <input
+                    type="radio"
+                    name="toggle"
+                    checked={activeTab === "ingredients"}
+                    onChange={() => setActiveTab("ingredients")}
+                />
+                <span className="name">Ingredients</span>
+                </label>
+                <label className="radio">
+                <input
+                    type="radio"
+                    name="toggle"
+                    checked={activeTab === "steps"}
+                    onChange={() => setActiveTab("steps")}
+                />
+                <span className="name">Steps</span>
+                </label>
+            </div>
+
+            {/* Conditional Rendering */}
+            {activeTab === "ingredients" && (
+                <section className="ingredients-section">
+                  <h3>Ingredients</h3>
+                  
+                  <section className="serving-adjuster">
+                      <h4>Serving Packs</h4>
+                      <button 
+                        onClick={() => handlePaxChange(-1)}
+                        className="adjust-serving-button"
+                      >-
+                      </button>
+                      <span className="serving-count">{pax}</span>
+                      <button 
+                        onClick={() => handlePaxChange(1)}
+                        className="adjust-serving-button"
+                      >+
+                      </button>
+                  </section>
+                  
+                  <section className="ingredients-section">
+                    <h3>Ingredients List ({recipeIngredients.length} item(s))</h3>
+                    <div className="left-right-space-evenly-section">
+                      <button
+                        onClick={handleAutoDistribute}
+                        className="auto-distribute-button"
+                      >
+                        Auto Distribute All
+                      </button>
+
+                      <button
+                        onClick={handleDeleteAll}
+                        className="delete-all-button"
+                      >
+                        Delete All
+                      </button>
+                    </div>
+                    <ul className="ingredients-list">
+                      {recipeIngredients.map((ingredient, index) => {
+                        // Map `mealPlanId` to the corresponding ingredient
+                        const linkedInventory = inventoryData.filter(
+                          (item) =>
+                            item.inventory.ingredient_id === ingredient.ingredients.id &&
+                            mealPlans.some((mealPlan) => mealPlan.id === item.meal_plan_id)
+                        );
+                        // Calculate the total allocated quantity with unit conversion checks
+                        const totalAllocated = linkedInventory.reduce((sum, inventory) => {
+                          const baseConversionRate = ingredient.ingredients.unit?.conversion_rate_to_grams || 1;
+                          const inventoryConversionRate =
+                            inventory.ingredients.unitInv?.conversion_rate_to_grams_for_check || 1;
+                          
+                          // If units match, no conversion needed
+                          if (
+                            ingredient.ingredients.unit?.unit_tag === inventory.ingredients.unitInv?.unitInv_tag
+                          ) {
+                            return sum + inventory.used_quantity;
+                          }
+
+                          // If conversion rates match but units differ, add without adjustment
+                          if (baseConversionRate === inventoryConversionRate) {
+                            return sum + inventory.used_quantity;
+                          }
+
+                          // Convert allocated quantity to the ingredient's unit
+                          const convertedQuantity =
+                            (inventory.used_quantity * inventoryConversionRate) / baseConversionRate;
+                          return sum + convertedQuantity;
+                        }, 0);
+
+                        // console.log("inventory used_quantity:", linkedInventory);
+                        // console.log("totalAllocated:", totalAllocated);
+
+                        // Determine if the status is "Complete"
+                        const isComplete = totalAllocated >= ingredient.quantity;
+
+                        return (
+                          <li
+                            key={index}
+                            // onClick={() => handleIngredientClick(ingredient)}
+                            onClick={() => handleIngredientClick(ingredient, recipe.id)}
+                            className="ingredient-item"
+                          >
+                            {/* Display ingredient details */}
+                            <img 
+                            src={`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/${ingredient.ingredients.icon_path}`} 
+                            alt={ingredient.ingredients.name} 
+                            className="ingredient-image"
+                          />
+                            {ingredient.ingredients.name} - {ingredient.quantity}{" "}
+                            {ingredient.ingredients.unit?.unit_tag || ""}
+
+                            {/* Check and display inventory data if exists */}
+                            {/* {linkedInventory
+                            .filter((inventory) => inventory.meal_plan.recipe_id === recipe.id).length > 0 && (
+                              <div
+                                style={{
+                                  marginTop: "10px",
+                                  padding: "10px",
+                                  backgroundColor: "#f8f9fa",
+                                  border: "1px solid #ccc",
+                                  borderRadius: "5px",
+                                }}
+                              >
+                                <h4
+                                  style={{
+                                    display: "flex",
+                                    justifyContent: "space-between",
+                                    alignItems: "center",
+                                  }}
+                                >
+                                  Linked Inventory Data{" "}
+                                  <span
+                                    style={{
+                                      color: isComplete ? "green" : "red",
+                                      fontWeight: "bold",
+                                    }}
+                                  >
+                                    ({isComplete ? "Complete" : "Incomplete"})
+                                  </span>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation(); // Prevent triggering the parent onClick
+                                      // Delete all linked inventory
+                                      linkedInventory.forEach((inventory) =>
+                                        handleDeleteInventory(
+                                          inventory.inventory_id,
+                                          inventory.meal_plan_id,
+                                          inventory.ingredients.id
+                                        )
+                                      );
+                                    }}
+                                    style={{
+                                      marginLeft: "20px",
+                                      padding: "5px 10px",
+                                      backgroundColor: "red",
+                                      color: "white",
+                                      border: "none",
+                                      borderRadius: "5px",
+                                      cursor: "pointer",
+                                    }}
+                                  >
+                                    Delete All
+                                  </button>
+                                </h4>
+                                {linkedInventory
+                                .filter((inventory) => inventory.meal_plan.recipe_id === recipe.id) 
+                                .map((inventory) => (
+                                  <div
+                                    key={inventory.id}
+                                    style={{
+                                      marginBottom: "10px",
+                                      padding: "10px",
+                                      border: "1px solid #ccc",
+                                      borderRadius: "5px",
+                                    }}
+                                  > 
+                                    {console.log("Inventory:", inventory)}
+                                    <p>
+                                      <strong>Original quantity:</strong>{" "}
+                                      {inventory.ingredients.unit?.unit_tag === inventory.ingredients.unitInv?.unitInv_tag ? (
+                                        // If the unit tags match, display quantity in a single unit
+                                        <>
+                                          {inventory.inventory.init_quantity} {inventory.ingredients.unit?.unit_tag || ""}
+                                        </>
+                                      ) : inventory.ingredients.unit?.conversion_rate_to_grams ===
+                                        inventory.ingredients.unitInv?.conversion_rate_to_grams_for_check ? (
+                                        // If conversion rates match but units differ, display both units
+                                        <>
+                                          {inventory.inventory.init_quantity} {inventory.ingredients.unitInv?.unitInv_tag || ""} /
+                                          {inventory.inventory.init_quantity} {inventory.ingredients.unit?.unit_tag || ""}
+                                        </>
+                                      ) : (
+                                        // If conversion rates and unit tags differ, show adjusted quantities
+                                        <>
+                                          {inventory.inventory.init_quantity} {inventory.ingredients.unitInv?.unitInv_tag || ""} /
+                                          {Math.round(
+                                            (inventory.inventory.init_quantity *
+                                              (inventory.ingredients.unitInv?.conversion_rate_to_grams_for_check || 1)) /
+                                              (inventory.ingredients.unit?.conversion_rate_to_grams || 1)
+                                          )}{" "}
+                                          {inventory.ingredients.unit?.unit_tag || ""}
+                                        </>
+                                      )}
+                                    </p>
+                                    <p>
+                                      <strong>Quantity allocated:</strong>{" "}
+                                      {inventory.ingredients.unit?.unit_tag === inventory.ingredients.unitInv?.unitInv_tag ? (
+                                        // If the unit tags match, display allocated quantity in a single unit
+                                        <>
+                                          {inventory.used_quantity} {inventory.ingredients.unit?.unit_tag || ""}
+                                        </>
+                                      ) : inventory.ingredients.unit?.conversion_rate_to_grams ===
+                                        inventory.ingredients.unitInv?.conversion_rate_to_grams_for_check ? (
+                                        // If conversion rates match but units differ, display both units
+                                        <>
+                                          {inventory.used_quantity} {inventory.ingredients.unitInv?.unitInv_tag || ""} /
+                                          {inventory.used_quantity} {inventory.ingredients.unit?.unit_tag || ""}
+                                        </>
+                                      ) : (
+                                        // If conversion rates and unit tags differ, show adjusted quantities with a ~ for approximations
+                                        <>
+                                          {inventory.used_quantity} {inventory.ingredients.unitInv?.unitInv_tag || ""} /{" "}
+                                          {
+                                            Number.isInteger(
+                                              (inventory.used_quantity *
+                                                (inventory.ingredients.unitInv?.conversion_rate_to_grams_for_check || 1)) /
+                                                (inventory.ingredients.unit?.conversion_rate_to_grams || 1)
+                                            )
+                                              ? Math.round(
+                                                  (inventory.used_quantity *
+                                                    (inventory.ingredients.unitInv?.conversion_rate_to_grams_for_check || 1)) /
+                                                    (inventory.ingredients.unit?.conversion_rate_to_grams || 1)
+                                                )
+                                              : `~${Math.round(
+                                                  (inventory.used_quantity *
+                                                    (inventory.ingredients.unitInv?.conversion_rate_to_grams_for_check || 1)) /
+                                                    (inventory.ingredients.unit?.conversion_rate_to_grams || 1)
+                                                )}`
+                                          }{" "}
+                                          {inventory.ingredients.unit?.unit_tag || ""}
+
+                                        </>
+                                      )}
+                                    </p>
+                                    <p>
+                                      <strong>Expiry Date:</strong>{" "}
+                                      {inventory.inventory.expiry_date.date || "No expiry date"}
+                                    </p>
+                                    <p>{inventory.inventory.days_left} days left</p>
+                                    <p>
+                                      <strong>Status:</strong>{" "}
+                                      {inventory.inventory_meal_plan_status.name}
+                                    </p>
+                                  </div>
+                                ))}
+                              </div>
+                            )} */}
+                            {linkedInventory
+                              .filter((inventory) => inventory.meal_plan.recipe_id === recipe.id).length > 0 && (
+                                <div className="linked-inventory-container">
+                                  <h4 className="linked-inventory-header">
+                                    Linked Inventory Data{" "}
+                                    <span className={`inventory-status ${isComplete ? "complete" : "incomplete"}`}>
+                                      ({isComplete ? "Complete" : "Incomplete"})
+                                    </span>
+                                    <button
+                                      className="delete-all-button"
+                                      onClick={(e) => {
+                                        e.stopPropagation(); // Prevent triggering the parent onClick
+                                        linkedInventory.forEach((inventory) =>
+                                          handleDeleteInventory(
+                                            inventory.inventory_id,
+                                            inventory.meal_plan_id,
+                                            inventory.ingredients.id
+                                          )
+                                        );
+                                      }}
+                                    >
+                                      Delete All
+                                    </button>
+                                  </h4>
+                                  {/* {linkedInventory
+                                    .filter((inventory) => inventory.meal_plan.recipe_id === recipe.id)
+                                    .map((inventory) => (
+                                      <div key={inventory.id} className="inventory-item">
+                                        <p>
+                                          <strong>Original quantity:</strong>{" "}
+                                          {inventory.ingredients.unit?.unit_tag === inventory.ingredients.unitInv?.unitInv_tag ? (
+                                            <>
+                                              {inventory.inventory.init_quantity} {inventory.ingredients.unit?.unit_tag || ""}
+                                            </>
+                                          ) : inventory.ingredients.unit?.conversion_rate_to_grams ===
+                                            inventory.ingredients.unitInv?.conversion_rate_to_grams_for_check ? (
+                                            <>
+                                              {inventory.inventory.init_quantity} {inventory.ingredients.unitInv?.unitInv_tag || ""} /
+                                              {inventory.inventory.init_quantity} {inventory.ingredients.unit?.unit_tag || ""}
+                                            </>
+                                          ) : (
+                                            <>
+                                              {inventory.inventory.init_quantity} {inventory.ingredients.unitInv?.unitInv_tag || ""} /
+                                              {Math.round(
+                                                (inventory.inventory.init_quantity *
+                                                  (inventory.ingredients.unitInv?.conversion_rate_to_grams_for_check || 1)) /
+                                                  (inventory.ingredients.unit?.conversion_rate_to_grams || 1)
+                                              )}{" "}
+                                              {inventory.ingredients.unit?.unit_tag || ""}
+                                            </>
+                                          )}
+                                        </p>
+                                        <p>
+                                          <strong>Quantity allocated:</strong>{" "}
+                                          {inventory.ingredients.unit?.unit_tag === inventory.ingredients.unitInv?.unitInv_tag ? (
+                                            <>
+                                              {inventory.used_quantity} {inventory.ingredients.unit?.unit_tag || ""}
+                                            </>
+                                          ) : inventory.ingredients.unit?.conversion_rate_to_grams ===
+                                            inventory.ingredients.unitInv?.conversion_rate_to_grams_for_check ? (
+                                            <>
+                                              {inventory.used_quantity} {inventory.ingredients.unitInv?.unitInv_tag || ""} /
+                                              {inventory.used_quantity} {inventory.ingredients.unit?.unit_tag || ""}
+                                            </>
+                                          ) : (
+                                            <>
+                                              {inventory.used_quantity} {inventory.ingredients.unitInv?.unitInv_tag || ""} /{" "}
+                                              {
+                                                Number.isInteger(
+                                                  (inventory.used_quantity *
+                                                    (inventory.ingredients.unitInv?.conversion_rate_to_grams_for_check || 1)) /
+                                                    (inventory.ingredients.unit?.conversion_rate_to_grams || 1)
+                                                )
+                                                  ? Math.round(
+                                                      (inventory.used_quantity *
+                                                        (inventory.ingredients.unitInv?.conversion_rate_to_grams_for_check || 1)) /
+                                                        (inventory.ingredients.unit?.conversion_rate_to_grams || 1)
+                                                    )
+                                                  : `~${Math.round(
+                                                      (inventory.used_quantity *
+                                                        (inventory.ingredients.unitInv?.conversion_rate_to_grams_for_check || 1)) /
+                                                        (inventory.ingredients.unit?.conversion_rate_to_grams || 1)
+                                                    )}`
+                                              }{" "}
+                                              {inventory.ingredients.unit?.unit_tag || ""}
+                                            </>
+                                          )}
+                                        </p>
+                                        <p>
+                                          <strong>Expiry Date:</strong>{" "}
+                                          {inventory.inventory.expiry_date.date || "No expiry date"}
+                                        </p>
+                                        <p>{inventory.inventory.days_left} days left</p>
+                                        <p>
+                                          <strong>Status:</strong>{" "}
+                                          {inventory.inventory_meal_plan_status.name}
+                                        </p>
+                                      </div>
+                                    ))} */}
+                                    {linkedInventory
+        .filter((inventory) => inventory.meal_plan.recipe_id === recipe.id)
+        .map((inventory) => {
+          const allocationPercentage =
+            (inventory.used_quantity / inventory.inventory.init_quantity) * 100;
+
+          return (
+            <div key={inventory.id} className="inventory-item">
+              <p>
+                <strong>Original quantity:</strong>{" "}
+                {inventory.ingredients.unit?.unit_tag === inventory.ingredients.unitInv?.unitInv_tag ? (
+                  <>
+                    {inventory.inventory.init_quantity} {inventory.ingredients.unit?.unit_tag || ""}
+                  </>
+                ) : inventory.ingredients.unit?.conversion_rate_to_grams ===
+                  inventory.ingredients.unitInv?.conversion_rate_to_grams_for_check ? (
+                  <>
+                    {inventory.inventory.init_quantity} {inventory.ingredients.unitInv?.unitInv_tag || ""} /
+                    {inventory.inventory.init_quantity} {inventory.ingredients.unit?.unit_tag || ""}
+                  </>
+                ) : (
+                  <>
+                    {inventory.inventory.init_quantity} {inventory.ingredients.unitInv?.unitInv_tag || ""} /
+                    {Math.round(
+                      (inventory.inventory.init_quantity *
+                        (inventory.ingredients.unitInv?.conversion_rate_to_grams_for_check || 1)) /
+                        (inventory.ingredients.unit?.conversion_rate_to_grams || 1)
+                    )}{" "}
+                    {inventory.ingredients.unit?.unit_tag || ""}
+                  </>
+                )}
+              </p>
+              <p>
+                <strong>Quantity left:</strong>{" "}
+                {inventory.ingredients.unit?.unit_tag === inventory.ingredients.unitInv?.unit_tag ? (
+                  <>
+                    {inventory.inventory.quantity} {inventory.ingredients.unit?.unit_tag || ""}
+                  </>
+                ) : inventory.ingredients.unit?.conversion_rate_to_grams ===
+                  inventory.ingredients.unitInv?.conversion_rate_to_grams_for_check ? (
+                  <>
+                    {inventory.inventory.quantity} {inventory.ingredients.unitInv?.unitInv_tag || ""} /
+                    {inventory.inventory.quantity} {inventory.ingredients.unit?.unit_tag || ""}
+                  </>
+                ) : (
+                  <>
+                    {inventory.inventory.quantity} {inventory.ingredients.unitInv?.unitInv_tag || ""} /
+                    {Math.round(
+                      (inventory.inventory.quantity *
+                        (inventory.ingredients.unitInv?.conversion_rate_to_grams_for_check || 1)) /
+                        (inventory.ingredients.unit?.conversion_rate_to_grams || 1)
+                    )}{" "}
+                    {inventory.ingredients.unit?.unit_tag || ""}
+                  </>
+                )}
+              </p>
+              <p>
+                <strong>Quantity allocated:</strong>{" "}
+                {inventory.ingredients.unit?.unit_tag === inventory.ingredients.unitInv?.unitInv_tag ? (
+                  <>
+                    {inventory.used_quantity} {inventory.ingredients.unit?.unit_tag || ""}
+                  </>
+                ) : inventory.ingredients.unit?.conversion_rate_to_grams ===
+                  inventory.ingredients.unitInv?.conversion_rate_to_grams_for_check ? (
+                  <>
+                    {inventory.used_quantity} {inventory.ingredients.unitInv?.unitInv_tag || ""} /
+                    {inventory.used_quantity} {inventory.ingredients.unit?.unit_tag || ""}
+                  </>
+                ) : (
+                  <>
+                    {inventory.used_quantity} {inventory.ingredients.unitInv?.unitInv_tag || ""} /{" "}
+                    {
+                      Number.isInteger(
+                        (inventory.used_quantity *
+                          (inventory.ingredients.unitInv?.conversion_rate_to_grams_for_check || 1)) /
+                          (inventory.ingredients.unit?.conversion_rate_to_grams || 1)
+                      )
+                        ? Math.round(
+                            (inventory.used_quantity *
+                              (inventory.ingredients.unitInv?.conversion_rate_to_grams_for_check || 1)) /
+                              (inventory.ingredients.unit?.conversion_rate_to_grams || 1)
+                          )
+                        : `~${Math.round(
+                            (inventory.used_quantity *
+                              (inventory.ingredients.unitInv?.conversion_rate_to_grams_for_check || 1)) /
+                              (inventory.ingredients.unit?.conversion_rate_to_grams || 1)
+                          )}`
+                    }{" "}
+                    {inventory.ingredients.unit?.unit_tag || ""}
+                  </>
+                )}
+              </p>
+              <p>
+                <strong>Expiry Date:</strong>{" "}
+                {inventory.inventory.expiry_date.date || "No expiry date"}
+              </p>
+              <p>{inventory.inventory.days_left} days left</p>
+              <p>
+                <strong>Status:</strong>{" "}
+                {inventory.inventory_meal_plan_status.name}
+              </p>
+              <InventoryVisualization linkedInventory={linkedInventory} recipe={recipe} />
+            </div>
+          );
+        })}
+
+
+
+                                </div>
                               )}
-                            </p>
-                            <p>
-                              <strong>Expiry Date:</strong>{" "}
-                              {inventory.inventory.expiry_date.date || "No expiry date"}
-                            </p>
-                            <p>{inventory.inventory.days_left} days left</p>
-                            <p>
-                              <strong>Status:</strong>{" "}
-                              {inventory.inventory_meal_plan_status.name}
-                            </p>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
+
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </section>
+                </section>
+            )}
+            {activeTab === "steps" && (
+              <section className="steps-section">
+                <h3>Steps</h3>
+                <ul className="steps-list">
+                    {steps.map((step) => (
+                        <li key={step.step_number} className="step-item">
+                            <strong>{step.step_number}:</strong> {step.instruction}
+                        </li>
+                    ))}
+                </ul>
+            </section>
+            )}
         </div>
       );
     })}
@@ -1628,6 +2059,7 @@ const RecipePreparationPage = () => {
           }}
         >
           Start Cooking
+          {console.log("HEREEEEEEEE")}
         </button>
       ) : null}
       {selectedIngredient && (
@@ -2198,145 +2630,88 @@ const RecipePreparationPage = () => {
         </div>
       )}
       {isCookingMode && (
-  <div
-    style={{
-      position: "fixed",
-      top: 0,
-      left: 0,
-      width: "100%",
-      height: "100%",
-      background: "rgba(0, 0, 0, 0.8)",
-      color: "#fff",
-      zIndex: 1000,
-      display: "flex",
-      flexDirection: "column",
-      justifyContent: "center",
-      alignItems: "center",
-    }}
-  >
-    <h2>
-      Recipe: {recipes[currentRecipeIndex]?.name || "Unknown Recipe"} - Step{" "}
-      {currentStepIndex + 1}
-    </h2>
-    <p>
-      {recipes[currentRecipeIndex]?.steps?.[currentStepIndex]?.instruction ||
-        "No instruction available"}
-    </p>
+        <div className="cooking-mode-overlay">
+          <h2 className="cooking-mode-title">
+            Recipe: {recipes[currentRecipeIndex]?.name || "Unknown Recipe"} - Step{" "}
+            {currentStepIndex + 1}
+          </h2>
+          <p className="cooking-mode-instruction">
+            {recipes[currentRecipeIndex]?.steps?.[currentStepIndex]?.instruction ||
+              "No instruction available"}
+          </p>
 
-    <div
-      style={{
-        marginTop: "20px",
-        display: "flex",
-        gap: "10px",
-      }}
-    >
-      {/* Previous Recipe Button */}
-      {currentRecipeIndex > 0 && currentStepIndex === 0 && (
-        <button
-          onClick={() => {
-            setCurrentRecipeIndex((prev) => prev - 1);
-            setCurrentStepIndex(recipes[currentRecipeIndex - 1]?.steps?.length - 1 || 0);
-          }}
-          style={{
-            padding: "10px 20px",
-            background: "#6c757d",
-            color: "#fff",
-            border: "none",
-            borderRadius: "5px",
-            cursor: "pointer",
-          }}
-        >
-          Go to Previous Recipe
-        </button>
+          <div className="cooking-mode-buttons">
+            {/* Previous Recipe Button */}
+            {currentRecipeIndex > 0 && currentStepIndex === 0 && (
+              <button
+                onClick={() => {
+                  setCurrentRecipeIndex((prev) => prev - 1);
+                  setCurrentStepIndex(
+                    recipes[currentRecipeIndex - 1]?.steps?.length - 1 || 0
+                  );
+                }}
+                className="cooking-mode-button previous-recipe-button"
+              >
+                Go to Previous Recipe
+              </button>
+            )}
+
+            {/* Previous Step Button */}
+            <button
+              onClick={handlePreviousStep}
+              className={`cooking-mode-button ${
+                currentStepIndex === 0 ? "hidden" : ""
+              }`}
+            >
+              Previous Step
+            </button>
+
+            {/* Next Step Button */}
+            <button
+              onClick={handleNextStep}
+              className={`cooking-mode-button ${
+                currentStepIndex ===
+                (recipes[currentRecipeIndex]?.steps?.length - 1 || 0)
+                  ? "hidden"
+                  : ""
+              }`}
+            >
+              Next Step
+            </button>
+
+            {/* Proceed to Next Recipe or Finish Cooking */}
+            {currentStepIndex ===
+              (recipes[currentRecipeIndex]?.steps?.length - 1 || 0) &&
+              (currentRecipeIndex < recipes.length - 1 ? (
+                <button
+                  onClick={() => {
+                    setCurrentRecipeIndex((prev) => prev + 1);
+                    setCurrentStepIndex(0);
+                  }}
+                  className="cooking-mode-button next-recipe-button"
+                >
+                  Proceed to Next Recipe
+                </button>
+              ) : (
+                <button
+                  onClick={finishCooking}
+                  className="cooking-mode-button finish-cooking-button"
+                >
+                  Finish Cooking
+                </button>
+              ))}
+
+            {/* Exit Cooking Mode */}
+            <button
+              onClick={toggleCookingMode}
+              className="cooking-mode-button exit-cooking-button"
+            >
+              Exit Cooking Mode
+            </button>
+          </div>
+        </div>
       )}
 
-      {/* Previous Step Button */}
-      <button
-        onClick={handlePreviousStep}
-        style={{
-          padding: "10px 20px",
-          background: "#007bff",
-          color: "#fff",
-          border: "none",
-          borderRadius: "5px",
-          cursor: "pointer",
-          visibility: currentStepIndex === 0 ? "hidden" : "visible",
-        }}
-      >
-        Previous Step
-      </button>
-
-      {/* Next Step Button */}
-      <button
-        onClick={handleNextStep}
-        style={{
-          padding: "10px 20px",
-          background: "#007bff",
-          color: "#fff",
-          border: "none",
-          borderRadius: "5px",
-          cursor: "pointer",
-          visibility:
-            currentStepIndex === (recipes[currentRecipeIndex]?.steps?.length - 1 || 0)
-              ? "hidden"
-              : "visible",
-        }}
-      >
-        Next Step
-      </button>
-
-      {/* Proceed to Next Recipe or Finish Cooking */}
-      {currentStepIndex === (recipes[currentRecipeIndex]?.steps?.length - 1 || 0) &&
-        (currentRecipeIndex < recipes.length - 1 ? (
-          <button
-            onClick={() => {
-              setCurrentRecipeIndex((prev) => prev + 1);
-              setCurrentStepIndex(0);
-            }}
-            style={{
-              padding: "10px 20px",
-              background: "green",
-              color: "#fff",
-              border: "none",
-              borderRadius: "5px",
-              cursor: "pointer",
-            }}
-          >
-            Proceed to Next Recipe
-          </button>
-        ) : (
-          <button
-            onClick={finishCooking}
-            style={{
-              padding: "10px 20px",
-              background: "green",
-              color: "#fff",
-              border: "none",
-              borderRadius: "5px",
-              cursor: "pointer",
-            }}
-          >
-            Finish Cooking
-          </button>
-        ))}
-
-      {/* Exit Cooking Mode */}
-      <button
-        onClick={toggleCookingMode}
-        style={{
-          padding: "10px 20px",
-          background: "red",
-          color: "#fff",
-          border: "none",
-          borderRadius: "5px",
-          cursor: "pointer",
-        }}
-      >
-        Exit Cooking Mode
-      </button>
-    </div>
-  </div>
-)}
     </div>
   );
 };
