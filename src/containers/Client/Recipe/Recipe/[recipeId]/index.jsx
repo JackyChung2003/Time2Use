@@ -525,6 +525,80 @@ const RecipeDetail = () => {
                 </ul>
             </section>
             )}
+
+            {!scheduleData ? (
+                <>
+                    <button
+                        onClick={toggleCookingMode}
+                        className="button cooking-mode-button"
+                    >
+                        Start Cooking Mode
+                    </button>
+
+                    <button
+                        onClick={() =>
+                            navigate('/recipes/calendar', {
+                                state: { recipeId: id, recipeName: recipe.name },
+                            })
+                        }
+                        className="button reschedule-button"
+                    >
+                        Reschedule
+                    </button>
+                </>
+            ) : (
+                // Buttons for navigating from the Meal Planning page
+                <>
+                    {scheduleData?.activity_type === "view" ? (
+                        // Show the "Cancel Schedule" button for "view" activity type
+                        <button
+                            onClick={handleCancelSchedule}
+                            className="button cancel-schedule-button"
+                            // onMouseEnter={(e) => (e.target.style.background = "#e63939")}
+                            // onMouseLeave={(e) => (e.target.style.background = "#ff4d4d")}
+                            onMouseEnter={(e) =>
+                                e.target.classList.add('cancel-schedule-hover')
+                            }
+                            onMouseLeave={(e) =>
+                                e.target.classList.remove('cancel-schedule-hover')
+                            }
+                        >
+                            <span className="cancel-icon">✖</span>
+                            Cancel Schedule for {" "}
+                            {new Date(scheduleData.planned_date).toLocaleDateString("en-US", {
+                                month: "long",
+                                day: "numeric",
+                                year: "numeric",
+                            })} {" "}
+                            ({mealTypeMap[scheduleData.meal_type_id] || "Unknown"})
+                        </button>
+                        
+                    ) : (
+                        // Updated "Add Recipe to Meal Plan" button
+                        // Add to Meal Button with Modal Trigger
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation(); // Prevent event propagation
+                                handleOpenAddModal(recipe.id); // Trigger modal opening
+                            }}
+                            className="button add-meal-button"
+                        >
+                            Add to Meal
+                        </button>
+                    )}
+                    <button
+                        onClick={() =>
+                            navigate('/recipes/calendar', {
+                                state: { recipeId: id, recipeName: recipe.name },
+                            })
+                        }
+                        className="button reschedule-another-button"
+                    >
+                        Reschedule Another Meal
+                    </button>
+                    {/* havnt do passing state for this */}
+                </>
+            )}
     
             {isCookingMode && (
                 <section className="cooking-mode-overlay">
