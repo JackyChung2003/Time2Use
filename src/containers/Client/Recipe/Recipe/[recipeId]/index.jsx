@@ -376,47 +376,9 @@ const RecipeDetail = () => {
                         >
                             {favorites.includes(recipe.id) ? "❤️" : "🤍"}
                         </button>
-                        {/* <button onClick={shareRecipe} className="share-button">
-                            Share
-                        </button> */}
                     </div>
                 </div>
             </section>
-            {/* <header className="recipe-header">
-                <BackButton />
-                <h1 className="recipe-title">{recipe.name}</h1>
-                <div className="action-buttons">
-                    <button
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            toggleFavorite(recipe.id);
-                        }}
-                        className="favorite-button"
-                    >
-                        {favorites.includes(recipe.id) ? "❤️" : "🤍"}
-                    </button>
-                    <button onClick={shareRecipe} className="share-button">
-                        Share
-                    </button>
-                </div>
-            </header>
-     */}
-            {/* {scheduleData && (
-                <section className="schedule-info">
-                    <h2>Scheduled Meal Information</h2>
-                    <p><strong>Planned Date:</strong> {new Date(scheduleData.planned_date).toLocaleDateString()}</p>
-                    <p><strong>Meal Type:</strong> {mealTypeMap[scheduleData.meal_type_id] || 'Unknown'}</p>
-                    <p><strong>Recipe Name:</strong> {scheduleData.recipe_name}</p>
-                </section>
-            )} */}
-    
-            {/* <section className="recipe-image-detail-section">
-                <img
-                    src={`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/${recipe.image_path}`}
-                    alt={recipe.name}
-                    className="recipe-detail-image"
-                />
-            </section> */}
             <div className='recipe-detail-lower-section'>
 
             <section className="recipe-details">
