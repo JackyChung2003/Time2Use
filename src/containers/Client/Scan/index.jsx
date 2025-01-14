@@ -122,7 +122,8 @@ const Scan = () => {
                     user_id: userId,
                     ingredient_id: item.id,
                     quantity: item.quantity,
-                    quantity_unit_id: ingredientData.quantity_unit_id, // Use the unit from ingredients table
+                    // quantity_unit_id: ingredientData.quantity_unit_id, // Use the unit from ingredients table
+                    expiry_date_id: ingredientData.expiry_date_id,
                     created_at: new Date().toISOString(),
                     condition_id: 1, // default condition (good)
                     days_left: days_left,

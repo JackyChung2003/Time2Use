@@ -33,6 +33,7 @@
     "react-qr-scanner": "^1.0.0-alpha.11",
     "react-router-dom": "^7.0.1",
     "react-swipeable": "^7.0.2",
+    "react-toastify": "^11.0.2",
     "remark-breaks": "^4.0.0",
     "remark-gfm": "^4.0.0",
     "web-push": "^3.6.7"

@@ -49,9 +49,7 @@ const AdminUsers = () => {
       setLoading(false);
     }
   };
-  
-  
-  
+
   const handleDelete = async (userId) => {
     if (window.confirm('Are you sure you want to delete this user?')) {
       try {
@@ -68,14 +66,20 @@ const AdminUsers = () => {
     }
   };
 
+  const handleEdit = (userId) => {
+    // Placeholder function for Edit action
+    console.log(`Edit user with ID: ${userId}`);
+    // Redirect to an edit page or show a modal
+    navigate(`/admin/users/edit/${userId}`);
+  };
+
   if (loading) return <div>Loading...</div>;
 
   return (
-    
     <div className="admin-users">
       <div className="admin-users-header">
         <h2>Manage Users</h2>
-        <button 
+        <button
           className="create-user-btn"
           onClick={() => navigate('/admin/users/create')}
         >
@@ -101,6 +105,18 @@ const AdminUsers = () => {
                 <td>{user.role}</td>
                 <td>
                   <div className="action-buttons">
+                    <button
+                      className="edit-btn"
+                      onClick={() => handleEdit(user.id)} // Edit button handler
+                    >
+                      Edit
+                    </button>
+                    <button
+                      className="delete-btn"
+                      onClick={() => handleDelete(user.id)} // Delete button handler
+                    >
+                      Delete
+                    </button>
                   </div>
                 </td>
               </tr>
