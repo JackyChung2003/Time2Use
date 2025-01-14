@@ -227,108 +227,93 @@ const handleAddMeal = async () => {
             <h2>Recipe Details</h2>
             <p><strong>Recipe Name:</strong> {recipeName}</p>
             <p><strong>Recipe ID:</strong> {recipeId}</p>
-            {/* <p>{passedDate}</p> */}
           </div>
         )}
       </header>
-
+  
       {mealTypes.map((mealType) => {
-      // Filter meal plans for the current meal type
-      const mealsForType = mealPlans.filter(
-        (meal) => meal.meal_type_name === mealType.name
-      );
-
-      const hasMeals = mealsForType.length > 0; // Check if there are meals
-
+        const mealsForType = mealPlans.filter(
+          (meal) => meal.meal_type_name === mealType.name
+        );
+        const hasMeals = mealsForType.length > 0;
+  
         return (
           <div key={mealType.id} className="meal-section">
             <div className="meal-section-header">
-              <div className="meal-header-image">
+              <div className={`meal-header-image ${hasMeals ? (Array.isArray(mergedImages[mealType.name]) ? "split-images" : "full-image") : "no-image"}`}>
                 {hasMeals ? (
-                  mergedImages[mealType.name] &&
                   Array.isArray(mergedImages[mealType.name]) ? (
-                    <div className="merged-images">
+                    <div className="split-images">
                       <img
                         src={mergedImages[mealType.name][0]}
                         alt="Meal 1"
-                        className="meal-merged-image"
+                        className="meal-image-left"
                       />
                       <img
                         src={mergedImages[mealType.name][1]}
                         alt="Meal 2"
-                        className="meal-merged-image"
+                        className="meal-image-right"
                       />
                     </div>
                   ) : (
                     <img
                       src={mergedImages[mealType.name]}
                       alt="Single Meal"
-                      className="meal-merged-image"
+                      className="meal-full-image"
                     />
                   )
                 ) : (
                   <div className="no-meal-placeholder">
                     <p>No meals planned for {mealType.name}.</p>
-                    {/* Optionally, add an icon or illustration */}
                   </div>
                 )}
+                <div className="meal-title-overlay">
+                  <h2>{mealType.name}</h2>
+                  <div className="meal-section-controls">
+                    <button
+                      onClick={() =>
+                        recipeId
+                          ? handleOpenAddModal(mealType.id)
+                          : setShowScheduleOptions({ show: true, mealTypeId: mealType.id })
+                      }
+                      className="action-button"
+                    >
+                      {recipeId ? "Add Here" : "Schedule Meal"}
+                    </button>
+      
+                    {hasMeals && (
+                      <button
+                        onClick={() =>
+                          navigate(`/recipes/calendar/preparation/${date}`, {
+                            state: {
+                              planned_date: date,
+                              meal_type_id: mealType.id,
+                            },
+                          })
+                        }
+                        className="view-details-button"
+                      >
+                        View Details
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+
               </div>
+  
               {/* <div className="meal-section-controls">
                 <button
                   onClick={() =>
-                    navigate(`/recipes/calendar/preparation/${date}`, {
-                      state: {
-                        planned_date: date,
-                        meal_type_id: mealType.id,
-                      },
-                    })
-                  }
-                >
-                  View Details
-                </button>
-                {hasMeals && (
-                  <button onClick={() => console.log("Start Cooking")}>
-                    Start Cooking
-                  </button>
-                )}
-
-                <button
-                  onClick={() => handleOpenAddModal(mealType.id)} // Pass mealType.id to open the modal
-                  className="add-meal-button"
-                >
-                  Add Meal(real)
-                </button>
-              </div> */}
-              <div className="meal-section-controls">
-                {/* Button to navigate based on recipeId */}
-                {/* <button
-                  onClick={() =>
                     recipeId
-                      ? handleOpenAddModal(mealType.id) // Open Add Modal when recipeId exists
-                      : navigate(`/recipes/explore`, {
-                          state: {
-                            planned_date: date,
-                            meal_type_id: mealType.id,
-                          },
-                        }) // Navigate to browse recipes
-                  }
-                  className="action-button"
-                >
-                  {recipeId ? "Add Here" : "Schedule Meal"}
-                </button> */}
-                <button
-                  onClick={() =>
-                    recipeId
-                      ? handleOpenAddModal(mealType.id) // Open Add Modal when recipeId exists
-                      // : setShowScheduleOptions(true) // Show schedule options modal
-                      : setShowScheduleOptions({ show: true, mealTypeId: mealType.id }) // Pass mealType.id to the modal state
+                      ? handleOpenAddModal(mealType.id)
+                      : setShowScheduleOptions({ show: true, mealTypeId: mealType.id })
                   }
                   className="action-button"
                 >
                   {recipeId ? "Add Here" : "Schedule Meal"}
                 </button>
-
-                {/* View Details Button */}
+  
                 {hasMeals && (
                   <button
                     onClick={() =>
@@ -344,27 +329,16 @@ const handleAddMeal = async () => {
                     View Details
                   </button>
                 )}
-
-                {/* Start Cooking Button */}
-                {/* {hasMeals && (
-                  <button
-                    onClick={() => console.log("Start Cooking")}
-                    className="start-cooking-button"
-                  >
-                    Start Cooking
-                  </button>
-                )} */}
-              </div>
-
-              <h2>{mealType.name}</h2>
+              </div> */}
+  
               <span
                 onClick={() => toggleSection(mealType.name)}
-                style={{ cursor: "pointer" }}
+                className="toggle-section-button"
               >
                 {expandedSections[mealType.name] ? "▲" : "▼"}
               </span>
             </div>
-
+  
             {expandedSections[mealType.name] && hasMeals && (
               <div className="meal-list">
                 {mealsForType.map((meal, idx) => (
@@ -379,7 +353,7 @@ const handleAddMeal = async () => {
                             planned_date: meal.planned_date,
                             meal_type_id: meal.meal_type_id,
                             recipe_id: meal.recipe_id,
-                            activity_type: "view", // Add activity_type as "view"
+                            activity_type: "view",
                           },
                         })
                       }
@@ -391,14 +365,13 @@ const handleAddMeal = async () => {
                       <p className="meal-notes">{meal.notes}</p>
                       <button
                         onClick={(e) => {
-                            e.stopPropagation(); 
-                            handleCancelMeal(
-                              meal.planned_date,
-                              meal.recipe_id,
-                              meal.meal_type_id
-                            );
-                          }
-                        }
+                          e.stopPropagation();
+                          handleCancelMeal(
+                            meal.planned_date,
+                            meal.recipe_id,
+                            meal.meal_type_id
+                          );
+                        }}
                         className="cancel-meal-button"
                       >
                         Cancel
@@ -408,45 +381,16 @@ const handleAddMeal = async () => {
                 ))}
               </div>
             )}
-
-            {/* Show a message if the section is expanded but there are no meals */}
+  
             {expandedSections[mealType.name] && !hasMeals && (
               <div className="no-meal-message">
-                <p>No meals added for {mealType.name}. Click "Add Meal" to start planning!</p>
+                <p>No meals added for {mealType.name}. Click &quot;Schedule Meal&quot; to start planning!</p>
               </div>
             )}
           </div>
         );
       })}
-      {/* {showAddModal && (
-        <div className="modal">
-          <div className="modal-content">
-            <h2>Add a Meal</h2>
-            <label>
-              Notes:
-              <input
-                type="text"
-                value={newMeal.notes}
-                onChange={(e) =>
-                  setNewMeal((prev) => ({ ...prev, notes: e.target.value }))
-                }
-              />
-            </label>
-            <label>
-              Time:
-              <input
-                type="time"
-                value={newMeal.time}
-                onChange={(e) =>
-                  setNewMeal((prev) => ({ ...prev, time: e.target.value }))
-                }
-              />
-            </label>
-            <button onClick={handleAddMeal}>Save</button>
-            <button onClick={() => setShowAddModal(null)}>Cancel</button>
-          </div>
-        </div>
-      )} */}
+  
       {showAddModal && (
         <div className="modal">
           <div className="modal-content">
@@ -464,6 +408,7 @@ const handleAddMeal = async () => {
                   setNewMeal((prev) => ({ ...prev, notes: e.target.value }))
                 }
                 rows="3"
+                className="notes-textarea"
               />
             </label>
             <label>
@@ -474,6 +419,7 @@ const handleAddMeal = async () => {
                 onChange={(e) =>
                   setNewMeal((prev) => ({ ...prev, time: e.target.value }))
                 }
+                className="time-input"
               />
             </label>
             <button onClick={handleAddMeal} className="save-button">Save</button>
@@ -481,20 +427,13 @@ const handleAddMeal = async () => {
           </div>
         </div>
       )}
-
+  
       {showScheduleOptions.show && (
         <div className="modal">
           <div className="modal-content">
             <h2>Schedule Meal</h2>
             <p>
-              Would you like to schedule a meal for{" "}
-              <strong>
-                {
-                  mealTypes.find((type) => type.id === showScheduleOptions.mealTypeId)
-                    ?.name
-                }
-              </strong>{" "}
-              from your favorites or all recipes?
+              Would you like to schedule a meal for <strong>{mealTypes.find((type) => type.id === showScheduleOptions.mealTypeId)?.name}</strong> from your favorites or all recipes?
             </p>
             <div className="modal-buttons">
               <button
@@ -519,10 +458,6 @@ const handleAddMeal = async () => {
           </div>
         </div>
       )}
-
-
-
-
     </div>
   );
 };
