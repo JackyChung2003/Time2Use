@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
@@ -17,6 +17,7 @@ const Chatbot = () => {
   const [chatHistory, setChatHistory] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
+  const chatEndRef = useRef(null); // Ref for the bottom of the chat
   const location = useLocation();
   const navigate = useNavigate();
   const currentPath = location.pathname; // e.g., "/recipes/details"
@@ -25,14 +26,7 @@ const Chatbot = () => {
   const [pendingAction, setPendingAction] = useState(null); // Store pending action
   const [isOverlayOpen, setIsOverlayOpen] = useState(false); // Chat overlay visibility state
 
-  // const { applyFilters } = useRecipeContext(); // Access applyFilters from context
-  // const { fetchRecipes, applyFilters } = useRecipeContext();
-  // const { tags, filters, applyFilters, fetchRecipes } = useRecipeContext();
   const { tags, categories, equipment, ingredients, recipes, filters, applyFilters, fetchRecipes } = useRecipeContext();
-
-  // console.log("Categories:", categories); // Check if categories are being fetched properly
-  // console.log("Equipment:", equipment);
-  // console.log("Filters:", filters);
 
   const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
   if (!apiKey) {
@@ -48,22 +42,10 @@ const Chatbot = () => {
     setUserInput(e.target.value);
   };
 
-// const handleModalResponse = (response) => {
-//   setIsModalOpen(false); // Close the modal
-//   if (response === "yes" && pendingAction === "NAVIGATE_TO_RECIPE_EXPLORE") {
-//     navigate("/recipes/explore"); // Navigate to the page
-//     setChatHistory((prev) => [
-//       ...prev,
-//       { type: "bot", message: "Navigated to RecipeExplore. What would you like me to help with?" },
-//     ]);
-//   } else {
-//     setChatHistory((prev) => [
-//       ...prev,
-//       { type: "bot", message: "No worries! Let me know if there's anything else you'd like me to help with." },
-//     ]);
-//   }
-//   setPendingAction(null); // Clear the pending action
-// };
+  // Scroll to the bottom when chatHistory updates
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [chatHistory]);
 
 const handleModalResponse = (response) => {
   setIsModalOpen(false); // Close the modal
@@ -95,7 +77,18 @@ const handleModalResponse = (response) => {
 const sendMessage = async () => {
   if (userInput.trim() === "") return;
 
+  // setIsLoading(true);
+   // Immediately add the user's message to the chat history
+   setChatHistory((prev) => [
+    ...prev,
+    { type: "user", message: userInput },
+  ]);
+
+  // Clear the user input for better UX
+  setUserInput("");
+
   setIsLoading(true);
+
   try {
     // Build the conversation context
     const context = chatHistory
@@ -126,7 +119,7 @@ const sendMessage = async () => {
      if (interpretedText.includes("[GENERAL QUERY]")) {
       setChatHistory((prev) => [
         ...prev,
-        { type: "user", message: userInput },
+        // { type: "user", message: userInput },
         { type: "bot", message: interpretedText.replace("[GENERAL QUERY]", "").trim() },
       ]);
       return; // Exit early, no filters applied
@@ -142,7 +135,7 @@ const sendMessage = async () => {
       setPendingAction("NAVIGATE_TO_RECIPE_EXPLORE");
       setChatHistory((prev) => [
         ...prev,
-        { type: "user", message: userInput },
+        // { type: "user", message: userInput },
         { 
           type: "bot", 
           message: "It looks like you're not on the RecipeExplore page. Would you like to navigate there to apply filters? (Yes/No)" 
@@ -166,7 +159,7 @@ const sendMessage = async () => {
       await fetchRecipes();
       setChatHistory((prev) => [
         ...prev,
-        { type: "user", message: userInput },
+        // { type: "user", message: userInput },
         { type: "bot", message: "All filters have been applied. Showing recipes!" },
       ]);
       return;
@@ -188,7 +181,7 @@ const sendMessage = async () => {
       await fetchRecipes();
       setChatHistory((prev) => [
         ...prev,
-        { type: "user", message: userInput },
+        // { type: "user", message: userInput },
         { type: "bot", message: "All filters cleared. Showing all recipes!" },
       ]);
       return;
@@ -242,7 +235,7 @@ const sendMessage = async () => {
     // Update chat history
     setChatHistory((prev) => [
       ...prev,
-      { type: "user", message: userInput },
+      // { type: "user", message: userInput },
       {
         type: "bot",
         message: appliedFilters
@@ -254,7 +247,7 @@ const sendMessage = async () => {
     console.error("Error sending message:", error);
     setChatHistory((prev) => [
       ...prev,
-      { type: "user", message: userInput },
+      // { type: "user", message: userInput },
       { type: "bot", message: "An error occurred. Please try again." },
     ]);
   } finally {
@@ -395,6 +388,23 @@ const sendMessage = async () => {
         </div>
       </div>
     )}
+     {isModalOpen && (
+          <div className="navigation-modal-overlay">
+            <div className="navigaton-modal">
+              <p>Would you like to navigate to the RecipeExplore page?</p>
+              <div className="left-right-space-evenly-section">
+                <button 
+                  className="yes-no-button"
+                  onClick={() => handleModalResponse("yes")}
+                >Yes</button>
+                <button 
+                  className="yes-no-button"
+                  onClick={() => handleModalResponse("no")}
+                >No</button>
+              </div>
+            </div>
+          </div>
+        )}
   </div>
 );
 };

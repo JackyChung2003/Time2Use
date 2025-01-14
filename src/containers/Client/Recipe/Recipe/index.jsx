@@ -368,449 +368,266 @@ const RecipeExplore = () => {
     
             {/* Filter Overlay */}
             {isOverlayOpen && (
-                <div className="filter-overlay">
-                    <button
-                        onClick={() => setOverlayOpen(false)}
-                        className="close-button"
-                    >
-                        X
-                    </button>
-                    <h2 className="filter-title">Filter Options</h2>
-                    <div className="filter-content">
-                        {!isAnySelected() && (
-                            <button
-                                onClick={handleSelectAll}
-                                className="select-all-button"
-                            >
-                                Select All
-                            </button>
-                        )}
-                        {isAnySelected() && !isAllSelected() && (
-                            <div className="filter-buttons">
-                                <button
-                                    onClick={handleClear}
-                                    className="clear-button"
-                                >
-                                    Clear
-                                </button>
-                                <button
-                                    onClick={handleSelectAll}
-                                    className="select-all-button"
-                                >
-                                    Select All
-                                </button>
-                            </div>
-                        )}
-                        {isAllSelected() && (
-                            <button
-                                onClick={handleClear}
-                                className="deselect-all-button"
-                            >
-                                Deselect All
-                            </button>
-                        )}
-
-                        {/* Scrollable Content */}
-                    <div
-                        style={{
-                            flex: 1,
-                            overflowY: 'auto',
-                            padding: '20px',
-                        }}
-                    >   
-                    <button
-                        onClick={() => setIngredientOverlayOpen(true)}
-                        style={{
-                            padding: '10px',
-                            background: '#00aaff',
-                            color: '#fff',
-                            border: 'none',
-                            borderRadius: '5px',
-                            cursor: 'pointer',
-                        }}
-                    >
-                        + Search Recipe by Ingredient
-                    </button>
-
-                    <div style={{ padding: '20px' }}>
-                        <h3>Selected Ingredients:</h3>
-                        <div>
-                            {filters.ingredients.length > 0 ? (
-                                filters.ingredients.map((ingredientName, index) => (
-                                    <div
-                                        key={index}
-                                        style={{
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            marginBottom: '10px',
-                                        }}
-                                    >
-                                        <span>{ingredientName}</span>
-                                        <button
-                                            onClick={() => handleIngredientRemove(ingredientName)}
-                                            style={{
-                                                marginLeft: '10px',
-                                                background: 'red',
-                                                color: 'white',
-                                                border: 'none',
-                                                borderRadius: '5px',
-                                                padding: '5px',
-                                                cursor: 'pointer',
-                                            }}
-                                        >
-                                            X
-                                        </button>
-                                    </div>
-                                ))
-                            ) : (
-                                <p>No ingredients selected.</p>
-                            )}
-                        </div>
-                    </div>
-                            
-                    <div style={{ marginBottom: '20px' }}>
-                            <h3>Category</h3>
-                            {categories.map((category) => (
-                                <label key={category.id} style={{ display: 'block', marginBottom: '5px' }}>
-                                    <input
-                                        type="checkbox"
-                                        // checked={filters.categories?.includes(category.name)} // Safeguard includes
-                                        checked={filters.categories.includes(category.name)}
-                                        onChange={(e) => {
-                                            const checked = e.target.checked;
-                                            applyFilters({
-                                                ...filters,
-                                                categories: checked
-                                                    ? [...filters.categories, category.name]
-                                                    : filters.categories.filter((c) => c !== category.name),
-                                            });
-                                        }}
-                                    />
-                                    {category.name}
-                                </label>
-                            ))}
-                        </div>
-                    </div>
-                        
-    
-                        <div className="filter-options">
-                            <div className="filter-group">
-                                <h3>Category</h3>
-                                {categories.map((category) => (
-                                    <label key={category.id} className="filter-label">
-                                        <input
-                                            type="checkbox"
-                                            checked={filters.categories.includes(category.name)}
-                                            onChange={(e) => {
-                                                const checked = e.target.checked;
-                                                applyFilters({
-                                                    ...filters,
-                                                    categories: checked
-                                                        ? [...filters.categories, category.name]
-                                                        : filters.categories.filter((c) => c !== category.name),
-                                                });
-                                            }}
-                                        />
-                                        {category.name}
-                                    </label>
-                                ))}
-                            </div>
-                            <div className="filter-group">
-                                <h3>Tags</h3>
-                                {tags.map((tag) => (
-                                    <label key={tag.id} className="filter-label">
-                                        <input
-                                            type="checkbox"
-                                            checked={filters.tags.includes(tag.name)}
-                                            onChange={(e) => {
-                                                const checked = e.target.checked;
-                                                applyFilters({
-                                                    ...filters,
-                                                    tags: checked
-                                                        ? [...filters.tags, tag.name]
-                                                        : filters.tags.filter((t) => t !== tag.name),
-                                                });
-                                            }}
-                                        />
-                                        {tag.name}
-                                    </label>
-                                ))}
-                            </div>
-                            <div className="filter-group">
-                                <h3>Equipment</h3>
-                                {equipment.map((equip) => (
-                                    <label key={equip.id} className="filter-label">
-                                        <input
-                                            type="checkbox"
-                                            checked={filters.equipment.includes(equip.name)}
-                                            onChange={(e) => {
-                                                const checked = e.target.checked;
-                                                applyFilters({
-                                                    ...filters,
-                                                    equipment: checked
-                                                        ? [...filters.equipment, equip.name]
-                                                        : filters.equipment.filter((eq) => eq !== equip.name),
-                                                });
-                                            }}
-                                        />
-                                        {equip.name}
-                                    </label>
-                                ))}
-                            </div>
-                            <div className="filter-group">
-                                <h3>Cooking Time</h3>
-                                <select
-                                    value={filters.cookTime || ''}
-                                    onChange={(e) =>
-                                        applyFilters({
-                                            ...filters,
-                                            cookTime: e.target.value ? Number(e.target.value) : null,
-                                        })
-                                    }
-                                    className="cook-time-select"
-                                >
-                                    <option value="">Any</option>
-                                    <option value="15">Less than 15 mins</option>
-                                    <option value="30">Less than 30 mins</option>
-                                    <option value="60">Less than 60 mins</option>
-                                </select>
-                            </div>
-                        </div>
-                        <button
-                            onClick={handleApplyFilters}
-                            className="apply-filters-button"
-                        >
-                            Apply Filters
-                        </button>
-                    </div>
-                </div>
-            )}
-            {isIngredientOverlayOpen && (
-            <div
-                style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    width: '100%',
-                    height: '100%',
-                    background: 'rgba(0, 0, 0, 0.8)',
-                    color: '#fff',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    zIndex: 1000,
-                }}
-            >
-                <button
-                    onClick={() => setIngredientOverlayOpen(false)}
-                    style={{
-                        position: 'absolute',
-                        top: '10px',
-                        right: '10px',
-                        background: 'red',
-                        color: '#fff',
-                        border: 'none',
-                        borderRadius: '50%',
-                        width: '30px',
-                        height: '30px',
-                        cursor: 'pointer',
-                    }}
-                >
-                    X
+            <div className="filter-overlay">
+                <button className="close-button" onClick={() => setOverlayOpen(false)}>
+                X
                 </button>
-                <h2 style={{ padding: '20px' }}>Search Ingredients</h2>
-                
-                {/* Search Bar */}
-                <div style={{ padding: '0 20px', marginBottom: '10px' }}>
-                    <input
-                        type="text"
-                        placeholder="Type an ingredient..."
-                        value={ingredientSearch}
-                        onChange={(e) => {
-                            setIngredientSearch(e.target.value);
-                            fetchMatchingIngredients(e.target.value);
-                        }}
-                        style={{
-                            width: '100%',
-                            padding: '10px',
-                            borderRadius: '5px',
-                            border: '1px solid #ddd',
-                        }}
-                    />
+                <h2 className="filter-title">Filter Options</h2>
+                <div className="filter-content">
+                {!isAnySelected() && (
+                    <button onClick={handleSelectAll} className="select-all-button">
+                    Select All
+                    </button>
+                )}
+                {isAnySelected() && !isAllSelected() && (
+                    <div className="filter-buttons">
+                    <button onClick={handleClear} className="clear-button">
+                        Clear
+                    </button>
+                    <button onClick={handleSelectAll} className="select-all-button">
+                        Select All
+                    </button>
+                    </div>
+                )}
+                {isAllSelected() && (
+                    <button onClick={handleClear} className="deselect-all-button">
+                    Deselect All
+                    </button>
+                )}
                 </div>
-                    
-                {/* Matching Ingredients List */}
-                <div style={{ flex: 1, padding: '0 20px', overflowY: 'auto' }}>
-                    {matchingIngredients.length > 0 ? (
-                        matchingIngredients.map((ingredient, index) => (
-                            <div
-                                key={index}
-                                onClick={() => {
-                                    // if (!selectedIngredients.some((item) => item.name === ingredient.name)) {
-                                    //     setSelectedIngredients((prev) => [...prev, ingredient]);
-                                    //     setIngredientSearch(''); // Clear the text box
-                                    //     setMatchingIngredients([]); // Clear the suggestions
-                                    // }
-                                    handleIngredientAdd(ingredient); // Add the ingredient to the global filter
-                                    console.log('Ingredient added:', ingredient.name);
-                                    setIngredientSearch(''); // Clear the text box
-                                    setMatchingIngredients([]); // Clear the suggestions
-                                }}
-
-                                style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    padding: '10px',
-                                    marginBottom: '5px',
-                                    border: '1px solid #ddd',
-                                    borderRadius: '5px',
-                                    background: '#444',
-                                    cursor: 'pointer',
-                                }}
-                            >
-                                {/* Display the Icon */}
-                                <img
-                                    src={`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/${ingredient.icon_path}`}
-                                    alt={ingredient.name}
-                                    style={{
-                                        width: '30px',
-                                        height: '30px',
-                                        marginRight: '10px',
-                                        borderRadius: '50%',
-                                        objectFit: 'cover',
-                                        background: '#fff',
-                                    }}
-                                />
-                                <span>{ingredient.name}</span>
-                            </div>
-                        ))
-                    ) : (
-                        <p>No matching ingredients found.</p>
-                    )}
-                </div>
-
-                
-                {/* Selected Ingredients */}
-                <div style={{ padding: '20px', background: '#333', borderTop: '1px solid #555' }}>
+                <div className="scrollable-content">
+                <button
+                    onClick={() => setIngredientOverlayOpen(true)}
+                    className="add-ingredient-button"
+                >
+                    + Search Recipe by Ingredient
+                </button>
+                <div className="selected-ingredients">
                     <h3>Selected Ingredients:</h3>
                     {filters.ingredients.length > 0 ? (
-                        filters.ingredients.map((ingredient, index) => (
-                            <div
-                                key={index}
-                                style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'space-between',
-                                    padding: '5px 10px',
-                                    border: '1px solid #666',
-                                    borderRadius: '5px',
-                                    marginBottom: '5px',
-                                    background: '#555',
-                                }}
-                            >
-                                {/* <span>{ingredient}</span> */}
-                                <div style={{ display: 'flex', alignItems: 'center' }}>
-                                    {ingredient.icon_path && (
-                                        <img
-                                            src={`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/${ingredient.icon_path}`}
-                                            alt={ingredient.name}
-                                            style={{
-                                                width: '30px',
-                                                height: '30px',
-                                                marginRight: '10px',
-                                                borderRadius: '50%',
-                                                objectFit: 'cover',
-                                                background: '#fff',
-                                            }}
-                                        />
-                                    )}
-                                    <span>{ingredient}</span>
-                                    <span>{ingredient.icon_path}</span>
-
-
-                                </div>
-                                <button
-                                    onClick={() => handleIngredientRemove(ingredient)} 
-                                    style={{
-                                        background: 'red',
-                                        color: '#fff',
-                                        border: 'none',
-                                        borderRadius: '50%',
-                                        width: '20px',
-                                        height: '20px',
-                                        cursor: 'pointer',
-                                    }}
-                                >
-                                    X
-                                </button>
-                            </div>
-                        ))
+                    filters.ingredients.map((ingredient, index) => (
+                        <div className="ingredient-item" key={index}>
+                        <span>{ingredient}</span>
+                        <button
+                            onClick={() => handleIngredientRemove(ingredient)}
+                            className="remove-ingredient-button"
+                        >
+                            X
+                        </button>
+                        </div>
+                    ))
                     ) : (
-                        <p>No ingredients selected.</p>
+                    <p>No ingredients selected.</p>
                     )}
                 </div>
+                {/* Category */}
+                <div className="filter-group">
+                    <h3>Category</h3>
+                    {categories.map((category) => (
+                    <label key={category.id} className="filter-label">
+                        <input
+                        type="checkbox"
+                        checked={filters.categories.includes(category.name)}
+                        onChange={(e) => {
+                            const checked = e.target.checked;
+                            applyFilters({
+                            ...filters,
+                            categories: checked
+                                ? [...filters.categories, category.name]
+                                : filters.categories.filter((c) => c !== category.name),
+                            });
+                        }}
+                        />
+                        {category.name}
+                    </label>
+                    ))}
+                </div>
 
-                
+                {/* Tags */}
+                <div className="filter-group">
+                    <h3>Tags</h3>
+                    {tags.map((tag) => (
+                    <label key={tag.id} className="filter-label">
+                        <input
+                        type="checkbox"
+                        checked={filters.tags.includes(tag.name)}
+                        onChange={(e) => {
+                            const checked = e.target.checked;
+                            applyFilters({
+                            ...filters,
+                            tags: checked
+                                ? [...filters.tags, tag.name]
+                                : filters.tags.filter((t) => t !== tag.name),
+                            });
+                        }}
+                        />
+                        {tag.name}
+                    </label>
+                    ))}
+                </div>
 
-                {/* Search Button */}
-                <button
-                    onClick={() => {
-                        setIngredientOverlayOpen(false);
-                    }}
-                    style={{
-                        padding: '10px 20px',
-                        background: '#00aaff',
-                        color: '#fff',
-                        border: 'none',
-                        borderRadius: '5px',
-                        margin: '20px',
-                        cursor: 'pointer',
-                    }}
-                >
-                    Find Recipes
+                {/* Equipment */}
+                <div className="filter-group">
+                    <h3>Equipment</h3>
+                    {equipment.map((equip) => (
+                    <label key={equip.id} className="filter-label">
+                        <input
+                        type="checkbox"
+                        checked={filters.equipment.includes(equip.name)}
+                        onChange={(e) => {
+                            const checked = e.target.checked;
+                            applyFilters({
+                            ...filters,
+                            equipment: checked
+                                ? [...filters.equipment, equip.name]
+                                : filters.equipment.filter((e) => e !== equip.name),
+                            });
+                        }}
+                        />
+                        {equip.name}
+                    </label>
+                    ))}
+                </div>
+
+                {/* Cooking Time */}
+                <div className="filter-group">
+                    <h3>Cooking Time</h3>
+                    <select
+                        className="cook-time-dropdown"
+                        value={filters.cookTime || ''} // Maintain selected cooking time
+                        onChange={(e) =>
+                            applyFilters({
+                                ...filters,
+                                cookTime: e.target.value ? Number(e.target.value) : null,
+                            })
+                        }
+                    >
+                        <option value="">Any</option>
+                        <option value="15">Less than 15 mins</option>
+                        <option value="30">Less than 30 mins</option>
+                        <option value="60">Less than 60 mins</option>
+                    </select>
+                </div>
+                </div>
+                <button onClick={handleApplyFilters} className="apply-filters-button">
+                Apply Filters
                 </button>
             </div>
-        )}
+            )}
 
-{showAddModal && (
+            {isIngredientOverlayOpen && (
+            <div className="ingredient-overlay">
+                <button
+                onClick={() => setIngredientOverlayOpen(false)}
+                className="close-overlay-button"
+                >
+                X
+                </button>
+                <h2>Search Ingredients</h2>
+                <div className="search-bar">
+                <input
+                    type="text"
+                    placeholder="Type an ingredient..."
+                    value={ingredientSearch}
+                    onChange={(e) => {
+                    setIngredientSearch(e.target.value);
+                    fetchMatchingIngredients(e.target.value);
+                    }}
+                />
+                </div>
+                <div className="matching-ingredients">
+                {matchingIngredients.length > 0 ? (
+                    matchingIngredients.map((ingredient, index) => (
+                    <div
+                        className="ingredient-item"
+                        key={index}
+                        onClick={() => handleIngredientAdd(ingredient)}
+                    >
+                        <img
+                        src={`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/${ingredient.icon_path}`}
+                        alt={ingredient.name}
+                        className="ingredient-icon"
+                        />
+                        <span>{ingredient.name}</span>
+                    </div>
+                    ))
+                ) : (
+                    <p>No matching ingredients found.</p>
+                )}
+                </div>
+                <div className="selected-ingredients">
+                <h3>Selected Ingredients:</h3>
+                {filters.ingredients.length > 0 ? (
+                    filters.ingredients.map((ingredient, index) => (
+                    <div className="ingredient-item" key={index}>
+                        <span>{ingredient}</span>
+                        <button
+                        onClick={() => handleIngredientRemove(ingredient)}
+                        className="remove-ingredient-button"
+                        >
+                        X
+                        </button>
+                    </div>
+                    ))
+                ) : (
+                    <p>No ingredients selected.</p>
+                )}
+                </div>
+                <button
+                onClick={() => setIngredientOverlayOpen(false)}
+                className="find-recipes-button"
+                >
+                Find Recipes
+                </button>
+            </div>
+            )}
+
+            {showAddModal && (
             <div className="modal">
-            <div className="modal-content">
+                <div className="modal-content">
                 <h2>Add a Meal</h2>
                 <p>
-                <strong>Meal Type:</strong>{" "}
-                {mealTypes.find((type) => type.id === newMeal.meal_type_id)?.name ||
+                    <strong>Meal Type:</strong>{" "}
+                    {mealTypes.find((type) => type.id === newMeal.meal_type_id)?.name ||
                     "Unknown"}
                 </p>
                 <p>
-                <strong>Planned Date:</strong> {newMeal.planned_date}
+                    <strong>Planned Date:</strong> {newMeal.planned_date}
                 </p>
                 <label>
-                Notes:
-                <textarea
+                    Notes:
+                    <textarea
                     value={newMeal.notes}
                     placeholder="Enter additional notes (e.g., extra ingredients, instructions)"
                     onChange={(e) =>
-                    setNewMeal((prev) => ({ ...prev, notes: e.target.value }))
+                        setNewMeal((prev) => ({ ...prev, notes: e.target.value }))
                     }
                     rows="3"
-                />
+                    />
                 </label>
                 <label>
-                Time:
-                <input
+                    Time:
+                    <input
                     type="time"
                     value={newMeal.time}
                     onChange={(e) =>
-                    setNewMeal((prev) => ({ ...prev, time: e.target.value }))
+                        setNewMeal((prev) => ({ ...prev, time: e.target.value }))
                     }
-                />
+                    />
                 </label>
-                <button onClick={handleAddMeal} style={{ marginRight: "10px" }}>
-                Save
+                <button onClick={handleAddMeal} className="save-meal-button">
+                    Save
                 </button>
-                <button onClick={() => setShowAddModal(null)}>Cancel</button>
+                <button
+                    onClick={() => setShowAddModal(null)}
+                    className="cancel-button"
+                >
+                    Cancel
+                </button>
+                </div>
             </div>
-            </div>
-        )}
+            )}
+
         </div>
     );
     

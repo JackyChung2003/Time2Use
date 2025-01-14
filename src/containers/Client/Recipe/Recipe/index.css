@@ -160,7 +160,7 @@
   cursor: pointer;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0);
   transition: transform 0.2s, background 0.2s;
-  z-index: 9999;
+  z-index: 500;
 }
 
 .add-to-meal-button {
@@ -231,7 +231,7 @@
   position: absolute;
   top: 10px;
   right: 10px;
-  background: red;
+  /* background: red; */
   color: #fff;
   border: none;
   border-radius: 50%;
@@ -252,11 +252,63 @@
   background: #444;
   padding: 10px;
   border-radius: 5px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
+
 .filter-label {
-  display: block;
+  display: flex;
+  align-items: center;
+  flex-direction: row-reverse;
+  margin: 0 10px;
+  justify-content: space-between;
+  gap: 10px; /* Space between checkbox and label */
   margin-bottom: 5px;
+  font-size: 16px; /* Adjust text size if needed */
 }
+
+.filter-label input[type="checkbox"] {
+  margin: 0; /* Remove any default margin */
+  width: 16px;
+  height: 16px;
+}
+
+.cook-time-dropdown {
+  padding: 10px;
+  border-radius: 5px;
+  width: 100%;
+  border: 1px solid #ccc;
+  font-size: 16px;
+  background: #fff;
+  color: #333;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.cook-time-dropdown:focus {
+  border-color: #007bff;
+  outline: none;
+  box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+}
+
+.cook-time-dropdown:hover {
+  border-color: #0056b3;
+}
+
+.cook-time-dropdown option {
+  padding: 10px;
+  font-size: 14px;
+  width: 50%;
+}
+
+.filter-buttons {
+  display: flex;
+  justify-content: space-between;
+  gap: 5px;
+  margin-top: 20px;
+}
+
 .select-all-button,
 .clear-button,
 .deselect-all-button {
@@ -266,12 +318,25 @@
   border: none;
   border-radius: 5px;
   cursor: pointer;
+  width: 100%;
 }
 .select-all-button:hover,
 .clear-button:hover,
 .deselect-all-button:hover {
   background: #0056b3;
 }
+
+.add-ingredient-button {
+  padding: 10px;
+  background: #00aaff;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 20px;
+  width: 100%;
+}
+
 .cook-time-select {
   padding: 10px;
   border-radius: 5px;
@@ -288,4 +353,211 @@
 }
 .apply-filters-button:hover {
   background: #0088cc;
+}
+
+/* Ingredient Overlay */
+.ingredient-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.9);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  z-index: 1100;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+.close-overlay-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: red;
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.search-bar {
+  /* margin-bottom: 20px; */
+  border: none;
+  width: 100%;
+  margin: 0;
+}
+
+.search-bar input {
+  width: 100%;
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid #ddd;
+}
+
+.matching-ingredients {
+  flex: 1;
+  padding: 20px 0;
+  overflow-y: auto;
+}
+
+.ingredient-item {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  margin-bottom: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  background: #444;
+  cursor: pointer;
+}
+
+.ingredient-item:hover {
+  background: #555;
+}
+
+.ingredient-icon {
+  width: 30px;
+  height: 30px;
+  margin-right: 10px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #fff;
+}
+
+.selected-ingredients {
+  padding: 20px;
+  background: #333;
+  border-top: 1px solid #555;
+  border-radius: 5px;
+}
+
+.selected-ingredients h3 {
+  margin-bottom: 10px;
+}
+
+.remove-ingredient-button {
+  /* background: red; */
+  background: transparent;
+  /* color: #fff; */
+  color: red;
+  font-weight: bold;
+  border: none;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.find-recipes-button {
+  padding: 10px 20px;
+  background: #00aaff;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  margin-top: 20px;
+  cursor: pointer;
+}
+
+.find-recipes-button:hover {
+  background: #0088cc;
+}
+
+/* Modal */
+.modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #fff;
+  color: #000;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  z-index: 1200;
+  width: 90%;
+  max-width: 500px;
+}
+
+.modal-content {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.modal-content h2 {
+  font-size: 1.5rem;
+  margin-bottom: 10px;
+}
+
+.modal-content p {
+  margin-bottom: 10px;
+}
+
+.modal-content textarea,
+.modal-content input[type="time"] {
+  width: 100%;
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  margin-bottom: 10px;
+}
+
+.save-meal-button,
+.cancel-button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.save-meal-button {
+  background: #28a745;
+  color: #fff;
+}
+
+.save-meal-button:hover {
+  background: #218838;
+}
+
+.cancel-button {
+  background: #ff4d4d;
+  color: #fff;
+}
+
+.cancel-button:hover {
+  background: #e63939;
+}
+
+/* Utility */
+.scrollable-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px;
+}
+
+.left-right-space-evenly-section {
+  display: flex;
+  justify-content: space-evenly;
+  margin-top: 20px;
+}
+
+.yes-no-button {
+  padding: 10px 20px;
+  background: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.yes-no-button:hover {
+  background: #0056b3;
 }
