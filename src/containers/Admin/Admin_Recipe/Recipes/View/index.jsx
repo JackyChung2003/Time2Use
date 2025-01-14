@@ -209,7 +209,7 @@ const RecipeDetail = () => {
                 <img
                     src={`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/${recipe.image_path}`}
                     alt={recipe.name}
-                    className="recipe-image"
+                    className="recipe-admin-image"
                 />
             )}
     

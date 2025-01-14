@@ -2,7 +2,7 @@
 .meal-planner-container {
   display: flex;
   flex-direction: column;
-  padding: 20px;
+  padding: 15px;
 }
 
 /* Header */
@@ -10,14 +10,14 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 15px;
 }
 .date-display {
   font-size: 1.2rem;
   color: #333;
   font-weight: 600;
 }
-.recipe-details {
+.recipe-calender-details {
   background-color: #f9f9f9;
   padding: 10px;
   border-radius: 5px;

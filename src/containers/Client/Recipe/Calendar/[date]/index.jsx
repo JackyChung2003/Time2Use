@@ -223,7 +223,7 @@ const handleAddMeal = async () => {
           <p>{date}</p>
         </div>
         {recipeId && recipeName && (
-          <div className="recipe-details">
+          <div className="recipe-calender-details">
             <h2>Recipe Details</h2>
             <p><strong>Recipe Name:</strong> {recipeName}</p>
             <p><strong>Recipe ID:</strong> {recipeId}</p>
