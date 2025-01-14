@@ -28,6 +28,34 @@
   color: red;
 }
 
+/* Meal Plan Status */
+.meal-plan-status-container {
+  /* margin-top: 10px; */
+  margin-left: 10px;
+}
+
+.meal-plan-status {
+  display: inline-block;
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  color: #fff;
+}
+
+.meal-plan-status.complete {
+  background-color: #28a745; /* Green */
+}
+
+.meal-plan-status.deadline-passed {
+  background-color: #dc3545; /* Red */
+}
+
+.meal-plan-status.planning {
+  background-color: #ffc107; /* Yellow */
+}
+
 .delete-all-button {
   margin-left: 20px;
   padding: 5px 10px;

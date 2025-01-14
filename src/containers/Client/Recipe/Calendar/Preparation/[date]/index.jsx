@@ -1491,6 +1491,25 @@ const [activeTab, setActiveTab] = useState("ingredients");
                 <div className="image-overlay">
                     <BackButton />
                     {/* <h1 className="recipe-title">{recipe.name}</h1> */}
+                    <div className="meal-plan-status-container">
+                      <span
+                        className={`meal-plan-status ${
+                          mealPlans.every((mealPlan) => mealPlan.meal_plan_status.id === 2)
+                            ? "complete"
+                            : mealPlans.some(
+                                (mealPlan) => mealPlan.meal_plan_status.id === 3
+                              )
+                            ? "deadline-passed"
+                            : "planning"
+                        }`}
+                      >
+                        {mealPlans.every((mealPlan) => mealPlan.meal_plan_status.id === 2)
+                          ? "Complete"
+                          : mealPlans.some((mealPlan) => mealPlan.meal_plan_status.id === 3)
+                          ? "Deadline Passed"
+                          : "Planning"}
+                      </span>
+                    </div>
                     <div className="action-buttons">
                         <button
                             onClick={(e) => {

@@ -8,36 +8,57 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  position: relative;
   height: 50px;
   width: 50px;
-  border-radius: 50%; /* Circular shape */
+  border-radius: 50%;
   text-align: center;
+  borler: 1px solid green;
 }
 
 .react-calendar__tile:enabled:hover {
-  background-color: #ffa500; /* Highlight hover effect */
+  /* background-color: #ffa500; */
+  background-color: rgba(255, 165, 0, 0.2);
   color: #fff;
   border-radius: 50%;
 }
-
-/* Styling for past dates */
-.past-date {
-  background-color: #d3d3d3; /* Light gray */
+/* Styling for today's date */
+.today-date {
+  /* border: 3px solid yellow; */
+  border-radius: 50%;
+  background-color: yellow;
   color: black;
 }
 
-/* Styling for today's date */
-.today-date {
-  background-color: white; /* White background */
-  border: 2px solid lightgray; /* Light gray border */
-  color: black; /* Black text */
+/* Styling for complete dates */
+.no-plan-past-date {
+  background-color: green !important;
+  color: white;
+  border: 10px solid green;
+}
+
+.past-date {
+  background-color: darkgray;
+  color: white;
+  border-radius: 50%;
+}
+
+/* Styling for partially complete dates */
+.partial-complete-date {
+  /* background-color: orange !important; */
+  color: white;
 }
 
 /* Styling for upcoming dates */
 .coming-date {
-  background-color: white; /* White background */
-  border: 2px solid lightgray; /* Light gray border */
-  color: black; /* Black text */
+  background-color: lightgray;
+  color: black;
+}
+
+/* Styling for past dates */
+.past-date {
+  background-color: #d3d3d3;
+  color: black;
 }
 
 .modal {
@@ -60,10 +81,6 @@
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
-.modal-content h2 {
-  margin-bottom: 15px;
-}
-
 .modal-content button {
   margin-top: 15px;
   padding: 10px 20px;
@@ -76,4 +93,22 @@
 
 .modal-content button:hover {
   background-color: #0056b3;
+}
+
+.circular-progress-container {
+  position: relative; /* Position directly inside the tile */
+  top: 50%; /* Center vertically */
+  left: 50%; /* Center horizontally */
+  transform: translate(-50%, -50%); /* Adjust for true centering */
+  /* width: 100%; */
+  height: 47px;
+  /* border: 1px solid red; */
+}
+
+.circular-progress-container .CircularProgressbar {
+  position: absolute;
+  top: 5px;
+  left: -42px;
+  /* width: 100%; */
+  height: 100%;
 }
