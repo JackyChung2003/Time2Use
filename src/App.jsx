@@ -26,6 +26,9 @@ import CreateUser from './containers/Admin/Admin_Users/CreateUser';
 import AdminInventories from './containers/Admin/Admin_Inventory/index.jsx';
 import AdminIngredients from './containers/Admin/Admin_Ingredients/index.jsx';
 import CreateIngredient from './containers/Admin/Admin_Ingredients/CreateIngredient';
+import EditIngredient from './containers/Admin/Admin_Ingredients/EditIngredient';
+import CreateExpiryDate from './containers/Admin/Admin_Inventory/CreateExpiryDate';
+import EditInventory from './containers/Admin/Admin_Inventory/EditInventory';
 
 import CommonLoader from './components/Loader/CommonLoader/index.jsx';
 
@@ -148,6 +151,24 @@ const App = () => {
                                 }
                             />
                             <Route
+                                path="/admin/inventories/create-expiry-date"
+                                element={
+                                    <AdminLayout isCollapsed={isCollapsed} toggleSidebar={toggleSidebar}>
+                                         <CreateExpiryDate />
+                                    </AdminLayout>
+                                 }
+                            />
+
+                            <Route
+                                path="/admin/inventories/edit/:id"
+                                element={
+                                    <AdminLayout isCollapsed={isCollapsed} toggleSidebar={toggleSidebar}>
+                                         <EditInventory />
+                                    </AdminLayout>
+                                 }
+                            />
+
+                            <Route
                                 path="/admin/ingredients"
                                 element={
                                     <AdminLayout isCollapsed={isCollapsed} toggleSidebar={toggleSidebar}>
@@ -163,6 +184,15 @@ const App = () => {
                                     </AdminLayout>
                                 }
                             />
+                            <Route
+                                 path="/admin/ingredients/edit/:id"
+                                element={
+                                    <AdminLayout isCollapsed={isCollapsed} toggleSidebar={toggleSidebar}>
+                                        <EditIngredient />
+                                    </AdminLayout>
+                                }
+                            />
+
                         </>
                     )}
 

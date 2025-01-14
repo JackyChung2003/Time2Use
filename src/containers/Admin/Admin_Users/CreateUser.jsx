@@ -39,7 +39,7 @@ const CreateUser = () => {
         try {
             const password = generateRandomPassword();
 
-            // 1. Create user in auth
+            // 1.  in auth
             const { data: authData, error: authError } = await supabase.auth.admin.createUser({
                 email: formData.email,
                 password: password,
@@ -127,7 +127,7 @@ const CreateUser = () => {
                 </div>
 
                 <button type="submit" className="submit-btn" disabled={loading}>
-                    {loading ? 'Creating...' : 'Create User'}
+                    {loading ? 'Creating...' : ''}
                 </button>
             </form>
         </div>
