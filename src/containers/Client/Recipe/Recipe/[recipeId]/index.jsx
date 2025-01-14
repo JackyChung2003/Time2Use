@@ -484,13 +484,14 @@ const RecipeDetail = () => {
                 <section className="ingredients-section">
                 <h3>Ingredients</h3>
                 <section className="serving-adjuster">
+                    <h4>Serving Packs</h4>
                     <button onClick={handleDecreaseServing} className="adjust-serving-button">-</button>
                     <span className="serving-count">{servingPacks}</span>
                     <button onClick={handleIncreaseServing} className="adjust-serving-button">+</button>
                 </section>
         
                 <section className="ingredients-section">
-                    <h3>Ingredients</h3>
+                    <h3>Ingredients List ({getAdjustedIngredients().length} item(s))</h3>
                     <ul className="ingredients-list">
                         {getAdjustedIngredients().map((ingredient) => (
                             // <li key={ingredient.ingredients.id} className="ingredient-item">

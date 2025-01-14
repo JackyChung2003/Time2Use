@@ -9,7 +9,7 @@ import ChatbotLoading from "../../../../components/ChatboxLoading";
 import { systemPrompt } from "./prompt";
 
 import { useRecipeContext } from "../Contexts/RecipeContext";
-
+import ChatIcon from "../../../../assets/icons/chatbot-icon.svg";
 import "./index.css";
 
 const Chatbot = () => {
@@ -23,6 +23,7 @@ const Chatbot = () => {
 
   const [isModalOpen, setIsModalOpen] = useState(false); // Modal visibility state
   const [pendingAction, setPendingAction] = useState(null); // Store pending action
+  const [isOverlayOpen, setIsOverlayOpen] = useState(false); // Chat overlay visibility state
 
   // const { applyFilters } = useRecipeContext(); // Access applyFilters from context
   // const { fetchRecipes, applyFilters } = useRecipeContext();
@@ -268,47 +269,134 @@ const sendMessage = async () => {
     setChatHistory([]);
   };
 
+  // const toggleOverlay = () => setIsOverlayOpen(!isOverlayOpen)
+  const toggleOverlay = () => {
+    setIsOverlayOpen((prev) => {
+      const isOpening = !prev;
+      document.body.classList.toggle("overlay-open", isOpening);
+      return isOpening;
+    });
+  };
+  
+  // const handleClickOutside = (e) => {
+  //   if (e.target.classList.contains("chat-overlay")) {
+  //     setIsOverlayOpen(false);
+  //   }
+  // };
+
+  const handleClickOutside = (e) => {
+    if (e.target.classList.contains("chat-overlay")) {
+      setIsOverlayOpen(false);
+    }
+  };
+  
+  // Attach both click and pointerdown events to handle touches and drags
+  useEffect(() => {
+    const handlePointerDownOutside = (e) => {
+      if (isOverlayOpen && e.target.classList.contains("chat-overlay")) {
+        setIsOverlayOpen(false);
+      }
+    };
+  
+    window.addEventListener("pointerdown", handlePointerDownOutside);
+  
+    return () => {
+      window.removeEventListener("pointerdown", handlePointerDownOutside);
+    };
+  }, [isOverlayOpen]);
+
+  // return (
+  //   <div className="chatbot-container">
+  //     <h1 className="title">Chatbot</h1>
+
+  //     <div className="chat-box">
+  //       <ChatbotHistory chatHistory={chatHistory} />
+  //       <ChatbotLoading isLoading={isLoading} />
+  //     </div>
+
+  //     <div className="input-section">
+  //       <input
+  //         type="text"
+  //         className="input-box"
+  //         placeholder="Type your message..."
+  //         value={userInput}
+  //         onChange={handleUserInput}
+  //       />
+  //       <button
+  //         className="send-button"
+  //         onClick={sendMessage}
+  //         disabled={isLoading}
+  //       >
+  //         Send
+  //       </button>
+  //     </div>
+
+  //     <button className="clear-button" onClick={clearChat}>
+  //       Clear Chat
+  //     </button>
+
+  //       {isModalOpen && (
+  //         <div className="modal-overlay">
+  //           <div className="modal">
+  //             <p>Would you like to navigate to the RecipeExplore page?</p>
+  //             <button onClick={() => handleModalResponse("yes")}>Yes</button>
+  //             <button onClick={() => handleModalResponse("no")}>No</button>
+  //           </div>
+  //         </div>
+  //       )}
+  //   </div>
+  // );
   return (
     <div className="chatbot-container">
-      <h1 className="title">Chatbot</h1>
-
-      <div className="chat-box">
-        <ChatbotHistory chatHistory={chatHistory} />
-        <ChatbotLoading isLoading={isLoading} />
-      </div>
-
-      <div className="input-section">
-        <input
-          type="text"
-          className="input-box"
-          placeholder="Type your message..."
-          value={userInput}
-          onChange={handleUserInput}
-        />
-        <button
-          className="send-button"
-          onClick={sendMessage}
-          disabled={isLoading}
-        >
-          Send
-        </button>
-      </div>
-
-      <button className="clear-button" onClick={clearChat}>
-        Clear Chat
-      </button>
-
-        {isModalOpen && (
-          <div className="modal-overlay">
-            <div className="modal">
-              <p>Would you like to navigate to the RecipeExplore page?</p>
-              <button onClick={() => handleModalResponse("yes")}>Yes</button>
-              <button onClick={() => handleModalResponse("no")}>No</button>
-            </div>
-          </div>
-        )}
+    <div className="chat-icon" onClick={toggleOverlay}>
+      {/* <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"></svg> */}
+      <img src={ChatIcon} alt="Chatbot" />
     </div>
-  );
+
+    {isOverlayOpen && (
+      <div className="chat-overlay" onClick={handleClickOutside}>
+        <div className="chat-content">
+          <div className="chat-header">
+            <h1 className="title">Chatbot</h1>
+            <button className="clear-chat-button" onClick={clearChat}>
+              {/* Clear Chat */}
+              <svg className="trash-can-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M6 7V18C6 19.1046 6.89543 20 8 20H16C17.1046 20 18 19.1046 18 18V7M6 7H5M6 7H8M18 7H19M18 7H16M10 11V16M14 11V16M8 7V5C8 3.89543 8.89543 3 10 3H14C15.1046 3 16 3.89543 16 5V7M8 7H16" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+              </svg>
+            </button>
+            <button className="close-chatbot-button" onClick={toggleOverlay}>
+              ✖
+            </button>
+          </div>
+          <div className="chat-box">
+            <ChatbotHistory chatHistory={chatHistory} />
+            <ChatbotLoading isLoading={isLoading} />
+          </div>
+          <div className="input-section">
+            <input
+              type="text"
+              className="input-box"
+              placeholder="Type your message..."
+              value={userInput}
+              onChange={handleUserInput}
+            />
+            <button
+              className="send-msg-button"
+              onClick={sendMessage}
+              disabled={isLoading}
+            >
+              <svg viewBox="0 0 512 512" className="paperplane">
+                <path
+                  d="M498.1 5.6c10.1 7 15.4 19.1 13.5 31.2l-64 416c-1.5 9.7-7.4 18.2-16 23s-18.9 5.4-28 1.6L284 427.7l-68.5 74.1c-8.9 9.7-22.9 12.9-35.2 8.1S160 493.2 160 480V396.4c0-4 1.5-7.8 4.2-10.7L331.8 202.8c5.8-6.3 5.6-16-.4-22s-15.7-6.4-22-.7L106 360.8 17.7 316.6C7.1 311.3 .3 300.7 0 288.9s5.9-22.8 16.1-28.7l448-256c10.7-6.1 23.9-5.5 34 1.4z"
+                ></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+  </div>
+);
 };
 
 export default Chatbot
