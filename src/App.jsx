@@ -50,6 +50,9 @@ import CreateIngredientsCat from './containers/Admin/Admin_IngredientsCat/Create
 import ViewIngredientsCat from './containers/Admin/Admin_IngredientsCat/ViewIngredientsCat';
 import EditIngredientsCat from './containers/Admin/Admin_IngredientsCat/EditIngredientsCat';
 
+import AdminExpiryDate from './containers/Admin/Admin_ExpiryDate/index.jsx';
+import CreateExpiryDate from './containers/Admin/Admin_ExpiryDate/CreateExpiryDate';
+
 const App = () => {
     const { userRole } = useAuth();
     const [loading, setLoading] = useState(false);
@@ -338,6 +341,23 @@ const App = () => {
                                 element={
                                     <AdminLayout isCollapsed={isCollapsed} toggleSidebar={toggleSidebar}>
                                         <EditIngredientsCat />
+                                    </AdminLayout>
+                                }
+                            />
+
+                            <Route
+                                path="/admin/expirydate"
+                                element={
+                                    <AdminLayout isCollapsed={isCollapsed} toggleSidebar={toggleSidebar}>
+                                        <AdminExpiryDate />
+                                    </AdminLayout>
+                                }
+                            />
+                            <Route
+                                path="/admin/expirydate/create"
+                                element={
+                                    <AdminLayout isCollapsed={isCollapsed} toggleSidebar={toggleSidebar}>
+                                        <CreateExpiryDate />
                                     </AdminLayout>
                                 }
                             />
