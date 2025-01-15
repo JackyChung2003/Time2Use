@@ -12,8 +12,9 @@ import RecipePreparationPage from './Calendar/Preparation/[date]';
 
 import RecipeFavorites from './Favorites';
 
-import ShoppingList from './ShoppingList';
+// import ShoppingList from './ShoppingList';
 
+import ErrorBoundary from '../../../components/ErrorBoundary';
 import Chatbot from './Chatbot';
 
 
@@ -52,7 +53,9 @@ const RecipeNavigation = () => {
                 </Routes>
                 
                 {/* Chatbot Button */}
-                <Chatbot />
+                <ErrorBoundary>
+                    <Chatbot />
+                </ErrorBoundary>
             </RecipeProvider>
         </div>
     );

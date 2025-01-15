@@ -85,7 +85,7 @@ const Profile = () => {
           birthday: profileData.birthday,
           email: user.email,
           password: "••••••••",
-          notificationDay: profileData.notification_day?.id || 7,
+          notificationDay: profileData.notification_day?.id || 5,
         });
         setProfileImage(profileData.picture);
       }
@@ -207,7 +207,7 @@ const Profile = () => {
     }
 
     if (newPassword === oldPassword) {
-      alert("Old and New passwords cannot be the same.");
+      alert("Current and New passwords cannot be the same.");
       clearPasswordInputs(); // Clear inputs if the passwords are the same
       return;
     }
@@ -230,7 +230,7 @@ const Profile = () => {
     });
   
     if (signInError) {
-      alert("Old password is incorrect.");
+      alert("Current password is incorrect.");
       clearPasswordInputs(); // Clear inputs if old password is wrong
       return;
     }
@@ -349,8 +349,6 @@ const Profile = () => {
         </div>
       </div>
 
-
-
         {/* Notification */}
         <div className="profile-row">
           <span className="icon"><FaBell /></span>
@@ -403,11 +401,11 @@ const Profile = () => {
             
             {/* Old Password */}
           <div className="password-input">
-            <label>Old Password</label>
+            <label>Current Password</label>
             <input
               type={showOldPassword ? "text" : "password"}
               value={oldPassword}
-              placeholder="Enter old password"
+              placeholder="Enter current password"
               onChange={(e) => setOldPassword(e.target.value)}
               className="password-edit-input"
             />
@@ -420,49 +418,49 @@ const Profile = () => {
             </button>
           </div>
 
-{/* New Password */}
-<div className="password-input">
-  <label>New Password</label>
-  <input
-    type={showPassword ? "text" : "password"}
-    value={newPassword}
-    placeholder="Enter new password"
-    onChange={(e) => setNewPassword(e.target.value)}
-    className="password-edit-input"
-  />
-  <button
-    type="button"
-    className="toggle-password"
-    onClick={() => setShowPassword((prev) => !prev)}
-  >
-    {showPassword ? "👁️" : "👁️‍🗨️"}
-  </button>
-</div>
+          {/* New Password */}
+          <div className="password-input">
+            <label>New Password</label>
+            <input
+              type={showPassword ? "text" : "password"}
+              value={newPassword}
+              placeholder="Enter new password"
+              onChange={(e) => setNewPassword(e.target.value)}
+              className="password-edit-input"
+            />
+            <button
+              type="button"
+              className="toggle-password"
+              onClick={() => setShowPassword((prev) => !prev)}
+            >
+              {showPassword ? "👁️" : "👁️‍🗨️"}
+            </button>
+          </div>
 
-{/* Confirm Password */}
-<div className="password-input">
-  <label>Confirm Password</label>
-  <input
-    type={showConfirmPassword ? "text" : "password"}
-    value={confirmPassword}
-    placeholder="Confirm password"
-    onChange={(e) => setConfirmPassword(e.target.value)}
-    className="password-edit-input"
-  />
-  <button
-    type="button"
-    className="toggle-password"
-    onClick={() => setShowConfirmPassword((prev) => !prev)}
-  >
-    {showConfirmPassword ? "👁️" : "👁️‍🗨️"}
-  </button>
-</div>
-
+          {/* Confirm Password */}
+          <div className="password-input">
+            <label>Confirm Password</label>
+            <input
+              type={showConfirmPassword ? "text" : "password"}
+              value={confirmPassword}
+              placeholder="Confirm password"
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              className="password-edit-input"
+            />
+            <button
+              type="button"
+              className="toggle-password"
+              onClick={() => setShowConfirmPassword((prev) => !prev)}
+            >
+              {showConfirmPassword ? "👁️" : "👁️‍🗨️"}
+            </button>
+          </div>
           </div>
           
           {/* Save and Cancel Buttons */}
           <button onClick={handleSavePassword} className="save-password-btn">Save</button>
-          <button onClick={() => { clearPasswordInputs(); setShowPasswordModal(false); }} className="cancel-btn">Cancel</button>
+          <button onClick={() => { clearPasswordInputs(); 
+            setShowPasswordModal(false); }} className="cancel-btn">Cancel</button>
         </div>
       </div>
     )}

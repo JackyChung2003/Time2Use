@@ -16,6 +16,7 @@ export const RecipeProvider = ({ children }) => {
   const [ingredients, setIngredients] = useState([]); // State for ingredients
   const [mealTypes, setMealTypes] = useState([]); // State to store meal types
   const [favorites, setFavorites] = useState([]); // Track user's favorite recipes
+  const [pax, setPax] = useState(1);
 
   const [filters, setFilters] = useState({
     categories: [],
@@ -42,7 +43,7 @@ export const RecipeProvider = ({ children }) => {
     }
   };
 
-const fetchRecipes = async () => {
+  const fetchRecipes = async () => {
     setLoading(true);
     try {
       const { data, error } = await supabase
@@ -60,8 +61,6 @@ const fetchRecipes = async () => {
           recipe_ingredients ( ingredients (name) )
         `);
           
-        // recipe_tags ( tags (name) ),
-        // recipe_tags:recipe_tags_recipe_id_fkey ( tags (name) ),
       if (error) {
         console.error("Error fetching recipes:", error);
       } else {
@@ -159,6 +158,29 @@ const fetchRecipes = async () => {
       console.error("Unexpected error fetching favorites:", err.message);
     }
   }, [userData]);
+  
+  const fetchPax = async (plannedDate, mealTypeId) => {
+    try {
+      const { data, error } = await supabase
+        .from("meal_plan")
+        .select("serving_packs")
+        .eq("planned_date", plannedDate)
+        .eq("meal_type_id", mealTypeId);
+  
+      if (error) {
+        console.error("Error fetching pax:", error.message);
+        return null; // Handle error gracefully
+      }
+  
+      // console.log("Pax data:", data);
+  
+      // Ensure data exists and access the first element's serving_packs
+      return data?.[0]?.serving_packs || null; // Safely access serving_packs
+    } catch (err) {
+      console.error("Unexpected error in fetchPax:", err.message);
+      return null; // Handle unexpected errors
+    }
+  };
 
   const applyFilters = (newFilters) => {
     setFilters((prevFilters) => ({
@@ -168,22 +190,12 @@ const fetchRecipes = async () => {
     // console.log("Filters updated:", newFilters);
   };
 
-  // useEffect(() => {
-  //   fetchUserData(); // Fetch user data on mount
-  //   fetchRecipes(); // Fetch recipes on mount
-  //   fetchTags(); // Fetch tags on mount
-  //   fetchCategories(); // Fetch categories on mount
-  //   fetchEquipment(); // Fetch equipment on mount
-  //   fetchIngredients(); // Fetch ingredients on mount
-  //   fetchMealTypes(); // Fetch meal types on mount
-  //   fetchFavorites(); // Fetch favorites on mount
-  // }, []);
 
   useEffect(() => {
     const fetchInitialData = async () => {
       await fetchUserData(); // Fetch user data first
       await Promise.all([
-        fetchRecipes(), // Fetch recipes
+        fetchRecipes(), 
         fetchTags(),
         fetchCategories(),
         fetchEquipment(),
@@ -219,6 +231,7 @@ const fetchRecipes = async () => {
               ingredients (
                 id,
                 name,
+                icon_path,
                 nutritional_info,
                 unit:quantity_unit_id (
                   unit_tag,
@@ -275,7 +288,21 @@ const fetchRecipes = async () => {
         // Fetch meal plans for the given date
         const { data, error } = await supabase
             .from("meal_plan")
-            .select("id, meal_type_id, recipe_id, notes, planned_date")
+            // .select("id, meal_type_id, recipe_id, notes, planned_date, ")
+            .select(`
+              id,
+              meal_type_id,
+              recipe_id,
+              notes,
+              planned_date,
+              meal_type:meal_type_id ( name ),
+              meal_plan_status:status_id ( 
+                id,
+                name,
+                description
+              ),
+              serving_packs
+            `)
             .eq("planned_date", date);
 
         if (error) {
@@ -625,7 +652,16 @@ const fetchRecipes = async () => {
           meal_plan (
             recipe_id,
             meal_type_id,
-            planned_date
+            planned_date,
+            meal_type:meal_type_id (
+              name
+            ),
+            meal_plan_status:status_id (
+              id,
+              name,
+              description
+            ),
+            serving_packs
           ),
           used_quantity, 
           status_id, 
@@ -663,8 +699,7 @@ const fetchRecipes = async () => {
             )
           )
         `)
-        .in("meal_plan_id", mealPlanIds)
-        .eq("condition_id", 1) ; // Query using multiple meal_plan_ids
+        .in("meal_plan_id", mealPlanIds); // Query using multiple meal_plan_ids
   
       if (error) {
         console.error("Error fetching inventory meal plan data by meal_plan_id:", error);
@@ -720,7 +755,8 @@ const fetchRecipes = async () => {
         meal_plan (
           recipe_id,
           meal_type_id,
-          planned_date
+          planned_date,
+          serving_packs
         ),
         used_quantity,
         status_id,
@@ -895,7 +931,6 @@ const fetchRecipes = async () => {
   };
 
   return (
-    // <RecipeContext.Provider value={{ recipes, tags, filters, fetchRecipes, fetchTags, applyFilters, loading }}>
     <RecipeContext.Provider
       value={{
         userData,
@@ -907,6 +942,7 @@ const fetchRecipes = async () => {
         ingredients,
         mealTypes,
         favorites,
+        pax,
         fetchRecipes,
         fetchTags,
         fetchCategories,
@@ -926,6 +962,7 @@ const fetchRecipes = async () => {
         fetchInventoryData,
         applyFilters,
         toggleFavorite,
+        fetchPax,
         loading,
       }}
     >

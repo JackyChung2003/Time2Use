@@ -1,12 +1,12 @@
-import {
-    FaTachometerAlt,
-    FaUser,
-    FaCog,
-    FaClipboardList,
-    FaUtensils,
-    FaTags,
-    FaListAlt,
-    FaPlusCircle,
+import { 
+    FaTachometerAlt, 
+    FaUser, 
+    FaCog, 
+    FaClipboardList, 
+    FaUtensils, 
+    FaTags, 
+    FaListAlt, 
+    FaPlusCircle, 
     FaTools,
     FaThList,
 } from "react-icons/fa";
@@ -20,6 +20,55 @@ const adminNavBarItems = [
     {
         title: "Manage Users",
         link: "/admin/users",
+        icon: <FaUser />,
+    },
+    {
+        title: "Manage Inventory",
+        link: "/admin/inventories",
+        icon: <FaUser />,
+    },
+    {
+        title: "Manage Ingredient",
+        icon: <FaUser />,
+        dropdown: true, // Indicates dropdown
+        items: [
+            {
+                title: "Ingredients Category",
+                dropdown: true,
+                items: [
+                    {
+                        title: "View All Category",
+                        link: "/admin/ingredientscat/",
+                        icon: <FaListAlt />,
+                    },
+                ],
+            },
+            {
+                title: "Ingredients",
+                dropdown: true,
+                items: [
+                    {
+                        title: "View All Ingredient",
+                        link: "/admin/ingredients",
+                        icon: <FaListAlt />,
+                    },
+                ],
+            }
+        ]
+    },
+    {
+        title: "Manage Expiry Date",
+        link: "/admin/expirydate",
+        icon: <FaUser />,
+    },
+    {
+        title: "Manage Unit",
+        link: "/admin/units",
+        icon: <FaUser />,
+    },
+    {
+        title: "Manage Unit Inv",
+        link: "/admin/unitinv",
         icon: <FaUser />,
     },
     {

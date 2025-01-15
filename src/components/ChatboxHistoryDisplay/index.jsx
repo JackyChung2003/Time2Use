@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import PropTypes from "prop-types";
 import ReactMarkdown from "react-markdown";
 import remarkBreaks from "remark-breaks";
@@ -5,8 +6,19 @@ import remarkGfm from 'remark-gfm'
 import "./index.css";
 
 const ChatbotHistory = ({ chatHistory }) => {
+  const historyRef = useRef(null);
+
+  // Scroll to the bottom whenever chatHistory changes
+  useEffect(() => {
+    historyRef.current?.scrollTo({
+      top: historyRef.current.scrollHeight,
+      behavior: "smooth",
+    });
+  }, [chatHistory]);
+
   return (
-    <div className="chat-history">
+    // <div className="chat-history">
+    <div className="chat-history" ref={historyRef}>
       {chatHistory.map((msg, index) => (
         <div
           key={index}

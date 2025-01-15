@@ -5,6 +5,8 @@ import './index.css';
 import inventoryUtils from './index.js';
 import supabase from '../../../config/supabaseClient';
 
+import CommonLoader from '../../../components/Loader/CommonLoader/index.jsx';
+
 const Inventory = () => {
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
@@ -50,7 +52,7 @@ const Inventory = () => {
   
   
   if (isLoading) {
-    return <div>Loading...</div>;
+    return  <CommonLoader />;
   }
 
   const sortedItems = items
@@ -92,16 +94,16 @@ const Inventory = () => {
     const amountUsed = parseFloat(usedAmount[item.id] || 0);
     if (amountUsed > 0 && amountUsed <= item.quantity) {
       const updatedQuantity = item.quantity - amountUsed;
-      handleQuantityChange(item, updatedQuantity);
+      handleQuantityChange(item, updatedQuantity, user?.id);
       setUsedAmount({ ...usedAmount, [item.id]: '' }); // Clear input after updating
     } else {
       alert("Please enter a valid amount within the range!");
     }
   };  
 
-  const handlePortionClickWithState = async (item, portion) => {
+  const handlePortionClickWithState = async (item, portion, userId) => {
     try {
-      const newQuantity = await inventoryUtils.handlePortionClick(item, portion);
+      const newQuantity = await inventoryUtils.handlePortionClick(item, portion, userId);
       setItems((prevItems) =>
         prevItems.map((i) =>
           i.id === item.id ? { ...i, quantity: newQuantity } : i
@@ -112,9 +114,9 @@ const Inventory = () => {
     }
   };
 
-  const handleQuantityChange = async (item, newQuantity) => {
+  const handleQuantityChange = async (item, newQuantity, userId) => {
     try {
-      await inventoryUtils.handleQuantityChange(item, newQuantity, setItems);
+      await inventoryUtils.handleQuantityChange(item, newQuantity, setItems, userId);
     } catch (err) {
       console.error('Error handling quantity change:', err);
     }
@@ -206,6 +208,7 @@ const Inventory = () => {
                   <Item
                     key={`${item.id}-${index}`} // Combine id and index for uniqueness
                     item={item}
+                    user={user}
                     setItems={setItems}
                     handleClick={handleClick}
                     expandedItems={expandedItems}
@@ -233,6 +236,7 @@ const Inventory = () => {
                   <Item
                     key={`${item.id}-${index}`} // Combine id and index for uniqueness
                     item={item}
+                    user={user}
                     setItems={setItems}
                     handleClick={handleClick}
                     expandedItems={expandedItems}
@@ -256,6 +260,7 @@ const Inventory = () => {
 };
 const Item = ({
   item,
+  user,
   setItems,
   handleClick,
   expandedItems,
@@ -399,11 +404,11 @@ const Item = ({
               {/* Quantity Adjustment */}
               {['unit', 'pcs', 'can', 'box'].includes(item.quantity_unit) ? (
                 <div className="unit-controls">
-                  <button onClick={() => handlePortionClickWithState(item, 1)} className="quantity-button">-</button>
+                  <button onClick={() => handlePortionClickWithState(item, 1, user.id)} className="quantity-button">-</button>
                   <div className="quantity-container">
                     <div className="quantity-box">{item.quantity}</div>
                   </div>
-                  <button onClick={() => handlePortionClickWithState(item, -1)} className="quantity-button">+</button>
+                  <button onClick={() => handlePortionClickWithState(item, -1, user.id)} className="quantity-button">+</button>
                 </div>
               ) : (
                 <div className="portion-section">
@@ -438,11 +443,18 @@ const Item = ({
                   <div className="portion-row">
                     <p>Used portion:</p>
                     <div className="portion-buttons">
-                      <button onClick={() => handlePortionClickWithState(item, item.quantity * 0.2)}>1/5</button>
-                      <button onClick={() => handlePortionClickWithState(item, item.quantity * 0.4)}>2/5</button>
-                      <button onClick={() => handlePortionClickWithState(item, item.quantity * 0.6)}>3/5</button>
-                      <button onClick={() => handlePortionClickWithState(item, item.quantity * 0.8)}>4/5</button>
+                      {user ? (
+                        <>
+                          <button onClick={() => handlePortionClickWithState(item, item.quantity * 0.2, user.id)}>1/5</button>
+                          <button onClick={() => handlePortionClickWithState(item, item.quantity * 0.4, user.id)}>2/5</button>
+                          <button onClick={() => handlePortionClickWithState(item, item.quantity * 0.6, user.id)}>3/5</button>
+                          <button onClick={() => handlePortionClickWithState(item, item.quantity * 0.8, user.id)}>4/5</button>
+                        </>
+                      ) : (
+                        <CommonLoader />  // Or any fallback content when user is undefined
+                      )}
                     </div>
+
                   </div>
                 </div>
               )}

@@ -2,111 +2,152 @@
 .container {
   max-width: 400px;
   margin: 50px auto;
-  padding: 20px;
-  background: #ffffff;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  font-family: Arial, sans-serif;
+  padding: 30px;
+  background: #f9f9f9;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  font-family: 'Roboto', sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 /* Headers */
 .header {
   text-align: center;
-  font-size: 24px;
+  font-size: 28px;
   color: #333;
   margin-bottom: 20px;
+  font-weight: 600;
 }
 
 /* Input fields */
 input {
   width: 100%;
-  padding: 12px;
-  margin: 10px 0;
+  padding: 14px;
+  margin: 12px 0;
   border: 1px solid #ddd;
-  border-radius: 6px;
+  border-radius: 8px;
+  color: #333;
   font-size: 16px;
+  background-color: #f8f8f8;
+  transition: all 0.3s ease;
 }
 
 input:focus {
   outline: none;
   border-color: #4caf50;
-  box-shadow: 0 0 4px rgba(76, 175, 80, 0.4);
+  box-shadow: 0 0 10px rgba(76, 175, 80, 0.3);
+  background-color: #ffffff;
 }
 
 /* Buttons */
 .login-button {
   width: 100%;
-  padding: 12px;
-  margin-top: 10px;
+  padding: 14px;
+  margin-top: 20px;
   background-color: #4caf50;
   color: white;
   font-size: 16px;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: all 0.3s ease;
+  font-weight: 600;
 }
 
 .login-button:hover {
   background-color: #45a049;
+  transform: translateY(-2px);
 }
 
+.login-button:disabled {
+  background-color: #bbb;
+  cursor: not-allowed;
+}
+
+/* Sign-up Link */
 .signup-link {
   background: none;
   border: none;
   color: #4caf50;
-  font-size: 16px;
-  text-decoration: underline;
+  font-size: 14px;
+  text-decoration: none;
   cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.signup-link:hover {
+  color: #45a049;
+  text-decoration: underline;
 }
 
 /* Footer link text */
 .footer {
   text-align: center;
+  margin-top: 15px;
+  font-size: 14px;
+  color: #666;
+}
+
+/* Error Message */
+.error-message {
+  color: #f44336;
+  font-size: 14px;
+  text-align: center;
   margin-top: 10px;
 }
 
-/* Dashboard styles */
-.dashboard-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+/* Forgot Password Link */
+.forgot-password-link {
+  text-align: right;
+  margin-top: 10px;
+  font-size: 14px;
 }
 
-.signout-button {
-  padding: 10px 20px;
-  background-color: #f44336;
-  color: white;
+.forgot-password-button {
+  background: none;
   border: none;
-  border-radius: 5px;
+  color: #4caf50;
+  font-size: 14px;
+  text-decoration: none;
   cursor: pointer;
+  transition: color 0.3s ease;
 }
 
-.signout-button:hover {
-  background-color: #e53935;
+.forgot-password-button:hover {
+  color: #45a049;
+  text-decoration: underline;
 }
 
-.dashboard-widgets {
-  display: flex;
-  justify-content: space-around;
-  margin-top: 20px;
-}
-
-.widget {
-  width: 30%;
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  text-align: center;
-}
 
 /* Responsive breakpoints */
 
 /* Large screens (1024px and above) */
 @media (max-width: 1024px) {
   .container {
-    max-width: 800px;
-    padding: 20px;
+    max-width: 600px;
+    padding: 40px;
+  }
+
+  .header {
+    font-size: 26px;
+  }
+
+  input {
+    font-size: 16px;
+  }
+
+  .login-button {
+    font-size: 18px;
+  }
+}
+
+/* Medium screens (768px and above) */
+@media (max-width: 768px) {
+  .container {
+    max-width: 550px;
+    padding: 30px;
   }
 
   .header {
@@ -117,27 +158,16 @@ input:focus {
     font-size: 15px;
   }
 
-  .login-button,
-  .signout-button {
-    font-size: 15px;
-  }
-
-  .dashboard-widgets {
-    flex-wrap: wrap;
-    gap: 20px;
-  }
-
-  .widget {
-    width: 45%;
-    margin-bottom: 20px;
+  .login-button {
+    font-size: 16px;
   }
 }
 
-/* Medium screens (768px and above) */
-@media (max-width: 768px) {
+/* Small screens (480px and above) */
+@media (max-width: 480px) {
   .container {
-    max-width: 600px;
-    padding: 18px;
+    max-width: 400px;
+    padding: 20px;
   }
 
   .header {
@@ -148,68 +178,7 @@ input:focus {
     font-size: 14px;
   }
 
-  .login-button,
-  .signout-button {
-    font-size: 14px;
-  }
-
-  .dashboard-widgets {
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .widget {
-    width: 70%;
-    margin-bottom: 20px;
-  }
-}
-
-/* Small screens (480px and above) */
-@media (max-width: 480px) {
-  .container {
-    max-width: 400px;
-    padding: 15px;
-  }
-
-  .header {
-    font-size: 18px;
-  }
-
-  input {
-    font-size: 13px;
-  }
-
-  .login-button,
-  .signout-button {
-    font-size: 13px;
-  }
-
-  .widget {
-    width: 90%;
-  }
-}
-
-/* Extra small screens (320px and above) */
-@media (max-width: 320px) {
-  .container {
-    max-width: 300px;
-    padding: 10px;
-  }
-
-  .header {
-    font-size: 16px;
-  }
-
-  input {
-    font-size: 12px;
-  }
-
-  .login-button,
-  .signout-button {
-    font-size: 12px;
-  }
-
-  .widget {
-    width: 100%;
+  .login-button {
+    font-size: 15px;
   }
 }
