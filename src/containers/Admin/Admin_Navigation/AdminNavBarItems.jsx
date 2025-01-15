@@ -57,6 +57,11 @@ const adminNavBarItems = [
         ]
     },
     {
+        title: "Manage Expiry Date",
+        link: "/admin/expirydate",
+        icon: <FaUser />,
+    },
+    {
         title: "Manage Unit",
         link: "/admin/units",
         icon: <FaUser />,
