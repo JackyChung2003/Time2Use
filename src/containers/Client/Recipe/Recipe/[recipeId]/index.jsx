@@ -120,31 +120,16 @@ const RecipeDetail = () => {
 
         ingredients.forEach((ingredient) => {
             const { nutritional_info, unit } = ingredient.ingredients;
-            // const { nutritional_info, quantity, unit } = ingredient.ingredients;
             const { quantity } = ingredient;
             
-            console.log("nutritional_info:", nutritional_info);
-            console.log("quantity:", quantity);
-            console.log("unit:", unit);
-
             let { calories, protein, carbohydrate, fat } = nutritional_info;
-            console.log("calories:", calories);
-            console.log("protein (raw):", protein);
-            console.log("carbohydrate (raw):", carbohydrate);
-            console.log("fat (raw):", fat);
 
             // Strip "g" and convert to number for protein, carbohydrate, and fat
             protein = typeof protein === "string" ? parseFloat(protein.replace("g", "")) || 0 : protein || 0;
             carbohydrate = typeof carbohydrate === "string" ? parseFloat(carbohydrate.replace("g", "")) || 0 : carbohydrate || 0;
             fat = typeof fat === "string" ? parseFloat(fat.replace("g", "")) || 0 : fat || 0;
-    
-
-            console.log("protein (parsed):", protein);
-            console.log("carbohydrate (parsed):", carbohydrate);
-            console.log("fat (parsed):", fat);
 
             const conversionRate = unit.conversion_rate_to_grams;
-            console.log("conversionRate:", conversionRate);
 
             // Handle unit conversion to grams (example for common units)
             let quantityInGrams = quantity;
@@ -175,10 +160,6 @@ const RecipeDetail = () => {
             carbohydrate: (totalNutrition.carbohydrate / (totalWeightInGrams / 100)).toFixed(2),
             fat: (totalNutrition.fat / (totalWeightInGrams / 100)).toFixed(2),
         };
-
-        console.log(`Total Weight of Recipe: ${totalWeightInGrams.toFixed(2)}g`);
-        console.log("Total Nutrition:", totalNutrition);
-        console.log("Per 100g Nutrition:", per100gNutrition);
 
         // Update state with both total and per 100g nutrition facts
         setNutritionFacts({

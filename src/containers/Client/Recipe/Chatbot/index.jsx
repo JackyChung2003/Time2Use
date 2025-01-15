@@ -104,7 +104,6 @@ const sendMessage = async () => {
         `;
 
     // Build the prompt for the model
-    // const prompt = `${systemPrompt}\n${context}\nUser: ${userInput}`;
     const prompt = `${systemPrompt}\n${availableOptions}\n${context}\nUser: ${userInput}`;
     console.log("Sending prompt to API:", prompt);
 

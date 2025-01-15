@@ -35,56 +35,44 @@ const RecipePreparationPage = () => {
   const { planned_date, meal_type_id } = location.state || {};
 
   const [refreshCounter, setRefreshCounter] = useState(0);
-
   const [recipes, setRecipes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
-
   const [ingredients, setIngredients] = useState([]);
   const [mergedIngredients, setMergedIngredients] = useState([]);
-  // const [isCombined, setIsCombined] = useState(true);
-
-
   const [selectedIngredient, setSelectedIngredient] = useState(null);
   const [inventoryItems, setInventoryItems] = useState([]);
-
-  const [selectedInventory, setSelectedInventory] = useState([]); // State to track selected inventory items
+  const [selectedInventory, setSelectedInventory] = useState([]); 
   const [adjustingQuantity, setAdjustingQuantity] = useState(false); // Add this state
-
+  const [mealPlanIds, setMealPlanIds] = useState([]);// Add a global state for requiredQuantity
+  const [requiredQuantity, setRequiredQuantity] = useState(null);
+  const [mealPlans, setMealPlans] = useState([]); // Store meal plans
+  const [inventoryData, setInventoryData] = useState([]); // Store inventory data
+  const [linkedInventory, setLinkedInventory] = useState([]); // For storing the inventory
+  const [isUpdateMode, setIsUpdateMode] = useState(false); // Track if Update or Finalize mode
+  const [steps, setSteps] = useState([]);
+  const [isCookingMode, setIsCookingMode] = useState(false);
+  const [currentRecipeIndex, setCurrentRecipeIndex] = useState(0); // Index of the current recipe
+  const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  const [previousStepIndex, setPreviousStepIndex] = useState(null);
+  const [totalWeightInGrams, setTotalWeightInGrams] = useState(0);
+  const [activeTab, setActiveTab] = useState("ingredients");
+  const [pax, setPax] = useState(1); // Default Pax value is 1
+  const [nutritionFacts, setNutritionFacts] = useState({
+    calories: 0,
+    protein: 0,
+    carbohydrate: 0,
+    fat: 0,
+  });
   const exceedAmount = Math.max(
     0,
     (selectedInventory || []).reduce((sum, item) => sum + item.selectedQuantity, 0) -
       (selectedIngredient?.quantity || 0)
   );
   
-  const [mealPlanIds, setMealPlanIds] = useState([]);// Add a global state for requiredQuantity
-  const [requiredQuantity, setRequiredQuantity] = useState(null);
-  const [mealPlans, setMealPlans] = useState([]); // Store meal plans
-  const [inventoryData, setInventoryData] = useState([]); // Store inventory data
-
-  const [linkedInventory, setLinkedInventory] = useState([]); // For storing the inventory
-  const [isUpdateMode, setIsUpdateMode] = useState(false); // Track if Update or Finalize mode
-
-  const [steps, setSteps] = useState([]);
-  const [isCookingMode, setIsCookingMode] = useState(false);
-  const [currentRecipeIndex, setCurrentRecipeIndex] = useState(0); // Index of the current recipe
-  const [currentStepIndex, setCurrentStepIndex] = useState(0);
-  const [previousStepIndex, setPreviousStepIndex] = useState(null);
 
   
-  const [totalWeightInGrams, setTotalWeightInGrams] = useState(0);
-  const [nutritionFacts, setNutritionFacts] = useState({
-    calories: 0,
-    protein: 0,
-    carbohydrate: 0,
-    fat: 0,
-});
 
-
-const [activeTab, setActiveTab] = useState("ingredients");
-
-  // const [pax, setPax] = useState(1); // Added pax state
-  const [pax, setPax] = useState(1); // Default Pax value is 1
 
   const calculateNutrition = (ingredients) => {
     let totalNutrition = {

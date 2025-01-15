@@ -43,7 +43,7 @@ export const RecipeProvider = ({ children }) => {
     }
   };
 
-const fetchRecipes = async () => {
+  const fetchRecipes = async () => {
     setLoading(true);
     try {
       const { data, error } = await supabase
@@ -61,8 +61,6 @@ const fetchRecipes = async () => {
           recipe_ingredients ( ingredients (name) )
         `);
           
-        // recipe_tags ( tags (name) ),
-        // recipe_tags:recipe_tags_recipe_id_fkey ( tags (name) ),
       if (error) {
         console.error("Error fetching recipes:", error);
       } else {
@@ -192,22 +190,12 @@ const fetchRecipes = async () => {
     // console.log("Filters updated:", newFilters);
   };
 
-  // useEffect(() => {
-  //   fetchUserData(); // Fetch user data on mount
-  //   fetchRecipes(); // Fetch recipes on mount
-  //   fetchTags(); // Fetch tags on mount
-  //   fetchCategories(); // Fetch categories on mount
-  //   fetchEquipment(); // Fetch equipment on mount
-  //   fetchIngredients(); // Fetch ingredients on mount
-  //   fetchMealTypes(); // Fetch meal types on mount
-  //   fetchFavorites(); // Fetch favorites on mount
-  // }, []);
 
   useEffect(() => {
     const fetchInitialData = async () => {
       await fetchUserData(); // Fetch user data first
       await Promise.all([
-        fetchRecipes(), // Fetch recipes
+        fetchRecipes(), 
         fetchTags(),
         fetchCategories(),
         fetchEquipment(),
@@ -943,7 +931,6 @@ const fetchRecipes = async () => {
   };
 
   return (
-    // <RecipeContext.Provider value={{ recipes, tags, filters, fetchRecipes, fetchTags, applyFilters, loading }}>
     <RecipeContext.Provider
       value={{
         userData,
