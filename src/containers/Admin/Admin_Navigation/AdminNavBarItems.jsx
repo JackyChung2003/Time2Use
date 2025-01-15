@@ -29,7 +29,41 @@ const adminNavBarItems = [
     },
     {
         title: "Manage Ingredient",
-        link: "/admin/ingredients",
+        icon: <FaUser />,
+        dropdown: true, // Indicates dropdown
+        items: [
+            {
+                title: "Ingredients Category",
+                dropdown: true,
+                items: [
+                    {
+                        title: "View All Category",
+                        link: "/admin/ingredientscat/",
+                        icon: <FaListAlt />,
+                    },
+                ],
+            },
+            {
+                title: "Ingredients",
+                dropdown: true,
+                items: [
+                    {
+                        title: "View All Ingredient",
+                        link: "/admin/ingredients",
+                        icon: <FaListAlt />,
+                    },
+                ],
+            }
+        ]
+    },
+    {
+        title: "Manage Unit",
+        link: "/admin/units",
+        icon: <FaUser />,
+    },
+    {
+        title: "Manage Unit Inv",
+        link: "/admin/unitinv",
         icon: <FaUser />,
     },
     {
