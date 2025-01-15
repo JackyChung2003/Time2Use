@@ -187,62 +187,71 @@ const sendMessage = async () => {
       return;
     }
 
-    // Parse the response for specific filtering criteria
-    const intent = interpretedText.toLowerCase();
-    const matchingTag = tags.find((tag) => intent.includes(tag.name.toLowerCase()));
-    const matchingCategory = categories.find((cat) =>
-      intent.includes(cat.name.toLowerCase())
-    );
-    const matchingEquipment = equipment.find((equip) =>
-      intent.includes(equip.name.toLowerCase())
-    );
-    const cookTimeMatch = intent.match(/under (\d+)\s*minutes/);
-    const matchingCookTime = cookTimeMatch ? parseInt(cookTimeMatch[1]) : null;
-    const matchingIngredients = ingredients.filter((ingredient) =>
-      intent.includes(ingredient.name.toLowerCase())
-    );
+    if(intentRequiresExplore){
+      // Parse the response for specific filtering criteria
+      const intent = interpretedText.toLowerCase();
+      const matchingTag = tags.find((tag) => intent.includes(tag.name.toLowerCase()));
+      const matchingCategory = categories.find((cat) =>
+        intent.includes(cat.name.toLowerCase())
+      );
+      const matchingEquipment = equipment.find((equip) =>
+        intent.includes(equip.name.toLowerCase())
+      );
+      const cookTimeMatch = intent.match(/under (\d+)\s*minutes/);
+      const matchingCookTime = cookTimeMatch ? parseInt(cookTimeMatch[1]) : null;
+      const matchingIngredients = ingredients.filter((ingredient) =>
+        intent.includes(ingredient.name.toLowerCase())
+      );
 
-    // Apply filters dynamically
-    applyFilters({
-      tags: matchingTag ? [...filters.tags, matchingTag.name] : filters.tags,
-      categories: matchingCategory
-        ? [...filters.categories, matchingCategory.name]
-        : filters.categories,
-      equipment: matchingEquipment
-        ? [...filters.equipment, matchingEquipment.name]
-        : filters.equipment,
-      cookTime: matchingCookTime || filters.cookTime,
-      ingredients:
-        matchingIngredients.length > 0
-          ? [...filters.ingredients, ...matchingIngredients.map((ing) => ing.name)]
-          : filters.ingredients,
-    });
+      // Apply filters dynamically
+      applyFilters({
+        tags: matchingTag ? [...filters.tags, matchingTag.name] : filters.tags,
+        categories: matchingCategory
+          ? [...filters.categories, matchingCategory.name]
+          : filters.categories,
+        equipment: matchingEquipment
+          ? [...filters.equipment, matchingEquipment.name]
+          : filters.equipment,
+        cookTime: matchingCookTime || filters.cookTime,
+        ingredients:
+          matchingIngredients.length > 0
+            ? [...filters.ingredients, ...matchingIngredients.map((ing) => ing.name)]
+            : filters.ingredients,
+      });
 
-    await fetchRecipes();
+      await fetchRecipes();
 
-    // Prepare a summary of applied filters
-    const appliedFilters = [
-      matchingTag && `Tag: ${matchingTag.name}`,
-      matchingCategory && `Category: ${matchingCategory.name}`,
-      matchingEquipment && `Equipment: ${matchingEquipment.name}`,
-      matchingCookTime && `Cooking Time: Under ${matchingCookTime} minutes`,
-      matchingIngredients.length > 0 &&
-        `Ingredients: ${matchingIngredients.map((ing) => ing.name).join(", ")}`,
-    ]
-      .filter(Boolean)
-      .join(", ");
+      // Prepare a summary of applied filters
+      const appliedFilters = [
+        matchingTag && `Tag: ${matchingTag.name}`,
+        matchingCategory && `Category: ${matchingCategory.name}`,
+        matchingEquipment && `Equipment: ${matchingEquipment.name}`,
+        matchingCookTime && `Cooking Time: Under ${matchingCookTime} minutes`,
+        matchingIngredients.length > 0 &&
+          `Ingredients: ${matchingIngredients.map((ing) => ing.name).join(", ")}`,
+      ]
+        .filter(Boolean)
+        .join(", ");
 
-    // Update chat history
-    setChatHistory((prev) => [
-      ...prev,
-      // { type: "user", message: userInput },
-      {
-        type: "bot",
-        message: appliedFilters
-          ? `Filters applied: ${appliedFilters}.`
-          : interpretedText,
-      },
-    ]);
+      // Update chat history
+      setChatHistory((prev) => [
+        ...prev,
+        // { type: "user", message: userInput },
+        {
+          type: "bot",
+          message: appliedFilters
+            ? `Filters applied: ${appliedFilters}.`
+            : interpretedText,
+        },
+      ]);
+    }else{
+      setChatHistory((prev) => [
+        ...prev,
+        // { type: "user", message: userInput },
+        { type: "bot", message: interpretedText },
+      ]);
+    }
+    
   } catch (error) {
     console.error("Error sending message:", error);
     setChatHistory((prev) => [

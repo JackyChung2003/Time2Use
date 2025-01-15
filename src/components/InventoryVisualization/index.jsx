@@ -63,7 +63,7 @@ const InventoryVisualization = ({ linkedInventory, recipe }) => {
   return (
     <div style={{ marginBottom: "20px" }}>
       <h4>Inventory Progress</h4>
-      <ResponsiveContainer width="100%" height={300}>
+      <ResponsiveContainer width="100%" height={150}>
         <BarChart
           data={inventoryData}
           layout="vertical"

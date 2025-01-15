@@ -429,7 +429,7 @@ const handleAddMeal = async () => {
       )}
   
       {showScheduleOptions.show && (
-        <div className="modal">
+        <div className="calender-modal">
           <div className="modal-content">
             <h2>Schedule Meal</h2>
             <p>

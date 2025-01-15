@@ -367,6 +367,9 @@ const RecipeDetail = () => {
                     <BackButton />
                     {/* <h1 className="recipe-title">{recipe.name}</h1> */}
                     <div className="action-buttons">
+                        <button onClick={shareRecipe} className="share-button">
+                            Share
+                        </button>
                         <button
                             onClick={(e) => {
                                 e.stopPropagation();
@@ -482,21 +485,21 @@ const RecipeDetail = () => {
                 <ul className="steps-list">
                     {steps.map((step) => (
                         <li key={step.step_number} className="step-item">
-                            <strong>Step {step.step_number}:</strong> {step.instruction}
+                            <strong>{step.step_number}:</strong> {step.instruction}
                         </li>
                     ))}
                 </ul>
             </section>
             )}
-
-            {!scheduleData ? (
+            {console.log("Schedule Data:", scheduleData)}
+            {!scheduleData.activity_type ? (
                 <>
-                    <button
+                    {/* <button
                         onClick={toggleCookingMode}
                         className="button cooking-mode-button"
                     >
                         Start Cooking Mode
-                    </button>
+                    </button> */}
 
                     <button
                         onClick={() =>
@@ -513,28 +516,39 @@ const RecipeDetail = () => {
                 // Buttons for navigating from the Meal Planning page
                 <>
                     {scheduleData?.activity_type === "view" ? (
-                        // Show the "Cancel Schedule" button for "view" activity type
-                        <button
-                            onClick={handleCancelSchedule}
-                            className="button cancel-schedule-button"
-                            // onMouseEnter={(e) => (e.target.style.background = "#e63939")}
-                            // onMouseLeave={(e) => (e.target.style.background = "#ff4d4d")}
-                            onMouseEnter={(e) =>
-                                e.target.classList.add('cancel-schedule-hover')
+                        <>
+                            <button
+                                onClick={handleCancelSchedule}
+                                className="button cancel-schedule-button"
+                                // onMouseEnter={(e) => (e.target.style.background = "#e63939")}
+                                // onMouseLeave={(e) => (e.target.style.background = "#ff4d4d")}
+                                onMouseEnter={(e) =>
+                                    e.target.classList.add('cancel-schedule-hover')
+                                }
+                                onMouseLeave={(e) =>
+                                    e.target.classList.remove('cancel-schedule-hover')
+                                }
+                            >
+                                <span className="cancel-icon">✖</span>
+                                Cancel Schedule for {" "}
+                                {new Date(scheduleData.planned_date).toLocaleDateString("en-US", {
+                                    month: "long",
+                                    day: "numeric",
+                                    year: "numeric",
+                                })} {" "}
+                                ({mealTypeMap[scheduleData.meal_type_id] || "Unknown"})
+                            </button>
+                            <button
+                            onClick={() =>
+                                navigate('/recipes/calendar', {
+                                    state: { recipeId: id, recipeName: recipe.name },
+                                })
                             }
-                            onMouseLeave={(e) =>
-                                e.target.classList.remove('cancel-schedule-hover')
-                            }
+                            className="button reschedule-another-button"
                         >
-                            <span className="cancel-icon">✖</span>
-                            Cancel Schedule for {" "}
-                            {new Date(scheduleData.planned_date).toLocaleDateString("en-US", {
-                                month: "long",
-                                day: "numeric",
-                                year: "numeric",
-                            })} {" "}
-                            ({mealTypeMap[scheduleData.meal_type_id] || "Unknown"})
+                            Reschedule Another Meal
                         </button>
+                    </>
                         
                     ) : (
                         // Updated "Add Recipe to Meal Plan" button
@@ -549,16 +563,6 @@ const RecipeDetail = () => {
                             Add to Meal
                         </button>
                     )}
-                    <button
-                        onClick={() =>
-                            navigate('/recipes/calendar', {
-                                state: { recipeId: id, recipeName: recipe.name },
-                            })
-                        }
-                        className="button reschedule-another-button"
-                    >
-                        Reschedule Another Meal
-                    </button>
                     {/* havnt do passing state for this */}
                 </>
             )}
