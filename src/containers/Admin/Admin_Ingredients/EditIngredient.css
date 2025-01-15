@@ -1,9 +1,8 @@
 .edit-ingredient-container {
     padding: 20px;
-    font-family: Arial, sans-serif;
 }
 
-.edit-ingredient-header {
+.edit-user-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -50,8 +49,7 @@
 }
 
 .form-group input,
-.form-group select,
-.form-group textarea {
+.form-group select {
     width: 100%;
     padding: 8px;
     border: 1px solid #ddd;
@@ -60,8 +58,7 @@
 }
 
 .form-group input:focus,
-.form-group select:focus,
-.form-group textarea:focus {
+.form-group select:focus {
     outline: none;
     border-color: #4CAF50;
 }
@@ -84,8 +81,4 @@
 .submit-btn:disabled {
     background-color: #cccccc;
     cursor: not-allowed;
-}
-
-.form-group input[type="file"] {
-    margin-top: 5px;
 }
