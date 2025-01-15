@@ -7,7 +7,8 @@ const EditUser = () => {
     const [unqID, setUnqID] = useState("");
     const [userName, setUserName] = useState("");
     const [birthday, setBirthday] = useState("");
-    const [notificationDay, setNotificationDay] = useState(""); // Number for notification day
+    const [selectedNotificationDayId, setSelectedNotificationDayId] = useState(null);
+    const [notificationDay, setNotificationDay] = useState([]); // Number for notification day
     const [selectedRoleId, setSelectedRoleId] = useState(null);
     const [roleName, setRoleName] = useState(""); // To store the role name
     const [picture, setPicture] = useState(null);
@@ -31,7 +32,7 @@ const EditUser = () => {
                 setUnqID(user.user);
                 setUserName(user.username);
                 setBirthday(user.birthday);
-                setNotificationDay(user.notification_day); // Directly set the number
+                setSelectedNotificationDayId(user.notification_day); // Directly set the number
                 setCurrentPicturePath(user.picture_path);
 
                 // Fetch role_id from the user_roles table
@@ -64,6 +65,16 @@ const EditUser = () => {
                     console.error("Error fetching roles data:", rolesError);
                 } else {
                     setRoles(rolesData || []);
+                }
+
+                const { data: notificationData, error: notificationError } = await supabase
+                    .from("notification_day")
+                    .select("id, day");
+
+                if (notificationError) {
+                    console.error("Error fetching notification days:", notificationError);
+                } else {
+                    setNotificationDay(notificationData || []);
                 }
             } catch (error) {
                 console.error("Error fetching user data:", error.message);
@@ -104,7 +115,7 @@ const EditUser = () => {
                 .update({
                     username: userName,
                     birthday: birthday,
-                    notification_day: notificationDay,
+                    notification_day: selectedNotificationDayId,
                     picture_path: picturePath,
                 })
                 .eq("id", id);
@@ -156,14 +167,20 @@ const EditUser = () => {
 
                     <div className="form-group">
                         <label>Notification Day:</label>
-                        <input
-                            type="number"
-                            value={notificationDay || ""}
-                            onChange={(e) => setNotificationDay(e.target.value)}
+                        <select
+                            value={selectedNotificationDayId || ""}
+                            onChange={(e) => setSelectedNotificationDayId(e.target.value)}
                             required
-                            min={1}
-                            max={7}
-                        />
+                        >
+                            <option value="" disabled>
+                                Select a notification day
+                            </option>
+                            {notificationDay.map((notificationday) => (
+                                <option key={notificationday.id} value={notificationday.id}>
+                                    {notificationday.day}
+                                </option>
+                            ))}
+                        </select>
                     </div>
 
                     <div className="form-group">
