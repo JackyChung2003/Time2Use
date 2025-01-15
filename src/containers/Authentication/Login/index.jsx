@@ -113,6 +113,16 @@ const Login = () => {
                     onChange={(e) => setPassword(e.target.value)}
                     required
                 />
+                {/* Forgot Password Link */}
+                <p className="forgot-password-link">
+                    <button 
+                        type="button" 
+                        className="forgot-password-button" 
+                        onClick={() => navigate('/forgetpassword')}
+                    >
+                        Forgot Password?
+                    </button>
+                </p>
                 <button type="submit" className="login-button" disabled={loading}>
                     {loading ? 'Logging in...' : 'Login'}
                 </button>
