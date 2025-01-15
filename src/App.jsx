@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useEffect, useState } from "react";
 import Login from './containers/Authentication/Login/index';
+import ForgetPassword from './containers/Authentication/ForgetPassword/index';
 import Signup from './containers/Authentication/Registration';
 //import supabase from './config/supabaseClient';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -111,6 +112,7 @@ const App = () => {
 
                     {/* Authentication Routes */}
                     <Route path="/login" element={<Login />} />
+                    <Route path="/forgetpassword" element={<ForgetPassword />} />
                     <Route path="/signup" element={<Signup />} />
 
                     {/* Client Routes */}
