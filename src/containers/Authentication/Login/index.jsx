@@ -59,7 +59,10 @@ const Login = () => {
             }
 
             const roleName = roleData.role_name.trim().toLowerCase();
-
+            
+            // Set notification flag to true for dashboard
+            sessionStorage.setItem('showNotification', 'true');
+            
             // Update role in context
             updateUserRole(roleName);
 
