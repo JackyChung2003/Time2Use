@@ -440,9 +440,6 @@ const RecipeDetail = () => {
                     <h3>Ingredients List ({getAdjustedIngredients().length} item(s))</h3>
                     <ul className="ingredients-list">
                         {getAdjustedIngredients().map((ingredient) => (
-                            // <li key={ingredient.ingredients.id} className="ingredient-item">
-                            //     {ingredient.ingredients.name} - {ingredient.quantity} {ingredient.ingredients.unit?.unit_tag || ''}
-                            // </li>
                             <li key={ingredient.ingredients.id} className="ingredient-item">
                             {console.log('ingredient:', ingredient)}
                             <img 
@@ -475,12 +472,6 @@ const RecipeDetail = () => {
             {console.log("Schedule Data:", scheduleData)}
             {!scheduleData.activity_type ? (
                 <>
-                    {/* <button
-                        onClick={toggleCookingMode}
-                        className="button cooking-mode-button"
-                    >
-                        Start Cooking Mode
-                    </button> */}
 
                     <button
                         onClick={() =>

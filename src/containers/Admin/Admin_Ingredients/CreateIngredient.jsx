@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import supabase from '../../../config/supabaseClient';
 import './CreateIngredient.css';
 
-const CreateUser = () => {
+const CreateIngredient = () => {
     const [ingredientName, setIngredientName] = useState("");
     const [icon, setIcon] = useState(null);
     const [nutritionalInfo, setNutritionalInfo] = useState({
@@ -20,7 +20,6 @@ const CreateUser = () => {
     const [selectedUnitId, setSelectedUnitId] = useState(null);
     const navigate = useNavigate();
 
-    // Fetch admin user and dropdown data
     useEffect(() => {
 
         const fetchDropdownData = async () => {
@@ -100,9 +99,9 @@ const CreateUser = () => {
     };
 
     return (
-        <div className="admin-dashboard">
+        <div className='create-ingredient-container'>
             <div className="admin-content">
-                <div className="form-container">
+                <div className="create-ingredient-container">
                     <h2>Add New Ingredient</h2>
                     <form onSubmit={handleSubmit}>
                         <div className="form-group">
@@ -224,4 +223,4 @@ const CreateUser = () => {
     );
 };
 
-export default CreateUser;
+export default CreateIngredient;

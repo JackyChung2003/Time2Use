@@ -1,4 +1,3 @@
-// Successful directed to page
 import './index.css'; // Import the CSS file
 import { useState } from 'react';
 import supabase from '../../../config/supabaseClient';
@@ -10,7 +9,6 @@ const Login = () => {
     const { updateUserRole } = useAuth();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
 
     const handleEmailLogin = async (e) => {
@@ -22,9 +20,21 @@ const Login = () => {
                 password: password,
             });
 
-            if (error) throw error;
+            if (error) {
+                // Handle specific Supabase auth errors
+                if (error.status === 400) {
+                    alert('Incorrect email or password. Please try again.');
+                } else if (error.status === 404) {
+                    alert('No user found with this email. Please create an account.');
+                } else {
+                    alert(`Login failed: ${error.message}`);
+                }
+                throw error;
+            }
 
-            // First get the role_id from user_roles
+            alert('Login successful!');
+
+            // Fetch role_id from user_roles
             const { data: userRoleData, error: roleError } = await supabase
                 .from('user_roles')
                 .select('role_id')
@@ -36,7 +46,7 @@ const Login = () => {
                 throw roleError;
             }
 
-            // Then get the role_name from roles table using role_id
+            // Fetch role_name from roles table using role_id
             const { data: roleData, error: roleNameError } = await supabase
                 .from('roles')
                 .select('role_name')
@@ -49,19 +59,17 @@ const Login = () => {
             }
 
             const roleName = roleData.role_name.trim().toLowerCase();
-            console.log('Role before storing:', roleName);
             
             // Set notification flag to true for dashboard
             sessionStorage.setItem('showNotification', 'true');
-
-            // Update role in context (this also stores in localStorage)
+            
+            // Update role in context
             updateUserRole(roleName);
-            console.log('Role after storing:', roleName);
 
             // Check the user's profile for a username (only for clients)
             if (roleName === 'client') {
                 const { data: profileData, error: profileError } = await supabase
-                    .from('profile')  // Assuming user profile information is stored here
+                    .from('profile') // Assuming user profile information is stored here
                     .select('username')
                     .eq('user', data.user.id)
                     .single();
@@ -73,29 +81,23 @@ const Login = () => {
 
                 // If the username is empty, navigate to the profile page to set it
                 if (!profileData?.username) {
-                    console.log("Navigating to profile to set username");
                     navigate('/profile');
                 } else {
-                    // If the username exists, navigate to the client dashboard
-                    console.log("Navigating to client dashboard");
-                    navigate('/dashboard');
+                    navigate('/dashboard'); // Navigate to the client dashboard
                 }
             } else if (roleName === 'admin') {
-                // Admin-specific navigation
-                console.log("Navigating to admin dashboard");
-                navigate('/admin/dashboard');
+                navigate('/admin/dashboard'); // Navigate to the admin dashboard
             } else {
                 throw new Error(`Unknown role: ${roleName}`);
             }
 
         } catch (error) {
             console.error('Error:', error.message);
-            setError(error.message);
         } finally {
             setLoading(false);
         }
     };
-    
+
     return (
         <div className="container">
             <h1 className="header">Login</h1>
@@ -114,6 +116,16 @@ const Login = () => {
                     onChange={(e) => setPassword(e.target.value)}
                     required
                 />
+                {/* Forgot Password Link */}
+                <p className="forgot-password-link">
+                    <button 
+                        type="button" 
+                        className="forgot-password-button" 
+                        onClick={() => navigate('/forgetpassword')}
+                    >
+                        Forgot Password?
+                    </button>
+                </p>
                 <button type="submit" className="login-button" disabled={loading}>
                     {loading ? 'Logging in...' : 'Login'}
                 </button>

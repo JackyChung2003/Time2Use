@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import supabase from '../../../config/supabaseClient';
 
-const EditInventory = () => {
-    const { id } = useParams(); // Get the inventory ID from the URL
+const CreateInventory = () => {
     const [userId, setUserId] = useState("");
     const [ingredientId, setIngredientId] = useState(null);
     const [quantity, setQuantity] = useState("");
@@ -18,68 +17,77 @@ const EditInventory = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        const fetchInventoryData = async () => {
-            const { data, error } = await supabase
-                .from("inventory")
-                .select("*")
-                .eq("id", id)
-                .single();
-
-            if (error || !data) {
-                console.error("Error fetching inventory data:", error?.message);
-                alert("Failed to load inventory data.");
-                return;
-            }
-
-            setUserId(data.user_id);
-            setIngredientId(data.ingredient_id);
-            setQuantity(data.quantity);
-            setInitQuantity(data.init_quantity);
-            setConditionId(data.condition_id);
-            setExpiryDateId(data.expiry_date_id);
-
-            // Fetch expiry date details
-            const { data: expiryData, error: expiryError } = await supabase
-                .from("expiry_date")
-                .select("id, date")
-                .eq("id", data.expiry_date_id)
-                .single();
-
-            if (expiryError || !expiryData) {
-                console.error("Error fetching expiry date:", expiryError?.message);
-                return;
-            }
-
-            setExpiryDate(expiryData.date);
-
-            const currentDate = new Date();
-            const expiryDateObj = new Date(expiryData.date);
-            const timeDiff = expiryDateObj - currentDate;
-            const daysLeftValue = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
-            setDaysLeft(daysLeftValue);
-        };
-
         const fetchDropdownData = async () => {
-            const { data: ingredientData } = await supabase
+            const { data: ingredientData, error: ingredientError } = await supabase
                 .from("ingredients")
                 .select("id, name");
 
-            const { data: conditionData } = await supabase
+            const { data: conditionData, error: conditionError } = await supabase
                 .from("condition")
                 .select("id, condition");
 
-            const { data: userData } = await supabase
+            const { data: userData, error: userError } = await supabase
                 .from("profile")
                 .select("user, username");
 
-            setIngredients(ingredientData || []);
-            setConditions(conditionData || []);
-            setUsers(userData || []);
+            if (ingredientError || conditionError || userError) {
+                console.error("Error fetching dropdown data:", ingredientError || conditionError || userError);
+            } else {
+                setIngredients(ingredientData || []);
+                setConditions(conditionData || []);
+                setUsers(userData || []);
+            }
         };
 
-        fetchInventoryData();
         fetchDropdownData();
-    }, [id]);
+    }, []);
+
+    const handleUserChange = (selectedUserId) => {
+        setUserId(selectedUserId);
+    };
+
+    const handleIngredientChange = async (selectedIngredientId) => {
+        setIngredientId(selectedIngredientId);
+
+        try {
+            const { data: expiryData, error: expiryError } = await supabase
+                .from("ingredients_expiry")
+                .select("date_id")
+                .eq("ingredients_id", selectedIngredientId)
+                .order("date_id", { ascending: false })
+                .limit(1);
+
+            if (expiryError || !expiryData || expiryData.length === 0) {
+                throw new Error("No expiry data found for the selected ingredient.");
+            }
+
+            const dateId = expiryData[0].date_id;
+
+            const { data: dateData, error: dateError } = await supabase
+                .from("expiry_date")
+                .select("id, date")
+                .eq("id", dateId)
+                .single();
+
+            if (dateError || !dateData) {
+                throw new Error("No date found for the given date ID.");
+            }
+
+            setExpiryDateId(dateData.id); // Store the ID
+            setExpiryDate(dateData.date); // Display the date
+
+            const currentDate = new Date();
+            const expiryDateObj = new Date(dateData.date);
+            const timeDiff = expiryDateObj - currentDate;
+            const daysLeftValue = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
+            setDaysLeft(daysLeftValue);
+        } catch (error) {
+            console.error("Error retrieving expiry date or calculating days left:", error.message);
+            setExpiryDateId(null);
+            setExpiryDate(""); // Clear expiry date
+            setDaysLeft("");
+        }
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -90,38 +98,46 @@ const EditInventory = () => {
         }
 
         try {
-            const { error } = await supabase
-                .from("inventory")
-                .update({
-                    user_id: userId,
-                    ingredient_id: ingredientId,
-                    quantity: parseFloat(quantity),
-                    init_quantity: parseFloat(initQuantity),
-                    condition_id: conditionId,
-                    expiry_date_id: expiryDateId,
-                    days_left: daysLeft,
-                })
-                .eq("id", id);
+            const { error: insertError } = await supabase.from("inventory").insert({
+                user_id: userId,
+                ingredient_id: ingredientId,
+                quantity: parseFloat(quantity),
+                init_quantity: parseFloat(initQuantity),
+                condition_id: conditionId,
+                expiry_date_id: expiryDateId,
+                days_left: daysLeft,
+            });
 
-            if (error) throw error;
+            if (insertError) throw insertError;
 
-            alert("Inventory updated successfully!");
-            navigate("/inventory"); // Redirect to inventory list
+            alert("Inventory added successfully!");
+            resetForm();
         } catch (error) {
-            console.error("Error updating inventory:", error.message);
-            alert("Failed to update inventory.");
+            console.error("Error adding inventory:", error.message);
+            alert("Failed to add inventory.");
         }
     };
 
+    const resetForm = () => {
+        setUserId("");
+        setIngredientId(null);
+        setQuantity("");
+        setInitQuantity("");
+        setConditionId(null);
+        setExpiryDateId(null);
+        setExpiryDate(""); // Reset expiry date
+        setDaysLeft("");
+    };
+
     return (
-        <div className="edit-inventory-container">
-            <h2>Edit Inventory</h2>
+        <div className="create-inventory-container">
+            <h2>Add New Inventory</h2>
             <form onSubmit={handleSubmit}>
                 <div className="form-group">
                     <label>User:</label>
                     <select
                         value={userId}
-                        onChange={(e) => setUserId(e.target.value)}
+                        onChange={(e) => handleUserChange(e.target.value)}
                         required
                     >
                         <option value="" disabled>
@@ -139,7 +155,7 @@ const EditInventory = () => {
                     <label>Ingredient:</label>
                     <select
                         value={ingredientId || ""}
-                        onChange={(e) => setIngredientId(parseInt(e.target.value))}
+                        onChange={(e) => handleIngredientChange(parseInt(e.target.value))}
                         required
                     >
                         <option value="" disabled>
@@ -202,11 +218,11 @@ const EditInventory = () => {
                 </div>
 
                 <button type="submit" className="submit-btn">
-                    Update Inventory
+                    Add Inventory
                 </button>
             </form>
         </div>
     );
 };
 
-export default EditInventory;
+export default CreateInventory;

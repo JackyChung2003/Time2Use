@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useEffect, useState } from "react";
 import Login from './containers/Authentication/Login/index';
+import ForgetPassword from './containers/Authentication/ForgetPassword/index';
 import Signup from './containers/Authentication/Registration';
 //import supabase from './config/supabaseClient';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -23,12 +24,34 @@ import AdminDashboard from './containers/Admin/Admin_Dashboard';
 import AdminRecipeNavigation from './containers/Admin/Admin_Recipe/AdminRecipeNavigation';
 import AdminUsers from './containers/Admin/Admin_Users';
 import CreateUser from './containers/Admin/Admin_Users/CreateUser';
+import ViewUser from './containers/Admin/Admin_Users/ViewUser';
+import EditUser from './containers/Admin/Admin_Users/EditUser';
 import AdminInventories from './containers/Admin/Admin_Inventory/index.jsx';
+import CreateInventory from './containers/Admin/Admin_Inventory/CreateInventory';
+import ViewInventory from './containers/Admin/Admin_Inventory/ViewInventory';
+import EditInventory from './containers/Admin/Admin_Inventory/EditInventory';
 import AdminIngredients from './containers/Admin/Admin_Ingredients/index.jsx';
 import CreateIngredient from './containers/Admin/Admin_Ingredients/CreateIngredient';
+import ViewIngredient from './containers/Admin/Admin_Ingredients/ViewIngredient';
 import EditIngredient from './containers/Admin/Admin_Ingredients/EditIngredient';
-import CreateExpiryDate from './containers/Admin/Admin_Inventory/CreateExpiryDate';
-import EditInventory from './containers/Admin/Admin_Inventory/EditInventory';
+
+import AdminUnit from './containers/Admin/Admin_Units/index.jsx';
+import CreateUnit from './containers/Admin/Admin_Units/CreateUnit';
+import ViewUnit from './containers/Admin/Admin_Units/ViewUnit';
+import EditUnit from './containers/Admin/Admin_Units/EditUnit';
+
+import AdminUnitInv from './containers/Admin/Admin_UnitInv/index.jsx';
+import CreateUnitInv from './containers/Admin/Admin_UnitInv/CreateUnitInv';
+import ViewUnitInv from './containers/Admin/Admin_UnitInv/ViewUnitInv';
+import EditUnitInv from './containers/Admin/Admin_UnitInv/EditUnitInv';
+
+import AdminIngredientsCat from './containers/Admin/Admin_IngredientsCat/index.jsx';
+import CreateIngredientsCat from './containers/Admin/Admin_IngredientsCat/CreateIngredientsCat';
+import ViewIngredientsCat from './containers/Admin/Admin_IngredientsCat/ViewIngredientsCat';
+import EditIngredientsCat from './containers/Admin/Admin_IngredientsCat/EditIngredientsCat';
+
+import AdminExpiryDate from './containers/Admin/Admin_ExpiryDate/index.jsx';
+import CreateExpiryDate from './containers/Admin/Admin_ExpiryDate/CreateExpiryDate';
 
 import CommonLoader from './components/Loader/CommonLoader/index.jsx';
 
@@ -94,6 +117,7 @@ const App = () => {
 
                     {/* Authentication Routes */}
                     <Route path="/login" element={<Login />} />
+                    <Route path="/forgetpassword" element={<ForgetPassword />} />
                     <Route path="/signup" element={<Signup />} />
 
                     {/* Client Routes */}
@@ -143,6 +167,22 @@ const App = () => {
                                 }
                             />
                             <Route
+                                path="/admin/users/view/:id"
+                                element={
+                                    <AdminLayout isCollapsed={isCollapsed} toggleSidebar={toggleSidebar}>
+                                        <ViewUser />
+                                    </AdminLayout>
+                                }
+                            />
+                            <Route
+                                path="/admin/users/edit/:id"
+                                element={
+                                    <AdminLayout isCollapsed={isCollapsed} toggleSidebar={toggleSidebar}>
+                                        <EditUser />
+                                    </AdminLayout>
+                                }
+                            />
+                            <Route
                                 path="/admin/inventories"
                                 element={
                                     <AdminLayout isCollapsed={isCollapsed} toggleSidebar={toggleSidebar}>
@@ -151,23 +191,29 @@ const App = () => {
                                 }
                             />
                             <Route
-                                path="/admin/inventories/create-expiry-date"
+                                path="/admin/inventories/create"
                                 element={
                                     <AdminLayout isCollapsed={isCollapsed} toggleSidebar={toggleSidebar}>
-                                         <CreateExpiryDate />
+                                        <CreateInventory />
                                     </AdminLayout>
-                                 }
+                                }
                             />
-
+                            <Route
+                                path="/admin/inventories/view/:id"
+                                element={
+                                    <AdminLayout isCollapsed={isCollapsed} toggleSidebar={toggleSidebar}>
+                                        <ViewInventory />
+                                    </AdminLayout>
+                                }
+                            />
                             <Route
                                 path="/admin/inventories/edit/:id"
                                 element={
                                     <AdminLayout isCollapsed={isCollapsed} toggleSidebar={toggleSidebar}>
-                                         <EditInventory />
+                                        <EditInventory />
                                     </AdminLayout>
-                                 }
+                                }
                             />
-
                             <Route
                                 path="/admin/ingredients"
                                 element={
@@ -185,10 +231,135 @@ const App = () => {
                                 }
                             />
                             <Route
-                                 path="/admin/ingredients/edit/:id"
+                                path="/admin/ingredients/view/:id"
+                                element={
+                                    <AdminLayout isCollapsed={isCollapsed} toggleSidebar={toggleSidebar}>
+                                        <ViewIngredient />
+                                    </AdminLayout>
+                                }
+                            />
+                            <Route
+                                path="/admin/ingredients/edit/:id"
                                 element={
                                     <AdminLayout isCollapsed={isCollapsed} toggleSidebar={toggleSidebar}>
                                         <EditIngredient />
+                                    </AdminLayout>
+                                }
+                            />
+
+                            <Route
+                                path="/admin/units"
+                                element={
+                                    <AdminLayout isCollapsed={isCollapsed} toggleSidebar={toggleSidebar}>
+                                        <AdminUnit />
+                                    </AdminLayout>
+                                }
+                            />
+                            <Route
+                                path="/admin/units/create"
+                                element={
+                                    <AdminLayout isCollapsed={isCollapsed} toggleSidebar={toggleSidebar}>
+                                        <CreateUnit />
+                                    </AdminLayout>
+                                }
+                            />
+                            <Route
+                                path="/admin/units/view/:id"
+                                element={
+                                    <AdminLayout isCollapsed={isCollapsed} toggleSidebar={toggleSidebar}>
+                                        <ViewUnit />
+                                    </AdminLayout>
+                                }
+                            />
+                            <Route
+                                path="/admin/units/edit/:id"
+                                element={
+                                    <AdminLayout isCollapsed={isCollapsed} toggleSidebar={toggleSidebar}>
+                                        <EditUnit />
+                                    </AdminLayout>
+                                }
+                            />
+
+                            
+                            <Route
+                                path="/admin/unitinv"
+                                element={
+                                    <AdminLayout isCollapsed={isCollapsed} toggleSidebar={toggleSidebar}>
+                                        <AdminUnitInv />
+                                    </AdminLayout>
+                                }
+                            />
+                            <Route
+                                path="/admin/unitinv/create"
+                                element={
+                                    <AdminLayout isCollapsed={isCollapsed} toggleSidebar={toggleSidebar}>
+                                        <CreateUnitInv />
+                                    </AdminLayout>
+                                }
+                            />
+                            <Route
+                                path="/admin/unitinv/view/:id"
+                                element={
+                                    <AdminLayout isCollapsed={isCollapsed} toggleSidebar={toggleSidebar}>
+                                        <ViewUnitInv />
+                                    </AdminLayout>
+                                }
+                            />
+                            <Route
+                                path="/admin/unitinv/edit/:id"
+                                element={
+                                    <AdminLayout isCollapsed={isCollapsed} toggleSidebar={toggleSidebar}>
+                                        <EditUnitInv />
+                                    </AdminLayout>
+                                }
+                            />
+
+                            <Route
+                                path="/admin/ingredientscat"
+                                element={
+                                    <AdminLayout isCollapsed={isCollapsed} toggleSidebar={toggleSidebar}>
+                                        <AdminIngredientsCat />
+                                    </AdminLayout>
+                                }
+                            />
+                            <Route
+                                path="/admin/ingredientscat/create"
+                                element={
+                                    <AdminLayout isCollapsed={isCollapsed} toggleSidebar={toggleSidebar}>
+                                        <CreateIngredientsCat />
+                                    </AdminLayout>
+                                }
+                            />
+                            <Route
+                                path="/admin/ingredientscat/view/:id"
+                                element={
+                                    <AdminLayout isCollapsed={isCollapsed} toggleSidebar={toggleSidebar}>
+                                        <ViewIngredientsCat />
+                                    </AdminLayout>
+                                }
+                            />
+                            <Route
+                                path="/admin/ingredientscat/edit/:id"
+                                element={
+                                    <AdminLayout isCollapsed={isCollapsed} toggleSidebar={toggleSidebar}>
+                                        <EditIngredientsCat />
+                                    </AdminLayout>
+                                }
+                            />
+
+                            <Route
+                                path="/admin/expirydate"
+                                element={
+                                    <AdminLayout isCollapsed={isCollapsed} toggleSidebar={toggleSidebar}>
+                                        <AdminExpiryDate />
+                                    </AdminLayout>
+                                }
+                            />
+                            <Route
+                                path="/admin/expirydate/create"
+                                element={
+                                    <AdminLayout isCollapsed={isCollapsed} toggleSidebar={toggleSidebar}>
+                                        <CreateExpiryDate />
                                     </AdminLayout>
                                 }
                             />
