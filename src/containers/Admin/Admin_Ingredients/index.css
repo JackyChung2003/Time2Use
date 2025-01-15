@@ -1,21 +1,7 @@
-/* General Styles */
-body {
-  font-family: 'Arial', sans-serif;
-  background-color: #f4f6f9;
-  margin: 0;
-  padding: 0;
-}
-
 .admin-ingredients {
-  padding: 30px;
-  background-color: #fff;
-  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-  border-radius: 8px;
-  max-width: 1200px;
-  margin: 20px auto;
+  padding: "20px";
 }
 
-/* Header Section */
 .admin-ingredients-header {
   display: flex;
   justify-content: space-between;
@@ -23,105 +9,87 @@ body {
   margin-bottom: 20px;
 }
 
-h2 {
-  font-size: 24px;
-  color: #333;
-}
-
 .create-ingredient-btn {
-  padding: 12px 20px;
-  font-size: 16px;
+  padding: 10px 15px;
   background-color: #4CAF50;
   color: white;
   border: none;
-  border-radius: 6px;
+  border-radius: 5px;
   cursor: pointer;
-  transition: background-color 0.3s ease;
 }
 
-.create-ingredient-btn:hover {
+.create-user-btn:hover {
   background-color: #45a049;
 }
 
-/* Table Section */
-table {
+.users-table-container {
+  overflow-x: auto;
+}
+
+.users-table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 20px;
 }
 
-th,
-td {
-  padding: 12px 15px;
+.users-table th,
+.users-table td {
+  padding: 10px;
   text-align: left;
-  border-bottom: 1px solid #e1e1e1;
-  color: #333;
+  border: 1px solid #ddd;
+  white-space: nowrap; /* Prevents text wrapping */
 }
 
-th {
-  background-color: #f1f1f1;
-  font-weight: bold;
-  font-size: 16px;
+.users-table th:nth-child(4),
+.users-table td:nth-child(4) {
+  width: 150px; /* Set a fixed width for the Actions column */
 }
 
-td {
-  background-color: #ffffff;
+.action-buttons {
+  display: flex;
+  justify-content: space-around; /* Distribute buttons evenly */
+  gap: 10px; /* Add spacing between buttons */
+}
+
+.edit-btn,
+.delete-btn {
+  padding: 5px 10px;
   font-size: 14px;
-}
-
-tr:nth-child(even) td {
-  background-color: #fafafa;
-}
-
-tr:hover td {
-  background-color: #f9f9f9;
-}
-
-/* Action Buttons */
-button {
-  padding: 8px 15px;
-  font-size: 14px;
+  color: white;
   border: none;
-  border-radius: 6px;
+  border-radius: 5px;
   cursor: pointer;
-  transition: background-color 0.3s ease;
 }
 
-button.edit-btn {
-  background-color: #4CAF50; /* Green for Edit */
-  color: white;
+.edit-btn {
+  background-color: #2196F3; /* Blue for Edit */
 }
 
-button.edit-btn:hover {
-  background-color: #388E3C; /* Darker Green on hover */
+.edit-btn:hover {
+  background-color: #0b7dda; /* Darker Blue on hover */
 }
 
-button.delete-btn {
+.delete-btn {
   background-color: #f44336; /* Red for Delete */
-  color: white;
 }
 
-button.delete-btn:hover {
-  background-color: #d32f2f; /* Darker Red on hover */
+.delete-btn:hover {
+  background-color: #da190b; /* Darker Red on hover */
 }
 
-/* Pagination Controls */
 .pagination-controls {
-  margin-top: 30px;
+  margin-top: 20px;
   display: flex;
   justify-content: center;
-  gap: 10px;
+  gap: 5px;
 }
 
 .pagination-btn {
-  padding: 8px 16px;
-  font-size: 14px;
+  padding: 5px 10px;
   border: 1px solid #ccc;
   background-color: white;
-  color: #333;
-  border-radius: 5px;
+  color: black;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  border-radius: 3px;
 }
 
 .pagination-btn.active {
@@ -131,95 +99,8 @@ button.delete-btn:hover {
 }
 
 .pagination-btn:hover {
-  background-color: #f1f1f1;
+  background-color: #e0e0e0;
 }
 
-.pagination-btn:focus {
-  outline: none;
-}
 
-/* Responsive Styling */
-@media (max-width: 768px) {
-  .admin-ingredients {
-    padding: 20px;
-  }
 
-  .create-ingredient-btn {
-    width: 100%;
-    padding: 10px;
-    font-size: 14px;
-  }
-
-  table {
-    font-size: 14px;
-  }
-
-  th, td {
-    padding: 10px;
-  }
-
-  /* Action Buttons for mobile */
-  button {
-    font-size: 12px;
-    padding: 6px 12px;
-  }
-
-  /* Pagination Controls for mobile */
-  .pagination-btn {
-    padding: 6px 12px;
-    font-size: 12px;
-  }
-}
-
-@media (max-width: 480px) {
-  .admin-ingredients-header {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  h2 {
-    font-size: 20px;
-  }
-
-  .pagination-controls {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .pagination-btn {
-    width: 100%;
-    margin-bottom: 5px;
-  }
-}
-
-/* Edit button */
-.edit-btn {
-  background-color: #4CAF50; /* Green background for Edit */
-  color: white; /* White text */
-  padding: 10px 29px; /* Make padding consistent */
-  font-size: 16px; /* Consistent font size */
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  box-sizing: border-box; /* Ensures padding is included in the button's overall size */
-}
-
-.edit-btn:hover {
-  background-color: #45a049; /* Darker Green on hover */
-}
-
-/* Delete button */
-.delete-btn {
-  background-color: #f44336; /* Red background for Delete */
-  color: white; /* White text */
-  padding: 10px 20px; /* Same padding as Edit button */
-  font-size: 16px; /* Same font size as Edit button */
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  box-sizing: border-box; /* Ensures padding is included in the button's overall size */
-}
-
-.delete-btn:hover {
-  background-color: #da190b; /* Darker Red on hover */
-}
