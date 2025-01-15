@@ -8,6 +8,9 @@ export default defineConfig({
     VitePWA({
       base: '/Time2Use/',
       registerType: 'autoUpdate',
+      workbox: {
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // Increase limit to 5 MiB
+      },
       manifest: {
         name: 'Time2Use',
         short_name: 'Time2Use',
@@ -37,6 +40,23 @@ export default defineConfig({
     }),
   ],
   base: '/Time2Use/', // Ensure this matches your repository name
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: (id) => {
+          if (id.includes('node_modules')) {
+            // Split third-party libraries into separate chunks
+            return id
+              .toString()
+              .split('node_modules/')[1]
+              .split('/')[0]
+              .toString();
+          }
+        },
+      },
+    },
+    chunkSizeWarningLimit: 3000, // Increase the chunk size warning limit (in KB)
+  },
   server: {
     host: true,
   },
