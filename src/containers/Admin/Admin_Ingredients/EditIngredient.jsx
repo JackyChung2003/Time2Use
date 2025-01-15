@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import supabase from '../../../config/supabaseClient';
-import './EditIngredient.css';
+import React, { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import supabase from "../../../config/supabaseClient";
+import "./EditIngredient.css";
 
 const EditIngredient = () => {
+    const { id } = useParams(); // Get ingredient ID from URL params
     const [ingredientName, setIngredientName] = useState("");
     const [icon, setIcon] = useState(null);
     const [nutritionalInfo, setNutritionalInfo] = useState({
@@ -18,52 +19,52 @@ const EditIngredient = () => {
     const [quantityUnits, setQuantityUnits] = useState([]);
     const [selectedCategoryId, setSelectedCategoryId] = useState(null);
     const [selectedUnitId, setSelectedUnitId] = useState(null);
-    const { id } = useParams(); // To fetch the ingredient data by its ID
+    const [currentIconPath, setCurrentIconPath] = useState(""); // To display existing icon
     const navigate = useNavigate();
 
-    // Fetch admin user and dropdown data
     useEffect(() => {
-        const fetchDropdownData = async () => {
-            const { data: categories, error: catError } = await supabase
-                .from("ingredients_category")
-                .select("id, category_name");
+        // Fetch ingredient data and dropdown options
+        const fetchIngredientData = async () => {
+            try {
+                // Fetch ingredient details
+                const { data: ingredient, error: ingredientError } = await supabase
+                    .from("ingredients")
+                    .select("*")
+                    .eq("id", id)
+                    .single();
 
-            const { data: units, error: unitError } = await supabase
-                .from("unit")
-                .select("id, unit_description");
+                if (ingredientError) throw ingredientError;
 
-            if (catError || unitError) {
-                console.error("Error fetching dropdown data:", catError || unitError);
-            } else {
-                setIngredientCategories(categories || []);
-                setQuantityUnits(units || []);
-            }
-        };
+                // Populate form with existing data
+                setIngredientName(ingredient.name);
+                setNutritionalInfo(ingredient.nutritional_info || {});
+                setPredShelfLife(ingredient.pred_shelf_life);
+                setStorageTips(ingredient.storage_tips);
+                setSelectedCategoryId(ingredient.ingredients_category_id);
+                setSelectedUnitId(ingredient.quantity_unit_id);
+                setCurrentIconPath(ingredient.icon_path);
 
-        const fetchIngredient = async () => {
-            const { data, error } = await supabase
-                .from("ingredients")
-                .select("*")
-                .eq('id', id)
-                .single();
+                // Fetch dropdown data
+                const { data: categories, error: catError } = await supabase
+                    .from("ingredients_category")
+                    .select("id, category_name");
 
-            if (error) {
+                const { data: units, error: unitError } = await supabase
+                    .from("unit")
+                    .select("id, unit_description");
+
+                if (catError || unitError) {
+                    console.error("Error fetching dropdown data:", catError || unitError);
+                } else {
+                    setIngredientCategories(categories || []);
+                    setQuantityUnits(units || []);
+                }
+            } catch (error) {
                 console.error("Error fetching ingredient data:", error.message);
-                alert("Failed to fetch ingredient details.");
-                return;
             }
-
-            setIngredientName(data.name);
-            setIcon(data.icon_path); // Or handle icon as required
-            setNutritionalInfo(data.nutritional_info);
-            setPredShelfLife(data.pred_shelf_life);
-            setStorageTips(data.storage_tips);
-            setSelectedCategoryId(data.ingredients_category_id);
-            setSelectedUnitId(data.quantity_unit_id);
         };
 
-        fetchDropdownData();
-        fetchIngredient();
+        fetchIngredientData();
     }, [id]);
 
     // Handle file change
@@ -75,23 +76,28 @@ const EditIngredient = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        if (!ingredientName || !icon || !selectedCategoryId || !selectedUnitId) {
+        if (!ingredientName || !selectedCategoryId || !selectedUnitId) {
             alert("Please fill all required fields.");
             return;
         }
 
         try {
-            // Upload the icon
-            const { data: iconUploadData, error: iconError } = await supabase.storage
-                .from("ingredient-icons")
-                .upload(`${`icons/${icon.name}`}`, icon, { upsert: true });
+            let iconPath = currentIconPath;
 
-            if (iconError) throw iconError;
+            // Upload new icon if provided
+            if (icon) {
+                const { data: iconUploadData, error: iconError } = await supabase.storage
+                    .from("ingredient-icons")
+                    .upload(`icons/${icon.name}`, icon, { upsert: true });
 
-            const iconPath = iconUploadData.path;
+                if (iconError) throw iconError;
 
-            // Update the ingredient in the database
-            const { error: updateError } = await supabase.from("ingredients")
+                iconPath = iconUploadData.path;
+            }
+
+            // Update ingredient in the database
+            const { error: updateError } = await supabase
+                .from("ingredients")
                 .update({
                     name: ingredientName,
                     icon_path: iconPath,
@@ -101,33 +107,22 @@ const EditIngredient = () => {
                     ingredients_category_id: selectedCategoryId,
                     quantity_unit_id: selectedUnitId,
                 })
-                .eq('id', id); // Ensure you're updating the correct ingredient
+                .eq("id", id);
 
             if (updateError) throw updateError;
 
             alert("Ingredient updated successfully!");
-            navigate("/admin/ingredients"); // Redirect to ingredient list page (or another page as needed)
+            navigate("/admin/ingredients"); // Redirect to ingredient list
         } catch (error) {
             console.error("Error updating ingredient:", error.message);
             alert("Failed to update ingredient.");
         }
     };
 
-    // Reset form fields
-    const resetForm = () => {
-        setIngredientName("");
-        setIcon(null);
-        setNutritionalInfo({ fat: "", protein: "", calories: "", carbohydrate: "" });
-        setPredShelfLife("");
-        setStorageTips("");
-        setSelectedCategoryId(null);
-        setSelectedUnitId(null);
-    };
-
     return (
-        <div className="admin-dashboard">
+        <div className="edit-ingredient-container">
             <div className="admin-content">
-                <div className="form-container">
+                <div className="edit-ingredient-container">
                     <h2>Edit Ingredient</h2>
                     <form onSubmit={handleSubmit}>
                         <div className="form-group">
@@ -141,7 +136,15 @@ const EditIngredient = () => {
                         </div>
 
                         <div className="form-group">
-                            <label>Icon (Image):</label>
+                            <label>Current Icon:</label>
+                            {currentIconPath && (
+                                <img
+                                    src={`${supabase.storage.from("ingredient-icons").getPublicUrl(currentIconPath).publicURL}`}
+                                    alt="Current Icon"
+                                    className="current-icon"
+                                />
+                            )}
+                            <label>New Icon (optional):</label>
                             <input type="file" accept="image/*" onChange={handleFileChange} />
                         </div>
 
