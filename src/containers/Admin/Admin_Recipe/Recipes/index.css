@@ -115,7 +115,7 @@
   transition: background-color 0.3s ease;
   width: 100%;
 }
-` .recipes-view-button {
+.recipes-view-button {
   background-color: #f39c12;
 }
 

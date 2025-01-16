@@ -1,15 +1,17 @@
 /* General container for all pages */
 .container {
-  max-width: 400px;
+  max-width: 500px;
   margin: 50px auto;
   padding: 30px;
-  background: #f9f9f9;
+  background: rgb(181, 177, 177);
   border-radius: 12px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
   font-family: 'Roboto', sans-serif;
   display: flex;
   flex-direction: column;
   align-items: center;
+  position: relative; /* Required for floating elements */
+  overflow: hidden; /* Ensure floating elements don't overflow the container */
 }
 
 /* Headers */
@@ -120,6 +122,63 @@ input:focus {
   text-decoration: underline;
 }
 
+/* Floating shapes animation */
+@keyframes moveShapes {
+  from {
+    transform: translateY(0) rotate(0deg);
+  }
+  to {
+    transform: translateY(-1500px) rotate(360deg);
+  }
+}
+
+.floating-shape {
+  position: absolute;
+  background-color: rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  animation: moveShapes 10s linear infinite;
+  mix-blend-mode: overlay;
+}
+
+/* Shape Sizes and Animations */
+.shape-1 {
+  width: 150px;
+  height: 150px;
+  bottom: -100px;
+  left: 20%;
+  background-color:mediumseagreen;
+  animation-duration: 8s;
+  animation-delay: 0s;
+}
+
+.shape-2 {
+  width: 100px;
+  height: 100px;
+  bottom: -200px;
+  right: 25%;
+  background-color:sienna;
+  animation-duration: 12s;
+  animation-delay: 2s;
+}
+
+.shape-3 {
+  width: 200px;
+  height: 200px;
+  bottom: -300px;
+  left: 40%;
+  background-color: rgb(187, 11, 99);
+  animation-duration: 15s;
+  animation-delay: 4s;
+}
+
+.shape-4 {
+  width: 120px;
+  height: 120px;
+  bottom: -50px;
+  right: 10%;
+  animation-duration: 10s;
+  animation-delay: 1s;
+}
 
 /* Responsive breakpoints */
 
