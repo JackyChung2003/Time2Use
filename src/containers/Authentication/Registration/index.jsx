@@ -6,30 +6,52 @@ import supabase from '../../../config/supabaseClient';
 const Signup = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
     const handleSignup = async (e) => {
         e.preventDefault();
+        setError('');
+
+        // Check if fields are empty
+        if (!email || !password || !confirmPassword) {
+            setError('Not Empty Field Allowed');
+            return;
+        }
+
+        // Check if passwords match
+        if (password !== confirmPassword) {
+            setError('Password not matched');
+            return;
+        }
+
+        // Check if password meets length requirement
+        if (password.length < 6) {
+            setError('Password should be >= 6 characters');
+            return;
+        }
+
         setLoading(true);
 
         try {
-            // First, try to sign up
-            const { data, error: signUpError } = await supabase.auth.signUp({
+            // Try to sign up
+            const { data, error: signUpError } = await supabase.public.user_roles({
                 email,
                 password,
                 options: {
-                    data: { role: 'client' }, // Set role as 'client' in user_metadata
+                    data: { role: 'client' },
                 },
             });
 
             if (signUpError) {
-                console.error('Signup error details:', {
-                    message: signUpError.message,
-                    status: signUpError?.status,
-                    details: signUpError?.details,
-                });
-                throw signUpError;
+                if (signUpError.message?.toLowerCase().includes('duplicate')) {
+                    setError('Email Already Registered');
+                } else {
+                    setError(signUpError.message || 'Signup failed. Please try again.');
+                }
+                throw signUpError; // Prevent further processing
             }
 
             if (data?.user) {
@@ -43,27 +65,7 @@ const Signup = () => {
             alert('Account created! Please verify your email.');
             navigate('/login');
         } catch (error) {
-            console.error('Full error object:', error);
-            let errorMessage = 'Signup failed: ';
-            
-            if (error.message) {
-                errorMessage += error.message;
-            } else if (error.msg) {
-                errorMessage += error.msg;
-            } else if (error.error_description) {
-                errorMessage += error.error_description;
-            } else {
-                errorMessage += 'Unknown error occurred';
-            }
-
-            // Check for specific error types
-            if (error.message?.includes('duplicate')) {
-                errorMessage = 'This email is already registered. Please try logging in instead.';
-            } else if (error.message?.includes('password')) {
-                errorMessage = 'Password must be at least 6 characters long.';
-            }
-
-            alert(errorMessage);
+            console.error('Error during signup:', error);
         } finally {
             setLoading(false);
         }
@@ -72,6 +74,7 @@ const Signup = () => {
     return (
         <div className="signup-container">
             <h1 className="signup-header">Sign Up</h1>
+            {error && <p className="error-message">{error}</p>}
             <form onSubmit={handleSignup}>
                 <input
                     type="email"
@@ -85,6 +88,13 @@ const Signup = () => {
                     placeholder="Password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
+                    required
+                />
+                <input
+                    type="password"
+                    placeholder="Confirm Password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
                     required
                 />
                 <button type="submit" className="signup-button" disabled={loading}>
