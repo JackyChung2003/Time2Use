@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import supabase from '../../../config/supabaseClient';
 import './index.css';
-import CommonLoader from '../../../components/Loader/CommonLoader';
 
 const AdminInventories = () => {
   const navigate = useNavigate();
@@ -25,19 +24,46 @@ const AdminInventories = () => {
             const start = (pageNumber - 1) * limit;
             const end = start + limit - 1;
 
-            const { data, count, error } = await supabase
+            const { data: inventories, error: inventoriesError, count } = await supabase
                 .from("inventory") // Ensure this matches your Supabase table name
                 .select("*, ingredients:ingredient_id(name)", { count: "exact" }) // Include count to calculate total pages
                 .order(sortConfig.key, { ascending: sortConfig.direction === "asc" })
                 .range(start, end); // Paginate results
 
-            if (error) throw error;
+            if (inventoriesError) throw inventoriesError;
 
-            // Format the merged data
-            const combinedData = data.map((inventory) => ({
-                ...inventory,
-                ingredientName: inventory.ingredients?.name || "Unknown",
-            }));
+            const { data: expiryDates, error: expiryDatesError } = await supabase
+                .from("expiry_date")
+                .select("id, date");
+
+            if (expiryDatesError) throw expiryDatesError;
+
+            const { data: freshness, error: freshnessError } = await supabase
+                .from("freshness_status")
+                .select("id, status_color")
+            
+            if (freshnessError) throw freshnessError;
+
+            const { data: conditions, error: conditionsError } = await supabase
+                .from("condition")
+                .select("id, condition");
+
+            if (conditionsError) throw conditionsError;
+
+            const combinedData = inventories.map(inventory => {
+                // Find matching category
+                const invExpiryDate = expiryDates.find(cat => cat.id === inventory.expiry_date_id);
+                const invFreshness = freshness.find(sup => sup.id === inventory.freshness_status_id);
+                const invCondition = conditions.find(nut => nut.id === inventory.condition_id);
+
+                return {
+                    ...inventory,
+                    ingredientName: inventory.ingredients?.name || "Unknown",
+                    ingredient_expirydate: invExpiryDate ? invExpiryDate.date : null,
+                    ingredient_freshness: invFreshness ? invFreshness.status_color : null,
+                    ingredient_condition: invCondition ? invCondition.condition : null,
+                };
+            });
 
             setInventories(combinedData);
             setFilteredInventories(combinedData); // Initialize filtered data
@@ -220,6 +246,11 @@ const AdminInventories = () => {
                                     Ingredient Name {sortConfig.key === "ingredientName" && (sortConfig.direction === "asc" ? "↑" : "↓")}
                                 </th>
                                 <th style={{ border: "1px solid #ccc", padding: "10px" }}>Quantity</th>
+                                <th style={{ border: "1px solid #ccc", padding: "10px" }}>Initial Quantity</th>
+                                <th style={{ border: "1px solid #ccc", padding: "10px" }}>Days Left</th>
+                                <th style={{ border: "1px solid #ccc", padding: "10px" }}>Expiry Date</th>
+                                <th style={{ border: "1px solid #ccc", padding: "10px" }}>Freshness Status</th>
+                                <th style={{ border: "1px solid #ccc", padding: "10px" }}>Condition</th>
                                 <th
                                     onClick={() => handleSort("created_at")}
                                     style={{
@@ -241,6 +272,21 @@ const AdminInventories = () => {
                                     <td style={{ border: "1px solid #ccc", padding: "10px" }}>{inventory.ingredientName}</td>
                                     <td style={{ border: "1px solid #ccc", padding: "10px" }}>
                                         {inventory.quantity}
+                                    </td>
+                                    <td style={{ border: "1px solid #ccc", padding: "10px" }}>
+                                        {inventory.init_quantity}
+                                    </td>
+                                    <td style={{ border: "1px solid #ccc", padding: "10px" }}>
+                                        {inventory.days_left}
+                                    </td>
+                                    <td style={{ border: "1px solid #ccc", padding: "10px" }}>
+                                        {inventory.ingredient_expirydate}
+                                    </td>
+                                    <td style={{ border: "1px solid #ccc", padding: "10px" }}>
+                                        {inventory.ingredient_freshness}
+                                    </td>
+                                    <td style={{ border: "1px solid #ccc", padding: "10px" }}>
+                                        {inventory.ingredient_condition}
                                     </td>
                                     <td style={{ border: "1px solid #ccc", padding: "10px" }}>{formatDate(inventory.created_at)}</td>
                                     <td
