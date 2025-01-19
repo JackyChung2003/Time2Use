@@ -31,7 +31,7 @@ export const fetchItems = async (userId) => {
         ),
         condition:condition (condition)
       `)
-      .eq('user_id', userId)// filter by user id
+      .eq('user_id', userId)
 
     if (error) {
       throw error;
@@ -59,12 +59,11 @@ export const fetchItems = async (userId) => {
         try {
           console.log(`Item ID: ${item.id}, Original Days Left: ${item.daysLeft}, Calculated Days Left: ${calculatedDaysLeft}`);
     
-          // Update the item directly in the database
           const { error: updateError } = await supabase
             .from('inventory')
             .update({ days_left: calculatedDaysLeft })
             .eq('ingredient_id', item.id)
-            .eq('user_id', userId);  // Make sure to include user_id if needed for uniqueness
+            .eq('user_id', userId);  
 
           if (updateError) {
             console.error(`Error updating item with id ${item.id}:`, updateError);
@@ -75,7 +74,6 @@ export const fetchItems = async (userId) => {
           console.error(`Exception while updating item with id ${item.id}:`, exception);
         }
       }
-
 
       items.push({
         id: item.id,
@@ -101,6 +99,7 @@ export const fetchItems = async (userId) => {
     return [];
   }
 };
+
 
 
 const calculatePredictedDaysLeft = (predShelfLife) => {
@@ -253,20 +252,20 @@ export const updateItemCondition = async (itemId, conditionId) => {
 
   try {
     const response = await supabase
-      .from('inventory') // Ensure table name matches
+      .from('inventory') 
       .update({ condition_id: conditionId })
-      .eq('ingredient_id', itemId) // Use the correct column name
-      .select('*', { count: 'exact' }); // Include count to verify matched rows
+      .eq('ingredient_id', itemId) 
+      .select('*', { count: 'exact' }); 
 
     // Return a standardized structure
     if (response.error) {
       throw new Error(response.error.message);
     }
 
-    return { data: response.data, error: null, count: response.count }; // Return a standard response object
+    return { data: response.data, error: null, count: response.count }; 
   } catch (error) {
     console.error('Error updating condition:', error.message);
-    return { data: null, error: error.message, count: 0 }; // Return error details in a structured format
+    return { data: null, error: error.message, count: 0 }; 
   }
 };
 

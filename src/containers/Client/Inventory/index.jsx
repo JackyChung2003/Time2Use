@@ -93,7 +93,7 @@ const Inventory = () => {
     if (amountUsed > 0 && amountUsed <= item.quantity) {
       const updatedQuantity = item.quantity - amountUsed;
       handleQuantityChange(item, updatedQuantity, user?.id);
-      setUsedAmount({ ...usedAmount, [item.id]: '' }); // Clear input after updating
+      setUsedAmount({ ...usedAmount, [item.id]: '' }); 
     } else {
       alert("Please enter a valid amount within the range!");
     }
