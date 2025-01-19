@@ -386,7 +386,7 @@ const Item = ({
           <span className="item-quantity">
             {item.quantity} {item.quantity_unit}
           </span>
-          <span className="tag">{item.category}</span>
+          <span className="inventory-tag">{item.category}</span>
           <span className="dropdown-icon" onClick={() => toggleDropdown(item.id)}>▼</span>
         </div>
       </div>
