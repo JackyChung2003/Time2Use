@@ -40,6 +40,10 @@
   white-space: nowrap; /* Prevents text wrapping */
 }
 
+.users-table tr {
+  background-color: #fff; /* Default white background */
+}
+
 .users-table th:nth-child(4),
 .users-table td:nth-child(4) {
   width: 150px; /* Set a fixed width for the Actions column */

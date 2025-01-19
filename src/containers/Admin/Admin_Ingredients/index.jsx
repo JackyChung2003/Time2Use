@@ -271,7 +271,7 @@ const AdminIngredients = () => {
                         </thead>
                         <tbody>
                             {filteredIngredients.map((ingredient) => (
-                                <tr key={ingredient.id}>
+                                <tr key={ingredient.id} style={{ backgroundColor: "#fff" }}>
                                     <td style={{ border: "1px solid #ccc", padding: "10px" }}>{ingredient.id}</td>
                                     <td style={{ border: "1px solid #ccc", padding: "10px" }}>{ingredient.name}</td>
                                     <td style={{ border: "1px solid #ccc", padding: "10px" }}>

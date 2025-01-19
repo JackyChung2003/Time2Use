@@ -203,7 +203,7 @@ const AdminUnitInv = () => {
             </thead>
             <tbody>
               {filteredUnitInvs.map((unitInv) => (
-                <tr key={unitInv.id}>
+                <tr key={unitInv.id}style={{ backgroundColor: '#fff' }}>
                   <td style={{ border: "1px solid #ccc", padding: "10px" }}>{unitInv.id}</td>
                   <td style={{ border: "1px solid #ccc", padding: "10px" }}>{unitInv.unitInv_tag}</td>
                   <td style={{ border: "1px solid #ccc", padding: "10px" }}>{unitInv.conversion_rate_to_grams_for_check}</td>

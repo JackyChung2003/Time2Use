@@ -216,7 +216,7 @@ const AdminUnits = () => {
             </thead>
             <tbody>
               {filteredUnits.map((unit) => (
-                <tr key={unit.id}>
+                <tr key={unit.id}style={{ backgroundColor: '#fff' }}>
                   <td style={{ border: "1px solid #ccc", padding: "10px" }}>{unit.id}</td>
                   <td style={{ border: "1px solid #ccc", padding: "10px" }}>{unit.unit_description}</td>
                   <td style={{ border: "1px solid #ccc", padding: "10px" }}>{unit.unit_tag}</td>

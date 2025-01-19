@@ -267,7 +267,7 @@ const AdminInventories = () => {
                         </thead>
                         <tbody>
                             {filteredInventories.map((inventory) => (
-                                <tr key={inventory.id}>
+                                <tr key={inventory.id}style={{ backgroundColor: '#fff' }}>
                                     <td style={{ border: "1px solid #ccc", padding: "10px" }}>{inventory.id}</td>
                                     <td style={{ border: "1px solid #ccc", padding: "10px" }}>{inventory.ingredientName}</td>
                                     <td style={{ border: "1px solid #ccc", padding: "10px" }}>
