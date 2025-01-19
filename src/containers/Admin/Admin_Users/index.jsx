@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import supabase from '../../../config/supabaseClient';
 import './index.css';
+import CommonLoader from '../../../components/Loader/CommonLoader';
 
 const AdminUsers = () => {
   const navigate = useNavigate();

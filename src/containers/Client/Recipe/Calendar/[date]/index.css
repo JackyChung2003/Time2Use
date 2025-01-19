@@ -1,154 +1,250 @@
-/* General Styles */
-body {
-  font-family: Arial, sans-serif;
-  margin: 0;
-  padding: 0;
-}
-
+/* Root container */
 .meal-planner-container {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  padding: 20px;
-  background-color: #f5f5f5;
+  padding: 15px;
 }
 
-/* Header Styles */
+/* Header */
 .meal-planner-header {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  margin-bottom: 20px;
-}
-
-.date-display {
-  text-align: center;
-}
-
-.date-display p {
-  margin: 0;
-  font-size: 20px;
-  color: #333;
-}
-
-/* Meal Section Styles */
-.meal-section {
-  width: 100%;
-  max-width: 600px;
-  margin-bottom: 20px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  background-color: #fff;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.meal-section-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 15px;
-  background-color: #f9f9f9;
-  cursor: pointer;
-  border-bottom: 1px solid #ddd;
-  border-radius: 5px 5px 0 0;
+  margin-bottom: 15px;
 }
-
-.meal-section-header:hover {
-  background-color: #f0f0f0;
-}
-
-.meal-section-header h2 {
-  margin: 0;
-  font-size: 18px;
-  font-weight: bold;
+.date-display {
+  font-size: 1.2rem;
   color: #333;
+  font-weight: 600;
 }
-
-.meal-section-header span {
-  font-size: 18px;
-  color: #666;
-}
-
-/* Meal Header Image Styles */
-.meal-header-image {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-right: 10px;
-}
-
-.merged-images {
-  display: flex;
-  gap: 5px;
-}
-
-.meal-merged-image {
-  width: 80px;
-  height: 80px;
-  object-fit: cover;
-  border-radius: 10px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-/* Meal List Styles */
-.meal-list {
+.recipe-calender-details {
+  background-color: #f9f9f9;
   padding: 10px;
+  border-radius: 5px;
+}
+
+/* Meal Section */
+.meal-section {
+  margin-bottom: 20px;
+  /* border: 1px solid blue; */
+}
+.meal-section-header {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+/* Meal Images */
+.meal-header-image {
+  position: relative;
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
+  border-radius: 10px;
+}
+.full-image .meal-full-image {
+  width: 100%;
+  height: 200px;
+  /* height: 100%; */
+  object-fit: cover;
+}
+.split-images {
+  display: flex;
+  height: 200px;
+}
+.split-images .meal-image-left,
+.split-images .meal-image-right {
+  width: 50%;
+  object-fit: cover;
+}
+.split-images .meal-image-left {
+  clip-path: polygon(0 0, 100% 0, 90% 100%, 0% 100%);
+}
+.split-images .meal-image-right {
+  clip-path: polygon(10% 0, 100% 0, 100% 100%, 0% 100%);
+}
+.no-image {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #eee;
+  /* height: 100%; */
+  height: 200px;
+  border-radius: 10px;
+  width: 100%;
+}
+
+/* Title Overlay */
+.meal-title-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  /* align-items: flex-start; */
+  text-align: center;
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+.meal-title-overlay h2 {
+  margin: 20px;
+  color: #fff;
+  /* border: 1px solid #fff; */
+  text-align: left;
+}
+
+/* Meal List */
+.meal-list {
+  margin-top: 10px;
   display: flex;
   flex-wrap: wrap;
-  gap: 15px;
+  gap: 10px;
 }
-
 .meal-item {
   position: relative;
-  /* width: calc(50% - 10px); */
-  width: 100%;
-  margin-bottom: 15px;
-  border-radius: 10px;
+  width: calc(50% - 10px);
+  border-radius: 5px;
   overflow: hidden;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
 }
-
 .meal-image {
+  /* border: 1px solid blue; */
   width: 100%;
-  height: 100px;
+  height: 150px;
   object-fit: cover;
-  border-radius: 10px;
 }
 
 .meal-overlay {
   position: absolute;
-  bottom: 0;
+  top: 0;
   left: 0;
-  right: 0;
-  background: rgba(0, 0, 0, 0.6);
-  color: white;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 100%;
+  height: 100%;
   padding: 10px;
-  text-align: center;
-  pointer-events: none; /* Prevent overlay from blocking clicks */
 }
 
 .meal-name {
-  font-size: 14px;
+  font-size: 0.8rem;
   font-weight: bold;
+  color: #fff;
 }
-
 .meal-notes {
-  font-size: 12px;
-  margin-top: 5px;
+  font-size: 0.8rem;
+  color: rgb(206, 206, 206);
 }
-
 .cancel-meal-button {
-  margin-top: 5px;
-  background: red;
+  margin-top: 10px;
+  background: #ff5c5c;
   color: white;
   border: none;
-  border-radius: 5px;
-  padding: 5px 10px;
+  border-radius: 3px;
+  padding: 5px;
   cursor: pointer;
-  pointer-events: auto; /* Ensure button is clickable */
 }
 
-.cancel-meal-button:hover {
-  background: darkred;
+/* Controls */
+.meal-section-controls {
+  /* display: none; */
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end; /* Align buttons to the right */
+  /* border: 1px solid red; */
+  margin: 10px;
+}
+.action-button,
+.view-details-button {
+  background: linear-gradient(
+    135deg,
+    #f3f3f3,
+    #e6e6e6
+  ); /* Subtle gradient for modern look */
+  color: #333; /* Darker text for better contrast */
+  border: 1px solid #ccc; /* Add a subtle border */
+  padding: 10px;
+  border-radius: 8px; /* Slightly larger border-radius for smoother corners */
+  cursor: pointer;
+  font-size: 1rem; /* Ensure readability */
+  transition: all 0.3s ease; /* Smooth transition for hover effects */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Soft shadow for depth */
+}
+
+/* Toggle Section Button */
+.toggle-section-button {
+  margin-top: 5px;
+  cursor: pointer;
+  font-size: 1.5rem;
+}
+
+/* No Meal Message */
+.no-meal-message {
+  margin-top: 10px;
+  text-align: center;
+  color: #555;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 150px;
+  border-radius: 10px;
+  background-color: #f0f0f0;
+  border: 1px solid #ccc;
+  padding: 10px;
+  width: 100%;
+}
+
+/* Modals */
+.calender-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.modal-content {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  width: 80%;
+  max-width: 500px;
+  text-align: center;
+}
+.notes-textarea,
+.time-input {
+  width: 100%;
+  margin-top: 10px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+.save-button,
+.cancel-button {
+  margin-top: 10px;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+.save-button {
+  background: #28a745;
+  color: white;
+}
+.cancel-button {
+  background: #dc3545;
+  color: white;
 }

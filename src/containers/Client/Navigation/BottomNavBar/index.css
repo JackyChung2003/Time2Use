@@ -117,7 +117,7 @@
 /* Responsive adjustments for phones */
 @media screen and (max-width: 480px) {
   .bottom-nav-wrapper {
-    height: 50px;
+    height: 60px;
   }
 
   .scan-icon-container {

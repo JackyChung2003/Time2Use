@@ -1,111 +1,111 @@
 /* General Page Styling */
 body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 0;
-    background-color: #f5f5f5;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f5f5f5;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
 }
 
 .profile-username {
-    color: white;
+  color: white;
 }
 
 /* Profile Container */
 .profile-container {
-    background-color: white;
-    overflow: hidden;
-    text-align: center;
+  background-color: white;
+  overflow: hidden;
+  text-align: center;
 }
 
 /* Header Section */
 .profile-header {
-    background: linear-gradient(135deg, #7a889f, #000209);
-    padding: 20px;
-    color: white;
-    position: relative;
+  background: linear-gradient(135deg, #7a889f, #000209);
+  padding: 20px;
+  color: white;
+  position: relative;
 }
 
 .profile-header h1 {
-    margin: 10px 0;
-    font-size: 20px;
-    text-align: center;
+  margin: 10px 0;
+  font-size: 20px;
+  text-align: center;
 }
 
 .profile-avatar {
-    position: relative;
-    display: inline-block;
-    width: 100px;
-    height: 100px;
-    border-radius: 50%;
-    border: 2px solid #d3d3d3;
-    background-color: #f0f0f0;
+  position: relative;
+  display: inline-block;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  border: 2px solid #d3d3d3;
+  background-color: #f0f0f0;
 }
 
 .avatar-image {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 50%;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
 }
 
 .edit-icon {
-    position: absolute;
-    bottom: 0;
-    right: 0;
-    background-color: rgba(0, 0, 0, 0.5);
-    color: #fff;
-    border-radius: 50%;
-    width: 30px;
-    height: 30px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    cursor: pointer;
-    font-size: 16px;
-    box-shadow: 0px 4px 6px rgba(51, 15, 15, 0.1);
-    z-index: 1;
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  color: #fff;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  font-size: 16px;
+  box-shadow: 0px 4px 6px rgba(51, 15, 15, 0.1);
+  z-index: 1;
 }
 
 .upload-input {
-    display: none;
+  display: none;
 }
 
 /* Profile Details */
 .profile-details {
-    padding: 20px;
-    padding-left: 35px;
-    padding-right: 35px;
-    justify-content: center;
-    align-items: center;
+  padding: 20px;
+  padding-left: 35px;
+  padding-right: 35px;
+  justify-content: center;
+  align-items: center;
 }
 
 .profile-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 15px;
-    border-bottom: 1px solid #f0f0f0;
-    height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 15px;
+  border-bottom: 1px solid #f0f0f0;
+  height: 60px;
 }
 
 /* Profile Row Edit Button */
 .profile-row .edit-button {
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 14px;
-    color: #000000;
-    padding: 5px;
-    transition: color 0.3s;
-    visibility: hidden;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  color: #000000;
+  padding: 5px;
+  transition: color 0.3s;
+  visibility: hidden;
 }
 
 /* Make the edit button visible in editing mode */
 .profile-row .edit-button.active {
-    visibility: visible;
+  visibility: visible;
 }
 
 .profile-row input,
@@ -114,273 +114,266 @@ body {
   border: 1px solid #ccc;
   height: 30px;
   width: 45%; /* Ensure input and select fields stretch across the container */
-  
 }
 
 .profile-row .icon {
-    font-size: 15px;
-    margin-right: 18px;
-    display: inline-block;
-    flex: 0 0 5%;
+  font-size: 15px;
+  margin-right: 18px;
+  display: inline-block;
+  flex: 0 0 5%;
 }
 
 .profile-label {
-    flex: 1 1 10%;
-    text-align: left;
-    font-size: 12px;
-    margin-right: 10px;
+  flex: 1 1 10%;
+  text-align: left;
+  font-size: 12px;
+  margin-right: 10px;
 }
 
 .profile-value {
-    flex: 1 1 40%;
-    text-align: left;
-    color: #333;
-    font-size: 12px;
-    margin-left: 5px;
+  flex: 1 1 40%;
+  text-align: left;
+  color: #333;
+  font-size: 12px;
+  margin-left: 5px;
 }
 
 .profile-password {
-    flex: 1 1 40%;
-    text-align: left;
-    color: #333;
-    font-size: 12px;
+  flex: 1 1 40%;
+  text-align: left;
+  color: #333;
+  font-size: 12px;
 }
 
 .profile-password .profile-value {
-    flex: 1 1 10%;
-    text-align: left;
-    font-size: 12px;
+  flex: 1 1 10%;
+  text-align: left;
+  font-size: 12px;
 }
 
 /* Edit Button Styling */
 .profile-button {
-    width: 60%;
-    padding: 10px;
-    margin-bottom: 10px;
-    background: linear-gradient(135deg, #7a889f, #000209);
-    border: none;
-    color: white;
-    font-size: 16px;
-    font-weight: bold;
-    border-radius: 25px;
-    cursor: pointer;
+  width: 60%;
+  padding: 10px;
+  margin-bottom: 10px;
+  background: linear-gradient(135deg, #7a889f, #000209);
+  border: none;
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+  border-radius: 25px;
+  cursor: pointer;
 }
 
 .notification-select,
 .edit-input {
-    padding: 5px;
-    font-size: 12px;
-    border-radius: 5px;
-    border: 1px solid #ccc;
-    width: 100px; /* Ensuring both have the same width */
-    height: 30px; /* Ensuring both have the same height */
-    margin-right: 15px; /* Optional: To maintain consistent spacing */
-    text-align: left;
+  padding: 5px;
+  font-size: 12px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  width: 100px; /* Ensuring both have the same width */
+  height: 30px; /* Ensuring both have the same height */
+  margin-right: 15px; /* Optional: To maintain consistent spacing */
+  text-align: left;
 }
 
-.profile-container.edit-mode .edit-input, 
-.profile-container.edit-mode  .notification-select  {
-    width: 53%; /* Make inputs larger in edit mode */
-  }
+.profile-container.edit-mode .edit-input,
+.profile-container.edit-mode .notification-select {
+  width: 53%; /* Make inputs larger in edit mode */
+}
 
 .edit-button {
-    background-color: transparent;
-    border: none;
-    cursor: pointer;
-    font-size: 10px;
-    color: #000000;
-    padding: 5px;
-    transition: color 0.3s;
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 10px;
+  color: #000000;
+  padding: 5px;
+  transition: color 0.3s;
 }
 
 .edit-input {
-    padding: 5px;
-    font-size: 12px;
-    border-radius: 5px;
-    border: 1px solid #ccc;
-    width: 48%;
-    margin-right: 15px;
+  padding: 5px;
+  font-size: 12px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  width: 48%;
+  margin-right: 15px;
 }
 
 .edit-placeholder {
-    width: 29px;
+  width: 29px;
 }
 
 /* Add margin-bottom specifically to the "Sign Out" button */
 .edit-profile:last-of-type {
-    margin-bottom: 60px; /* Adjust the value as needed */
+  margin-bottom: 60px; /* Adjust the value as needed */
 }
-
 
 /* Modal Overlay */
 .modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 9999; 
-  }
-  
-  /* Modal Content */
-  .modal-content {
-    /* Existing modal content styles */
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 20px;
-    background-color: white;
-    border-radius: 8px;
-    z-index: 10000;
-  }
-  
-  
-  .button-container {
-    display: flex;
-    flex-direction: column;
-    gap: 10px; /* Space between buttons */
-    margin-bottom: 20px;
-  }
-  
-  .button-container button {
-    padding: 10px 20px;
-    font-size: 16px;
-    cursor: pointer;
-    border: none;
-    background: linear-gradient(135deg, #7a889f, #000209);
-    color: white;
-    border-radius: 5px;
-    transition: background-color 0.3s;
-  }
-  
-  
-  /* Styling for the Close button outside button-container */
-.modal-content > button:last-of-type {
-    background-color: black;  /* Red color for Close button */
-    color: white;
-    font-weight: bold;
-    margin-top: 10px;
-  }
-  
-  .password-edit {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
 
-  .edit-icon-button {
-    position: absolute;
-    right: 65px; /* Align to the right without affecting profile-value */
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 0;
-    color: #000;
-    font-size: 1rem;
+/* Modal Content */
+.modal-content {
+  /* Existing modal content styles */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  background-color: white;
+  border-radius: 8px;
+  z-index: 1001;
+}
+
+.button-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px; /* Space between buttons */
+  margin-bottom: 20px;
+}
+
+.button-container button {
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  border: none;
+  background: linear-gradient(135deg, #7a889f, #000209);
+  color: white;
+  border-radius: 5px;
+  transition: background-color 0.3s;
+}
+
+/* Styling for the Close button outside button-container */
+.modal-content > button:last-of-type {
+  background-color: black; /* Red color for Close button */
+  color: white;
+  font-weight: bold;
+  margin-top: 10px;
+}
+
+.password-edit {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.edit-icon-button {
+  position: absolute;
+  right: 65px; /* Align to the right without affecting profile-value */
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  color: #000;
+  font-size: 1rem;
 }
 
 .edit-icon-button:hover {
-    color: #555; /* Optional: Hover effect */
-}
-  
-  
-  .modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-  
-  .modal-content {
-    background: #fff;
-    border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  }
-
-  .modal-overlay .modal-content {
-    width: 300px; /* Set your desired width */
-    max-width: 100%; /* Ensures responsiveness */
-    padding: 20px; /* Optional: add padding for spacing inside the modal */
+  color: #555; /* Optional: Hover effect */
 }
 
-  .password-input {
-    width: 250px;
-    display: flex;
-    flex-direction: column; /* Stack label and input vertically */
-    align-items: flex-start;
-  }
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-content {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.modal-overlay .modal-content {
+  width: 300px; /* Set your desired width */
+  max-width: 100%; /* Ensures responsiveness */
+  padding: 20px; /* Optional: add padding for spacing inside the modal */
+}
+
+.password-input {
+  width: 250px;
+  display: flex;
+  flex-direction: column; /* Stack label and input vertically */
+  align-items: flex-start;
+}
 
 /* Label styling to align it to the left */
 .password-input label {
-    flex: left;
-    font-size: 14px; /* Optional: adjust the font size */
-    text-align: left; /* Align label to the left */
-  }
-  
+  flex: left;
+  font-size: 14px; /* Optional: adjust the font size */
+  text-align: left; /* Align label to the left */
+}
+
 /* Add margin-bottom to the h3 inside modal-content */
 .modal-overlay .modal-content h3 {
-    margin-bottom: 10px; /* Adjust the value as needed */
+  margin-bottom: 10px; /* Adjust the value as needed */
 }
 
 /* Ensure the background color is set correctly */
 .toggle-password {
-    background-color: transparent !important;
-    border: none;
-    cursor: pointer;
-    font-size: 18px;
-    position: absolute;
-    right: 10px;
-    right: 0px;
-    top: 42%;
-    transform: translateY(-50%);
+  background-color: transparent !important;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  position: absolute;
+  right: 10px;
+  right: 0px;
+  top: 42%;
+  transform: translateY(-50%);
 }
-  
+
 /* Make sure the password input field doesn't overlap with the toggle button */
 .password-input {
-    position: relative;
-  }
+  position: relative;
+}
 
 .save-password-btn,
 .cancel-btn {
-    width: 60%;
-    padding: 10px;
-    margin-bottom: 10px;
-    background: linear-gradient(135deg, #7a889f, #000209);
-    border: none;
-    color: white;
-    font-size: 16px;
-    font-weight: bold;
-    border-radius: 25px;
-    cursor: pointer;
+  width: 60%;
+  padding: 10px;
+  margin-bottom: 10px;
+  background: linear-gradient(135deg, #7a889f, #000209);
+  border: none;
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+  border-radius: 25px;
+  cursor: pointer;
 }
 
-  
-  /* Adjusting edit-input size for desktop view */
+/* Adjusting edit-input size for desktop view */
 @media (min-width: 768px) {
-    .edit-input {
-      width: 60%; /* Increase width for larger screens */
-      height: 35px; /* Optional: Adjust height for better appearance */
-    }
-    
-    .profile-container.edit-mode .edit-input {
-      width: 61%; /* Larger width when in edit mode for desktop */
-    } 
-      .notification-select {
-        width: 60%; /* Adjust dropdown width for desktop */
-        height: 35px; /* Adjust height for consistency */
-      }
-    
-      .profile-container.edit-mode .notification-select {
-        width: 61%; /* Larger width in edit mode */
-    }
+  .edit-input {
+    width: 60%; /* Increase width for larger screens */
+    height: 35px; /* Optional: Adjust height for better appearance */
   }
-  
+
+  .profile-container.edit-mode .edit-input {
+    width: 61%; /* Larger width when in edit mode for desktop */
+  }
+  .notification-select {
+    width: 60%; /* Adjust dropdown width for desktop */
+    height: 35px; /* Adjust height for consistency */
+  }
+
+  .profile-container.edit-mode .notification-select {
+    width: 61%; /* Larger width in edit mode */
+  }
+}

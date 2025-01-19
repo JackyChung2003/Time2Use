@@ -53,6 +53,8 @@ import EditIngredientsCat from './containers/Admin/Admin_IngredientsCat/EditIngr
 import AdminExpiryDate from './containers/Admin/Admin_ExpiryDate/index.jsx';
 import CreateExpiryDate from './containers/Admin/Admin_ExpiryDate/CreateExpiryDate';
 
+import CommonLoader from './components/Loader/CommonLoader/index.jsx';
+
 const App = () => {
     const { userRole } = useAuth();
     const [loading, setLoading] = useState(false);
@@ -77,7 +79,7 @@ const App = () => {
     };
 
     if (loading) {
-        return <div>Loading...</div>;
+        return  <CommonLoader />;
     }
 
     return (

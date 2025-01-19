@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import supabase from "../../../../config/supabaseClient";
 import "./index.css";
+import CommonLoader from "../../../../components/Loader/CommonLoader";
 
 const Recipes = () => {
     const navigate = useNavigate();
@@ -155,7 +156,7 @@ const Recipes = () => {
             </div>
 
             {/* Show loading state */}
-            {loading && <p>Loading recipes...</p>}
+            {loading &&  <CommonLoader />}
 
             {/* Show error state */}
             {error && <p className="recipes-error">{error}</p>}

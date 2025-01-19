@@ -6,6 +6,8 @@ import { Pie, Doughnut } from "react-chartjs-2";
 import "./index.css";
 import Notification from '../Notification';
 
+import CommonLoader from "../../../components/Loader/CommonLoader";
+
 // Register all Chart.js components
 ChartJS.register(...registerables);
 
@@ -174,7 +176,7 @@ const Dashboard = () => {
 
   // Show loading screen while data is being fetched
   if (loading) {
-    return <div>Loading...</div>;
+    return  <CommonLoader />;
   }
 
   // Check if user is new

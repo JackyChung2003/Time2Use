@@ -5,6 +5,8 @@ import supabase from "../../../../../config/supabaseClient";
 import BackButton from "../../../../../components/Button/BackButton";
 import "./index.css";
 
+import CommonLoader from "../../../../../components/Loader/CommonLoader";
+
 
 const RecipeDetail = () => {
     const { id } = useParams(); // Get the recipe ID from the URL
@@ -174,7 +176,7 @@ const RecipeDetail = () => {
         }
     };
     
-    if (loading) return <p>Loading recipe...</p>;
+    if (loading) return  <CommonLoader />;
     if (error) return <p style={{ color: "red" }}>{error}</p>;
 
     return (
@@ -207,7 +209,7 @@ const RecipeDetail = () => {
                 <img
                     src={`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/${recipe.image_path}`}
                     alt={recipe.name}
-                    className="recipe-image"
+                    className="recipe-admin-image"
                 />
             )}
     

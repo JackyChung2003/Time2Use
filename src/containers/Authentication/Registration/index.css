@@ -7,6 +7,8 @@
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   font-family: Arial, sans-serif;
+  position: relative; /* Required for floating elements */
+  z-index: 1;
 }
 
 /* Header styling */
@@ -67,6 +69,65 @@
   font-size: 16px;
   text-decoration: underline;
   cursor: pointer;
+}
+
+/* Floating shapes animation */
+@keyframes moveShapes {
+  0% {
+    transform: translateY(100vh) rotate(0deg); /* Start below the screen */
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.7;
+  }
+  100% {
+    transform: translateY(-150vh) rotate(360deg); /* Move above the screen */
+    opacity: 0;
+  }
+}
+
+.floating-shape {
+  position: fixed; /* Ensure full-screen movement */
+  bottom: -200px; /* Start below the viewport */
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 999; /* Bring it to the front */
+  opacity: 0.5;
+  animation: moveShapes linear infinite;
+  pointer-events: none; /* Prevent blocking clicks */
+}
+
+/* Shape Sizes and Animations */
+.shape-1 {
+  width: 120px;
+  height: 120px;
+  left: 10%;
+  background-color: rgba(76, 175, 80, 0.5); /* Light green */
+  animation-duration: 8s;
+}
+
+.shape-2 {
+  width: 80px;
+  height: 80px;
+  left: 30%;
+  background-color: rgba(139, 69, 19, 0.5); /* Sienna */
+  animation-duration: 10s;
+}
+
+.shape-3 {
+  width: 140px;
+  height: 140px;
+  left: 70%;
+  background-color: rgba(187, 11, 99, 0.5); /* Pink */
+  animation-duration: 12s;
+}
+
+.shape-4 {
+  width: 150px;
+  height: 150px;
+  left: 90%;
+  background-color: rgba(0, 162, 255, 0.5); /* Blue */
+  animation-duration: 15s;
 }
 
 /* Responsive breakpoints */
