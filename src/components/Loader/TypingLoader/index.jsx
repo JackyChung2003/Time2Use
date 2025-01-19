@@ -1,6 +1,7 @@
 import "./index.css";
 
 const TypingLoader = () => {
+
   return (
     <div className="typing-indicator">
       <div className="typing-circle"></div>

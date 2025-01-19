@@ -48,6 +48,17 @@ const RecipeFavorites = () => {
     }
   };
 
+  useEffect(() => {
+          // Add 'page' class to the body and set background color for the whole page
+          document.body.classList.add('page');
+  
+          // Clean up when the component is unmounted
+          return () => {
+              document.body.classList.remove('page');
+              document.body.style.backgroundColor = "";  // Reset background color if needed
+          };
+      }, []);
+
   // Fetch favorite recipes
   useEffect(() => {
     const fetchFavoriteRecipes = async () => {

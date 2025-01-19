@@ -24,6 +24,16 @@ const Dashboard = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+          // Add scan-page class to body when this page is loaded
+          document.body.classList.add('page');
+  
+          // Clean up when the component is unmounted
+          return () => {
+              document.body.classList.remove('page');
+          };
+      }, []);
+
+  useEffect(() => {
     // Check the notification flag
     const shouldShowNotification = sessionStorage.getItem('showNotification');
     if (shouldShowNotification) {

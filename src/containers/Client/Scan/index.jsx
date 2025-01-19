@@ -13,6 +13,16 @@ const Scan = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
+        // Add scan-page class to body when this page is loaded
+        document.body.classList.add('page');
+
+        // Clean up when the component is unmounted
+        return () => {
+            document.body.classList.remove('page');
+        };
+    }, []);
+
+    useEffect(() => {
         const checkUser = async () => {
             const { data: { session }, error } = await supabase.auth.getSession();
             if (error || !session) {
