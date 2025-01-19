@@ -55,7 +55,6 @@ const RecipeFavorites = () => {
           // Clean up when the component is unmounted
           return () => {
               document.body.classList.remove('page');
-              document.body.style.backgroundColor = "";  // Reset background color if needed
           };
       }, []);
 
