@@ -7,6 +7,10 @@ import BackButton from '../../../../../components/Button/BackButton';
 
 import { useRecipeContext } from '../../Contexts/RecipeContext';
 
+import CommonLoader from './../../../../../components/Loader/CommonLoader';
+
+import './index.css';
+
 const RecipeDetail = () => {
 
     const { 
@@ -15,6 +19,7 @@ const RecipeDetail = () => {
         fetchRecipeSteps, 
         mealTypes, 
         userData,
+        favorites,
         toggleFavorite
         // toggleFavorite,
         // isFavorite 
@@ -48,14 +53,6 @@ const RecipeDetail = () => {
 
     const location = useLocation();
     const scheduleData = location.state; // Get state passed via navigate
-    // const { planned_date, meal_type_id, activity_type } = location.state || {};
-
-    // const nutritionFacts = {
-    //     calories: 500,
-    //     protein: 20,
-    //     carbs: 50,
-    //     fat: 15,
-    // };
 
     const [showAddModal, setShowAddModal] = useState(null); // Tracks modal visibility
     const [newMeal, setNewMeal] = useState({
@@ -66,53 +63,10 @@ const RecipeDetail = () => {
         recipe_id: "",
       });
       
-      const [isFavoriteRecipe, setIsFavoriteRecipe] = useState(false);
-      
-    //   useEffect(() => {
-    //     const selectedRecipe = recipes.find((recipe) => recipe.id === parseInt(id));
-    //     if (selectedRecipe) {
-    //         setRecipe(selectedRecipe);
-    //         // fetchRecipeIngredients(selectedRecipe.id).then(setIngredients);
-    //         fetchRecipeIngredients(selectedRecipe.id).then((data) => {
-    //             setIngredients(data);
-    //             calculateNutrition(data); // Calculate nutrition when ingredients are fetched
-    //         });
-    //         fetchRecipeSteps(selectedRecipe.id).then(setSteps);
-    //     } else {
-    //         setRecipe(null);
-    //     }
-    //     setLoading(false);
-    // }, [id, recipes, fetchRecipeIngredients, fetchRecipeSteps]);
+    const [isFavoriteRecipe, setIsFavoriteRecipe] = useState(false);
 
-    //   useEffect(() => {
-    //     const fetchRecipeData = async () => {
-    //         const selectedRecipe = recipes.find((recipe) => recipe.id === parseInt(id));
-    //         if (selectedRecipe) {
-    //             setRecipe(selectedRecipe);
-    
-    //             // Fetch ingredients and calculate nutrition
-    //             const ingredientsData = await fetchRecipeIngredients(selectedRecipe.id);
-    //             setIngredients(ingredientsData);
-    //             calculateNutrition(ingredientsData);
-    
-    //             // Fetch steps
-    //             const stepsData = await fetchRecipeSteps(selectedRecipe.id);
-    //             setSteps(stepsData);
-    
-    //             // Check favorite status
-    //             if (userData) {
-    //                 const favoriteStatus = await isFavorite(selectedRecipe.id, userData.id);
-    //                 setIsFavoriteRecipe(favoriteStatus);
-    //             }
-    //         } else {
-    //             setRecipe(null);
-    //         }
-    //         setLoading(false);
-    //     };
-    
-    //     fetchRecipeData();
-    // }, [id, recipes, fetchRecipeIngredients, fetchRecipeSteps, userData, isFavorite]);
-    
+    const [activeTab, setActiveTab] = useState("ingredients");
+      
     useEffect(() => {
         const fetchRecipeData = async () => {
             const selectedRecipe = recipes.find((recipe) => recipe.id === parseInt(id));
@@ -166,31 +120,16 @@ const RecipeDetail = () => {
 
         ingredients.forEach((ingredient) => {
             const { nutritional_info, unit } = ingredient.ingredients;
-            // const { nutritional_info, quantity, unit } = ingredient.ingredients;
             const { quantity } = ingredient;
             
-            console.log("nutritional_info:", nutritional_info);
-            console.log("quantity:", quantity);
-            console.log("unit:", unit);
-
             let { calories, protein, carbohydrate, fat } = nutritional_info;
-            console.log("calories:", calories);
-            console.log("protein (raw):", protein);
-            console.log("carbohydrate (raw):", carbohydrate);
-            console.log("fat (raw):", fat);
 
             // Strip "g" and convert to number for protein, carbohydrate, and fat
             protein = typeof protein === "string" ? parseFloat(protein.replace("g", "")) || 0 : protein || 0;
             carbohydrate = typeof carbohydrate === "string" ? parseFloat(carbohydrate.replace("g", "")) || 0 : carbohydrate || 0;
             fat = typeof fat === "string" ? parseFloat(fat.replace("g", "")) || 0 : fat || 0;
-    
-
-            console.log("protein (parsed):", protein);
-            console.log("carbohydrate (parsed):", carbohydrate);
-            console.log("fat (parsed):", fat);
 
             const conversionRate = unit.conversion_rate_to_grams;
-            console.log("conversionRate:", conversionRate);
 
             // Handle unit conversion to grams (example for common units)
             let quantityInGrams = quantity;
@@ -222,18 +161,6 @@ const RecipeDetail = () => {
             fat: (totalNutrition.fat / (totalWeightInGrams / 100)).toFixed(2),
         };
 
-        console.log(`Total Weight of Recipe: ${totalWeightInGrams.toFixed(2)}g`);
-        console.log("Total Nutrition:", totalNutrition);
-        console.log("Per 100g Nutrition:", per100gNutrition);
-
-        // // Update state
-        // setNutritionFacts({
-        //     calories: totalNutrition.calories.toFixed(2),
-        //     protein: totalNutrition.protein.toFixed(2),
-        //     carbohydrate: totalNutrition.carbohydrate.toFixed(2),
-        //     fat: totalNutrition.fat.toFixed(2),
-        // });
-
         // Update state with both total and per 100g nutrition facts
         setNutritionFacts({
             total: {
@@ -245,28 +172,6 @@ const RecipeDetail = () => {
             per100g: per100gNutrition,
         });
     };
-
-    // const toggleFavorite = async () => {
-    //     try {
-    //         const { data } = await supabase
-    //             .from('favorites')
-    //             .select('*')
-    //             .eq('recipe_id', id)
-    //             .single();
-    
-    //         if (data) {
-    //             await supabase.from('favorites').delete().eq('recipe_id', id);
-    //             setIsFavorite(false);
-    //         } else {
-    //             await supabase.from('favorites').insert({ recipe_id: id, user_id: '7863d141-7c8f-4779-9ac8-2b45e9a9d752' });
-    //             setIsFavorite(true);
-    //         }
-    //     } catch (error) {
-    //         console.error('Error toggling favorite:', error);
-    //     }
-    // };
-
-    // const toggleCookingMode = () => setIsCookingMode((prev) => !prev);
 
     const toggleCookingMode = () => {
         if (!isCookingMode) {
@@ -335,7 +240,7 @@ const RecipeDetail = () => {
     };
 
     if (loading) {
-        return <div>Loading recipe details...</div>;
+        return <CommonLoader />;
     }
 
     if (!recipe) {
@@ -388,6 +293,7 @@ const RecipeDetail = () => {
               meal_type_id: newMeal.meal_type_id,
               notes: newMeal.notes,
               time: newMeal.time,
+              serving_packs: newMeal.servingPacks || 1, 
             },
           ]);
       
@@ -419,7 +325,9 @@ const RecipeDetail = () => {
       };
 
       const handleFavoriteClick = async () => {
+        console.log('Favorite button clicked');
         const response = await toggleFavorite(recipe.id);
+        console.log('Response:HEREEEEEE', response);
         if (response.success) {
           setIsFavoriteRecipe((prev) => !prev);
           alert(response.message);
@@ -428,338 +336,142 @@ const RecipeDetail = () => {
         }
       };
 
-    return (
-        <div style={{ padding: '20px' }}>
-            <BackButton />
-            <h1>{recipe.name}</h1>
-            <button onClick={handleFavoriteClick}>
-                {/* {isFavorite ? 'Remove from Favorites' : 'Save to Favorites'} */}
-                {isFavoriteRecipe ? 'Remove from Favorites' : 'Save to Favorites'}
-            </button>
-            <button onClick={shareRecipe}>Share Recipe</button>
-
-            {/* Displaying Schedule Data if Present */}
-            {scheduleData && (
-                <div style={{ marginBottom: '20px', padding: '10px', border: '1px solid #ccc', borderRadius: '5px' }}>
-                    <h2>Scheduled Meal Information</h2>
-                    <p><strong>Planned Date:</strong> {new Date(scheduleData.planned_date).toLocaleDateString()}</p>
-                    <p><strong>Meal Type:</strong> {mealTypeMap[scheduleData.meal_type_id] || 'Unknown'}</p>
-                    <p><strong>Recipe ID:</strong> {scheduleData.recipe_id}</p>
-                    <p><strong>Recipe Name:</strong> {scheduleData.recipe_name}</p>
-                    <p><strong>Activity Type:</strong> {scheduleData.activity_type}</p>
+      return (
+        <div className="recipe-details-container">
+            <section className="recipe-image-detail-section">
+                <img
+                    src={`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/${recipe.image_path}`}
+                    alt={recipe.name}
+                    className="recipe-detail-image"
+                />
+                <div className="image-overlay">
+                    <BackButton />
+                    {/* <h1 className="recipe-title">{recipe.name}</h1> */}
+                    <div className="action-buttons">
+                        <button onClick={shareRecipe} className="share-button">
+                            Share
+                        </button>
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                toggleFavorite(recipe.id);
+                            }}
+                            className="favorite-button"
+                        >
+                            {favorites.includes(recipe.id) ? "❤️" : "🤍"}
+                        </button>
+                    </div>
                 </div>
-            )}
-            <img
-                src={`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/${recipe.image_path}`}
-                alt={recipe.name}
-                style={{ width: '300px', borderRadius: '10px', marginBottom: '20px' }}
-            />
-            <p>{recipe.description}</p>
-            <p>Prep Time: {recipe.prep_time} mins</p>
-            <p>Cook Time: {recipe.cook_time} mins</p>
+            </section>
+            <div className='recipe-detail-lower-section'>
 
-            <div>
-                <h4>Total Meal Weight</h4>
-                <p>{(totalWeightInGrams * (servingPacks / defaultServings)).toFixed(2)} g</p>
+            <section className="recipe-details">
+                <h2 className="recipe-detail-title">{recipe.name}</h2>
+                <p className="recipe-description">{recipe.description}</p>
+                <div className="left-right-space-evenly-section">
+                    <p className="prep-time">Prep Time: {recipe.prep_time} mins</p>
+                    <p className="cook-time">Cook Time: {recipe.cook_time} mins</p>
+                </div>
+
+
+                <div className="total-meal-weight">
+                    <p><strong>Total Meal Weight: </strong>{(totalWeightInGrams * (servingPacks / defaultServings)).toFixed(2)} g</p>
+                </div>
+            </section>
+    
+            <section className="nutrition-facts">
+                <h3>Nutrition Facts</h3>
+                <div className="nutrition-content">
+                    <div className="total-nutrition">
+                        <h4>Total Nutrition</h4>
+                        <ul>
+                            <li>Calories: {nutritionFacts.total?.calories || 0} kcal</li>
+                            <li>Protein: {nutritionFacts.total?.protein || 0} g</li>
+                            <li>Carbohydrate: {nutritionFacts.total?.carbohydrate || 0} g</li>
+                            <li>Fats: {nutritionFacts.total?.fat || 0} g</li>
+                        </ul>
+                    </div>
+                    <div className="per-100g-nutrition">
+                        <h4>Per 100g</h4>
+                        <ul>
+                            <li>Calories: {nutritionFacts.per100g?.calories || 0} kcal</li>
+                            <li>Protein: {nutritionFacts.per100g?.protein || 0} g</li>
+                            <li>Carbohydrate: {nutritionFacts.per100g?.carbohydrate || 0} g</li>
+                            <li>Fats: {nutritionFacts.per100g?.fat || 0} g</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            {/* Toggle Buttons */}
+            <div className="radio-inputs">
+                <label className="radio">
+                <input
+                    type="radio"
+                    name="toggle"
+                    checked={activeTab === "ingredients"}
+                    onChange={() => setActiveTab("ingredients")}
+                />
+                <span className="name">Ingredients</span>
+                </label>
+                <label className="radio">
+                <input
+                    type="radio"
+                    name="toggle"
+                    checked={activeTab === "steps"}
+                    onChange={() => setActiveTab("steps")}
+                />
+                <span className="name">Steps</span>
+                </label>
             </div>
 
-            {/* <h3>Nutrition Facts</h3>
-            <ul>
-                <li>Calories: {nutritionFacts.calories} kcal</li>
-                <li>Protein: {nutritionFacts.protein} g</li>
-                <li>Carbohydrate: {nutritionFacts.carbohydrate} g</li>
-                <li>Fats: {nutritionFacts.fat} g</li>
-            </ul> */}
-            {/* Nutrition Facts Section */}
-            <h3>Nutrition Facts</h3>
-            <div>
-                <h4>Total Nutrition (for the entire recipe)</h4>
-                <ul>
-                    <li>Calories: {nutritionFacts.total?.calories || 0} kcal</li>
-                    <li>Protein: {nutritionFacts.total?.protein || 0} g</li>
-                    <li>Carbohydrate: {nutritionFacts.total?.carbohydrate || 0} g</li>
-                    <li>Fats: {nutritionFacts.total?.fat || 0} g</li>
-                </ul>
-            </div>
-
-            <div>
-                <h4>Per 100g Nutrition</h4>
-                <ul>
-                    <li>Calories: {nutritionFacts.per100g?.calories || 0} kcal</li>
-                    <li>Protein: {nutritionFacts.per100g?.protein || 0} g</li>
-                    <li>Carbohydrate: {nutritionFacts.per100g?.carbohydrate || 0} g</li>
-                    <li>Fats: {nutritionFacts.per100g?.fat || 0} g</li>
-                </ul>
-            </div>
-            <p>Note: Future versions will link to the database and calculate these values dynamically.</p>
-
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <button
-                    onClick={handleDecreaseServing}
-                    style={{
-                        padding: '5px 10px',
-                        border: '1px solid #ccc',
-                        background: '#f5f5f5',
-                        cursor: 'pointer',
-                    }}
-                >
-                    -
-                </button>
-                <span style={{ fontSize: '18px', fontWeight: 'bold' }}>{servingPacks}</span>
-                <button
-                    onClick={handleIncreaseServing}
-                    style={{
-                        padding: '5px 10px',
-                        border: '1px solid #ccc',
-                        background: '#f5f5f5',
-                        cursor: 'pointer',
-                    }}
-                >
-                    +
-                </button>
-            </div>
-
-            <h3>Ingredients</h3>
-            <ul>
-                {/* {ingredients.map((ingredient, index) => (
-                    <li
-                        key={index}
-                        onClick={() => handleIngredientClick(ingredient)}
-                        style={{ cursor: 'pointer', textDecoration: 'underline', color: 'blue' }}
-                    >
-                        {ingredient.ingredients.name} - {ingredient.quantity} {ingredient.unit}
-                        {selectedSubstitutions[ingredient.ingredients.id] && (
-                            <span style={{ marginLeft: '10px', color: 'green' }}>
-                                (Substituted with {selectedSubstitutions[ingredient.ingredients.id].substitute_ingredient.name})
+            {/* Conditional Rendering */}
+            {activeTab === "ingredients" && (
+                <section className="ingredients-section">
+                <h3>Ingredients</h3>
+                <section className="serving-adjuster">
+                    <h4>Serving Packs</h4>
+                    <button onClick={handleDecreaseServing} className="adjust-serving-button">-</button>
+                    <span className="serving-count">{servingPacks}</span>
+                    <button onClick={handleIncreaseServing} className="adjust-serving-button">+</button>
+                </section>
+        
+                <section className="ingredients-section">
+                    <h3>Ingredients List ({getAdjustedIngredients().length} item(s))</h3>
+                    <ul className="ingredients-list">
+                        {getAdjustedIngredients().map((ingredient) => (
+                            <li key={ingredient.ingredients.id} className="ingredient-item">
+                            {console.log('ingredient:', ingredient)}
+                            <img 
+                                src={`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/${ingredient.ingredients.icon_path}`} 
+                                alt={ingredient.ingredients.name} 
+                                className="ingredient-image"
+                            />
+                            <span>
+                                {ingredient.ingredients.name} - {ingredient.quantity} {ingredient.ingredients.unit?.unit_tag || ''}
                             </span>
-                        )}
-                    </li>
-                ))} */}
-                {getAdjustedIngredients().map((ingredient) => (
-                    <li key={ingredient.ingredients.id}>
-                        {ingredient.ingredients.name} - {ingredient.quantity} {ingredient.ingredients.unit?.unit_tag  || ''}
-                    </li>
-                ))}
-            </ul>
-
-            <h3>Steps</h3>
-            <ul>
-                {steps.map((step) => (
-                    <li key={step.step_number}>
-                        <strong>Step {step.step_number}:</strong> {step.instruction}
-                    </li>
-                ))}
-            </ul>
-            {/* <h3>Steps</h3> */}
-            {/* {!isCookingMode ? (
-                <>
-                    <button onClick={toggleCookingMode}>Start Cooking Mode</button>
-                    <ol>
-                        {steps.map((step, index) => (
-                            <li key={index}>{step.instruction}</li>
+                        </li>
                         ))}
-                    </ol>
-                </>
-            ) : (
-                <div>
-                    <h2>Step {steps[currentStepIndex].step_number}</h2>
-                    <p>{steps[currentStepIndex].instruction}</p>
-                    <button
-                        onClick={() => setCurrentStepIndex((prev) => Math.max(prev - 1, 0))}
-                    >
-                        Previous
-                    </button>
-                    <button
-                        onClick={() =>
-                            setCurrentStepIndex((prev) =>
-                                Math.min(prev + 1, steps.length - 1)
-                            )
-                        }
-                    >
-                        Next
-                    </button>
-                    <button onClick={toggleCookingMode}>Exit Cooking Mode</button>
-                </div>
-            )} */}
-
-            {/* <button onClick={toggleCookingMode}>Start Cooking Mode</button> */}
-
-            {/* Cooking Mode Overlay */}
-            {/* {isCookingMode && (
-                <div
-                    style={{
-                        position: 'fixed',
-                        top: 0,
-                        left: 0,
-                        width: '100%',
-                        height: '100%',
-                        background: 'rgba(0, 0, 0, 0.8)',
-                        color: '#fff',
-                        zIndex: 1000,
-                        display: 'flex',
-                        flexDirection: 'column',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                    }}
-                >
-                    <h2>Step {currentStepIndex + 1}</h2>
-                    <p>{steps[currentStepIndex]?.instruction}</p>
-
-                    <div style={{ marginTop: '20px', display: 'flex', gap: '10px' }}>
-                        <button
-                            onClick={handlePreviousStep}
-                            style={{
-                                padding: '10px 20px',
-                                background: '#007bff',
-                                color: '#fff',
-                                border: 'none',
-                                borderRadius: '5px',
-                                cursor: 'pointer',
-                                visibility: currentStepIndex === 0 ? 'hidden' : 'visible',
-                            }}
-                        >
-                            Previous
-                        </button>
-                        <button
-                            onClick={handleNextStep}
-                            style={{
-                                padding: '10px 20px',
-                                background: '#007bff',
-                                color: '#fff',
-                                border: 'none',
-                                borderRadius: '5px',
-                                cursor: 'pointer',
-                                visibility: currentStepIndex === steps.length - 1 ? 'hidden' : 'visible',
-                            }}
-                        >
-                            Next
-                        </button>
-                        <button
-                            onClick={toggleCookingMode}
-                            style={{
-                                padding: '10px 20px',
-                                background: 'red',
-                                color: '#fff',
-                                border: 'none',
-                                borderRadius: '5px',
-                                cursor: 'pointer',
-                            }}
-                        >
-                            Exit Cooking Mode
-                        </button>
-                    </div>
-                </div>
-            )} */}
-
-            {isCookingMode && (
-                <div
-                    style={{
-                        position: 'fixed',
-                        top: 0,
-                        left: 0,
-                        width: '100%',
-                        height: '100%',
-                        background: 'rgba(0, 0, 0, 0.8)',
-                        color: '#fff',
-                        zIndex: 1000,
-                        display: 'flex',
-                        flexDirection: 'column',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                    }}
-                >
-                    <h2>Step {currentStepIndex + 1}</h2>
-                    <p>{steps[currentStepIndex]?.instruction}</p>
-
-                    <div style={{ marginTop: '20px', display: 'flex', gap: '10px' }}>
-                        <button
-                            onClick={handlePreviousStep}
-                            style={{
-                                padding: '10px 20px',
-                                background: '#007bff',
-                                color: '#fff',
-                                border: 'none',
-                                borderRadius: '5px',
-                                cursor: 'pointer',
-                                visibility: currentStepIndex === 0 ? 'hidden' : 'visible',
-                            }}
-                        >
-                            Previous
-                        </button>
-                        <button
-                            onClick={handleNextStep}
-                            style={{
-                                padding: '10px 20px',
-                                background: '#007bff',
-                                color: '#fff',
-                                border: 'none',
-                                borderRadius: '5px',
-                                cursor: 'pointer',
-                                visibility: currentStepIndex === steps.length - 1 ? 'hidden' : 'visible',
-                            }}
-                        >
-                            Next
-                        </button>
-                        {currentStepIndex === steps.length - 1 && (
-                            <button
-                                onClick={finishCooking}
-                                style={{
-                                    padding: '10px 20px',
-                                    background: 'green',
-                                    color: '#fff',
-                                    border: 'none',
-                                    borderRadius: '5px',
-                                    cursor: 'pointer',
-                                }}
-                            >
-                                Finish Cooking
-                            </button>
-                        )}
-                        <button
-                            onClick={toggleCookingMode}
-                            style={{
-                                padding: '10px 20px',
-                                background: 'red',
-                                color: '#fff',
-                                border: 'none',
-                                borderRadius: '5px',
-                                cursor: 'pointer',
-                            }}
-                        >
-                            Exit Cooking Mode
-                        </button>
-                    </div>
-                </div>
+                    </ul>
+                </section>
+              </section>
             )}
-
-            {/* <button
-                onClick={() =>
-                    navigate('/recipes/calendar', {
-                        state: { recipeId: id, recipeName: recipe.name },
-                    })
-                }
-            >
-                Reschedule
-            </button> */}
-
-            {!scheduleData ? (
-                // Default buttons for viewing recipes
+      
+            {activeTab === "steps" && (
+              <section className="steps-section">
+                <h3>Steps</h3>
+                <ul className="steps-list">
+                    {steps.map((step) => (
+                        <li key={step.step_number} className="step-item">
+                            <strong>{step.step_number}:</strong> {step.instruction}
+                        </li>
+                    ))}
+                </ul>
+            </section>
+            )}
+            {console.log("Schedule Data:", scheduleData)}
+            {!scheduleData.activity_type ? (
                 <>
-                    <button
-                        onClick={toggleCookingMode}
-                        style={{
-                            padding: "10px 20px",
-                            background: "#007bff",
-                            color: "#fff",
-                            border: "none",
-                            borderRadius: "5px",
-                            cursor: "pointer",
-                            marginTop: "20px",
-                        }}
-                    >
-                        Start Cooking Mode
-                    </button>
 
                     <button
                         onClick={() =>
@@ -767,15 +479,7 @@ const RecipeDetail = () => {
                                 state: { recipeId: id, recipeName: recipe.name },
                             })
                         }
-                        style={{
-                            padding: "10px 20px",
-                            background: "orange",
-                            color: "#fff",
-                            border: "none",
-                            borderRadius: "5px",
-                            cursor: "pointer",
-                            marginTop: "20px",
-                        }}
+                        className="button reschedule-button"
                     >
                         Reschedule
                     </button>
@@ -783,84 +487,41 @@ const RecipeDetail = () => {
             ) : (
                 // Buttons for navigating from the Meal Planning page
                 <>
-                    {/* <button
-                        onClick={handleCancelSchedule}
-                        style={{
-                            padding: "10px 20px",
-                            background: "red",
-                            color: "#fff",
-                            border: "none",
-                            borderRadius: "5px",
-                            cursor: "pointer",
-                            marginTop: "20px",
-                        }}
-                    >
-                        Cancel Schedule for {scheduleData.planned_date}, {scheduleData.meal_type_id}
-                    </button> */}
-
-                    {/* <button
-                        onClick={handleCancelSchedule}
-                        style={{
-                            padding: "12px 20px",
-                            background: "#ff4d4d", // Softer red
-                            color: "#fff",
-                            border: "none",
-                            borderRadius: "8px",
-                            cursor: "pointer",
-                            marginTop: "20px",
-                            fontSize: "16px",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            gap: "8px",
-                            boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
-                            transition: "background 0.3s ease",
-                        }}
-                        onMouseEnter={(e) => (e.target.style.background = "#e63939")}
-                        onMouseLeave={(e) => (e.target.style.background = "#ff4d4d")}
-                    >
-                        <span style={{ fontSize: "20px", fontWeight: "bold" }}>✖</span>
-                        Cancel Schedule for{" "}
-                        {new Date(scheduleData.planned_date).toLocaleDateString("en-US", {
-                            month: "long",
-                            day: "numeric",
-                            year: "numeric",
-                        })}{" "}
-                        ({mealTypeMap[scheduleData.meal_type_id] || "Unknown"})
-                    </button> */}
-
                     {scheduleData?.activity_type === "view" ? (
-                        // Show the "Cancel Schedule" button for "view" activity type
-                        <button
-                            onClick={handleCancelSchedule}
-                            style={{
-                                padding: "12px 20px",
-                                background: "#ff4d4d", // Softer red
-                                color: "#fff",
-                                border: "none",
-                                borderRadius: "8px",
-                                cursor: "pointer",
-                                marginTop: "20px",
-                                fontSize: "16px",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                gap: "8px",
-                                boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
-                                transition: "background 0.3s ease",
-                            }}
-                            onMouseEnter={(e) => (e.target.style.background = "#e63939")}
-                            onMouseLeave={(e) => (e.target.style.background = "#ff4d4d")}
+                        <>
+                            <button
+                                onClick={handleCancelSchedule}
+                                className="button cancel-schedule-button"
+                                // onMouseEnter={(e) => (e.target.style.background = "#e63939")}
+                                // onMouseLeave={(e) => (e.target.style.background = "#ff4d4d")}
+                                onMouseEnter={(e) =>
+                                    e.target.classList.add('cancel-schedule-hover')
+                                }
+                                onMouseLeave={(e) =>
+                                    e.target.classList.remove('cancel-schedule-hover')
+                                }
+                            >
+                                <span className="cancel-icon">✖</span>
+                                Cancel Schedule for {" "}
+                                {new Date(scheduleData.planned_date).toLocaleDateString("en-US", {
+                                    month: "long",
+                                    day: "numeric",
+                                    year: "numeric",
+                                })} {" "}
+                                ({mealTypeMap[scheduleData.meal_type_id] || "Unknown"})
+                            </button>
+                            <button
+                            onClick={() =>
+                                navigate('/recipes/calendar', {
+                                    state: { recipeId: id, recipeName: recipe.name },
+                                })
+                            }
+                            className="button reschedule-another-button"
                         >
-                            <span style={{ fontSize: "20px", fontWeight: "bold" }}>✖</span>
-                            Cancel Schedule for{" "}
-                            {new Date(scheduleData.planned_date).toLocaleDateString("en-US", {
-                                month: "long",
-                                day: "numeric",
-                                year: "numeric",
-                            })}{" "}
-                            ({mealTypeMap[scheduleData.meal_type_id] || "Unknown"})
+                            Reschedule Another Meal
                         </button>
+                    </>
+                        
                     ) : (
                         // Updated "Add Recipe to Meal Plan" button
                         // Add to Meal Button with Modal Trigger
@@ -869,102 +530,173 @@ const RecipeDetail = () => {
                                 e.stopPropagation(); // Prevent event propagation
                                 handleOpenAddModal(recipe.id); // Trigger modal opening
                             }}
-                            style={{
-                                padding: "10px",
-                                background: "#28a745",
-                                color: "#fff",
-                                border: "none",
-                                borderRadius: "5px",
-                                cursor: "pointer",
-                                marginTop: "10px",
-                                zIndex: 1000,
-                            }}
+                            className="button add-meal-button"
                         >
                             Add to Meal
                         </button>
                     )}
-
-
-
-                    <button
-                        onClick={() =>
-                            navigate('/recipes/calendar', {
-                                state: { recipeId: id, recipeName: recipe.name },
-                            })
-                        }
-                        style={{
-                            padding: "10px 20px",
-                            background: "orange",
-                            color: "#fff",
-                            border: "none",
-                            borderRadius: "5px",
-                            cursor: "pointer",
-                            marginTop: "20px",
-                        }}
-                    >
-                        Reschedule Another Meal
-                    </button>
                     {/* havnt do passing state for this */}
                 </>
             )}
-
-
-            <h3>Related Recipes</h3>
-            <ul>
-                {relatedRecipes.map((recipe) => (
-                    <li key={recipe.id} onClick={() => navigate(`/recipes/recipe/${recipe.id}`)}>
-                        <img
-                            src={`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/${recipe.image_path}`}
-                            alt={recipe.name}
-                            style={{ width: '100px', borderRadius: '10px' }}
-                        />
-                        {recipe.name}
-                    </li>
-                ))}
-            </ul>
+    
+            {isCookingMode && (
+                <section className="cooking-mode-overlay">
+                    <h2>Step {currentStepIndex + 1}</h2>
+                    <p>{steps[currentStepIndex]?.instruction}</p>
+                    <div className="cooking-mode-controls">
+                        <button
+                            onClick={handlePreviousStep}
+                            className="previous-step-button"
+                            disabled={currentStepIndex === 0}
+                            >
+                            Previous
+                        </button>
+                        <button
+                            onClick={handleNextStep}
+                            className="next-step-button"
+                            disabled={currentStepIndex === steps.length - 1}
+                            >
+                            Next
+                        </button>
+                        {currentStepIndex === steps.length - 1 && (
+                            <button onClick={finishCooking} className="finish-cooking-button">
+                                Finish Cooking
+                            </button>
+                        )}
+                        <button onClick={toggleCookingMode} className="exit-cooking-mode-button">
+                            Exit Cooking Mode
+                        </button>
+                    </div>
+                </section>
+            )}
+    
+            {scheduleData?.activity_type && (
+                <section className="scheduled-activity-buttons">
+                    {scheduleData.activity_type === "view" ? (
+                        <>
+                            <button
+                                onClick={handleCancelSchedule}
+                                className="cancel-schedule-button"
+                                >
+                                Cancel Schedule
+                            </button>
+                            <button
+                                onClick={() =>
+                                    navigate('/recipes/calendar', {
+                                        state: { recipeId: id, recipeName: recipe.name },
+                                    })
+                                }
+                                className="reschedule-button"
+                                >
+                                Reschedule Another Meal
+                            </button>
+                        </>
+                    ) : (
+                        <button
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            handleOpenAddModal(recipe.id);
+                        }}
+                        className="add-to-meal-button"
+                        >
+                            Add to Meal
+                        </button>
+                    )}
+                </section>
+            )}
+    
+            <section className="related-recipes">
+                <h3>Related Recipes</h3>
+                <ul className="related-recipes-list">
+                    {relatedRecipes.map((recipe) => (
+                        <li
+                        key={recipe.id}
+                        className="related-recipe-item"
+                        onClick={() => navigate(`/recipes/recipe/${recipe.id}`)}
+                        >
+                            <img
+                                src={`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/${recipe.image_path}`}
+                                alt={recipe.name}
+                                className="related-recipe-image"
+                                />
+                            {recipe.name}
+                        </li>
+                    ))}
+                </ul>
+            </section>
+    
             {showAddModal && (
                 <div className="modal">
                     <div className="modal-content">
-                    <h2>Add a Meal</h2>
-                    <p>
-                        <strong>Meal Type:</strong>{" "}
-                        {mealTypes.find((type) => type.id === newMeal.meal_type_id)?.name ||
-                        "Unknown"}
-                    </p>
-                    <p>
-                        <strong>Planned Date:</strong> {newMeal.planned_date}
-                    </p>
-                    <label>
-                        Notes:
-                        <textarea
-                        value={newMeal.notes}
-                        placeholder="Enter additional notes (e.g., extra ingredients, instructions)"
-                        onChange={(e) =>
-                            setNewMeal((prev) => ({ ...prev, notes: e.target.value }))
-                        }
-                        rows="3"
-                        />
-                    </label>
-                    <label>
-                        Time:
-                        <input
-                        type="time"
-                        value={newMeal.time}
-                        onChange={(e) =>
-                            setNewMeal((prev) => ({ ...prev, time: e.target.value }))
-                        }
-                        />
-                    </label>
-                    <button onClick={handleAddMeal} style={{ marginRight: "10px" }}>
-                        Save
-                    </button>
-                    <button onClick={() => setShowAddModal(null)}>Cancel</button>
+                        <h2>Add a Meal</h2>
+                        <p>
+                            <strong>Meal Type:</strong> {mealTypes.find((type) => type.id === newMeal.meal_type_id)?.name || "Unknown"}
+                        </p>
+                        <p>
+                            <strong>Planned Date:</strong> {newMeal.planned_date}
+                        </p>
+                        <label>
+                            Notes:
+                            <textarea
+                                value={newMeal.notes}
+                                placeholder="Enter additional notes (e.g., extra ingredients, instructions)"
+                                onChange={(e) => setNewMeal((prev) => ({ ...prev, notes: e.target.value }))}
+                                rows="3"
+                                className="notes-textarea"
+                                />
+                        </label>
+                        <label>
+                            Time:
+                            <input
+                                type="time"
+                                value={newMeal.time}
+                                onChange={(e) => setNewMeal((prev) => ({ ...prev, time: e.target.value }))}
+                                className="time-input"
+                                />
+                        </label>
+                        <label>
+                            Pax (Serving Packs):
+                            <div className="serving-adjuster">
+                                <button
+                                    onClick={() =>
+                                        setNewMeal((prev) => ({
+                                            ...prev,
+                                            servingPacks: Math.max(1, (prev.servingPacks || 1) - 1),
+                                        }))
+                                    }
+                                    className="adjust-serving-button"
+                                    >
+                                    -
+                                </button>
+                                <span className="serving-count">{newMeal.servingPacks || 1}</span>
+                                <button
+                                    onClick={() =>
+                                        setNewMeal((prev) => ({
+                                            ...prev,
+                                            servingPacks: (prev.servingPacks || 1) + 1,
+                                        }))
+                                    }
+                                    className="adjust-serving-button"
+                                    >
+                                    +
+                                </button>
+                            </div>
+                        </label>
+                        <div className="modal-actions">
+                            <button onClick={handleAddMeal} className="save-button">
+                                Save
+                            </button>
+                            <button onClick={() => setShowAddModal(null)} className="cancel-button">
+                                Cancel
+                            </button>
+                        </div>
                     </div>
                 </div>
-                )}
-
+            )}
+            </div>
         </div>
     );
+    
 };
 
 export default RecipeDetail;

@@ -7,6 +7,8 @@ import chroma from 'chroma-js';
 import "./index.css";
 import Notification from '../Notification';
 
+import CommonLoader from "../../../components/Loader/CommonLoader";
+
 // Register all Chart.js components
 ChartJS.register(...registerables);
 
@@ -175,7 +177,7 @@ const Dashboard = () => {
 
   // Show loading screen while data is being fetched
   if (loading) {
-    return <div>Loading...</div>;
+    return  <CommonLoader />;
   }
 
   // Dynamic color generation using chroma.js

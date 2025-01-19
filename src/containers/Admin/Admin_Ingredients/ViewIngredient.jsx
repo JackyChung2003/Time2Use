@@ -6,9 +6,9 @@ import BackButton from "../../../components/Button/BackButton";
 
 const ViewIngredient = () => {
     const { id } = useParams();
-    const navigate = useNavigate(); 
+    const navigate = useNavigate();
+    const [tempIngredient, setTempIngredient] = useState(null);
     const [ingredient, setIngredient] = useState(null);
-    const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
@@ -18,46 +18,52 @@ const ViewIngredient = () => {
             setError(null);
     
             try {
-
                 const { data: ingredients, error: ingredientsError } = await supabase
                     .from("ingredients")
                     .select("*")
                     .eq("id", id)
                     .single();
                 if (ingredientsError) throw ingredientsError;
-    
-                setIngredient(ingredients);
-    
-                // Step 2: Fetch related categories
+
+                setTempIngredient(ingredients);
+
                 const { data: categories, error: categoriesError } = await supabase
                     .from("ingredients_category")
                     .select("*");
-                if (categoriesError) {
-                    console.error("Error fetching categories:", categoriesError.message);
-                    setCategories([]);
-                } else {
-                    setCategories(categories?.map((c) => c.category_name) || []);
-                }
-                
 
+                if (categoriesError) throw categoriesError;
 
-                if (Array.isArray(ingredients) && Array.isArray(categories)) {
-                    const combinedIngredients = ingredients.map((ingredient) => {
-                        const details = categories.find((u) => u.id === ingredient.ingredients_category_id);
-                        return {
-                            icon: ingredient.icon_path,
-                            name: ingredient.name,
-                            nutritional_info: ingredient.nutritional_info,
-                            pred_shelf_life: ingredient.pred_shelf_life,
-                            storage_tips: ingredient.storage_tips,
-                            category: details?.categories.category_name || "N/A", // Use "N/A" if no category is found
-                        };
-                    });
-                
-                    setIngredient(combinedIngredients);
-                    console.log("Combined Ingredients:", combinedIngredients);
-                }
-            
+                const { data: units, error: unitsError } = await supabase
+                    .from("unit")
+                    .select("*");
+
+                if (unitsError) throw unitsError;
+
+                const { data: unitInvs, error: unitInvsError } = await supabase
+                    .from("unitInv")
+                    .select("*");
+
+                if (unitInvsError) throw unitInvsError;
+
+                const category = categories.find((c) => c.id === ingredients.ingredients_category_id);
+                const unit = units.find((u) => u.id === ingredients.quantity_unit_id);
+                const unitInv = unitInvs.find((u) => u.id === ingredients.quantity_unitInv_id);
+
+                // Create a combined ingredient object
+                const combinedIngredient = {
+                    icon: ingredients.icon_path ? ingredients.icon_path : null,
+                    name: ingredients.name,
+                    nutritional_info: ingredients.nutritional_info ? ingredients.nutritional_info : null ,
+                    pred_shelf_life: ingredients.pred_shelf_life ? ingredients.pred_shelf_life : null,
+                    storage_tips: ingredients.storage_tips ? ingredients.storage_tips : null,
+                    ingredient_category: category ? category.category_name : null,
+                    ingredient_unit: unit ? unit.unit_description : null,
+                    ingredient_unitInv: unitInv ? unitInv.unitInv_tag : null,
+                };
+
+                console.log("Combined Ingredients:", combinedIngredient);
+
+                setIngredient(combinedIngredient);
             } catch (err) {
                 setError("Failed to fetch ingredient details.");
                 console.error(err);
@@ -129,7 +135,7 @@ const ViewIngredient = () => {
                     Edit Ingredient
                 </button>
                 <button
-                    onClick={() => deleteIngredient(ingredient.id, ingredient.ico)} // Pass id and image_path to deleteRecipe
+                    onClick={() => deleteIngredient(ingredient.id, ingredient.icon_path)} // Pass id and image_path to deleteRecipe
                     style={{
                         padding: "10px 20px",
                         borderRadius: "4px",
@@ -148,10 +154,12 @@ const ViewIngredient = () => {
                                             .map(([key, value]) => `${key}: ${value}`)
                                             .join(', ')}</p>
             <p><span style={{ fontWeight: 'bold' }}>Pred Shelf Life:</span> {ingredient.pred_shelf_life} </p>
-            <p><span style={{ fontWeight: 'bold' }}>Category:</span> {ingredient.category_name} </p>
-            {ingredient.icon_path && (
-                <img
-                    src={`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/${ingredient.icon_path}`}
+            <p><span style={{ fontWeight: 'bold' }}>Storage Tips:</span> {ingredient.storage_tips} </p>
+            <p><span style={{ fontWeight: 'bold' }}>Category:</span> {ingredient.ingredient_category} </p>
+            <p><span style={{ fontWeight: 'bold' }}>Unit:</span> {ingredient.ingredient_unit} </p>
+            <p><span style={{ fontWeight: 'bold' }}>Inventory Unit:</span> {ingredient.ingredient_unitInv} </p>
+            <img
+                    src={`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/${tempIngredient.icon_path}`}
                     alt={ingredient.name}
                     style={{
                         width: "300px",
@@ -159,8 +167,7 @@ const ViewIngredient = () => {
                         objectFit: "cover",
                         borderRadius: "8px",
                     }}
-                />
-            )}
+            />
         </div>
     );
 };

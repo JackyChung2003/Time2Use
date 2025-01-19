@@ -24,17 +24,55 @@ const AdminIngredients = () => {
             const start = (pageNumber - 1) * limit;
             const end = start + limit - 1;
 
-            const { data, count, error } = await supabase
+            const { data: ingredients, error: ingredientsError, count } = await supabase
                 .from("ingredients") // Ensure this matches your Supabase table name
                 .select("*", { count: "exact" }) // Include count to calculate total pages
                 .order(sortConfig.key, { ascending: sortConfig.direction === "asc" })
                 .range(start, end); // Paginate results
 
-            if (error) throw error;
+            if (ingredientsError) throw ingredientsError;
 
-            setIngredients(data);
-            setFilteredIngredients(data); // Initialize filtered data
+            // Fetch categories data
+            const { data: ingredientCategories, error: ingredientCategoriesError } = await supabase
+            .from("ingredients_category")
+            .select("*");
+
+            if (ingredientCategoriesError) throw ingredientCategoriesError;
+
+            // Fetch suppliers data
+            const { data: units, error: unitsError } = await supabase
+            .from("unit")
+            .select("*");
+
+            if (unitsError) throw unitsError;
+
+            // Fetch nutritional_info data
+            const { data: unitInvs, error: unitInvsError } = await supabase
+            .from("unitInv")
+            .select("*");
+  
+            if (unitInvsError) throw unitInvsError;
+
+            // Merge data based on matching keys
+            const mergedIngredients = ingredients.map(ingredient => {
+            // Find matching category
+            const ingreCategory = ingredientCategories.find(cat => cat.id === ingredient.ingredients_category_id);
+            const ingreUnit = units.find(sup => sup.id === ingredient.quantity_unit_id);
+            const ingreUnitInv = unitInvs.find(nut => nut.id === ingredient.quantity_unitInv_id);
+
+            return {
+                ...ingredient,
+                ingredient_category_name: ingreCategory ? ingreCategory.category_name : null,
+                ingredient_unit: ingreUnit ? ingreUnit.unit_description : null,
+                ingredient_unitInv: ingreUnitInv ? ingreUnitInv.unitInv_tag : null,
+            };
+            });
+
+            // Set merged data to state
+            setIngredients(mergedIngredients);
+            setFilteredIngredients(mergedIngredients); // Initialize filtered data
             setTotalPages(Math.ceil(count / limit)); // Calculate total pages
+
         } catch (err) {
             setError("Failed to fetch ingredients.");
             console.error(err);
@@ -223,13 +261,17 @@ const AdminIngredients = () => {
                                 >
                                     Pred Shelf Life {sortConfig.key === "pred_shelf_life" && (sortConfig.direction === "asc" ? "↑" : "↓")}
                                 </th>
+                                <th style={{ border: "1px solid #ccc", padding: "10px" }}>Storage Tips</th>
+                                <th style={{ border: "1px solid #ccc", padding: "10px" }}>Category</th>
+                                <th style={{ border: "1px solid #ccc", padding: "10px" }}>Unit</th>
+                                <th style={{ border: "1px solid #ccc", padding: "10px" }}>UnitInv</th>
                                 <th style={{ border: "1px solid #ccc", padding: "10px" }}>Image</th>
                                 <th style={{ border: "1px solid #ccc", padding: "10px", textAlign: "center" }}>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             {filteredIngredients.map((ingredient) => (
-                                <tr key={ingredient.id}>
+                                <tr key={ingredient.id} style={{ backgroundColor: "#fff" }}>
                                     <td style={{ border: "1px solid #ccc", padding: "10px" }}>{ingredient.id}</td>
                                     <td style={{ border: "1px solid #ccc", padding: "10px" }}>{ingredient.name}</td>
                                     <td style={{ border: "1px solid #ccc", padding: "10px" }}>
@@ -237,7 +279,11 @@ const AdminIngredients = () => {
                                             .map(([key, value]) => `${key}: ${value}`)
                                             .join(', ')}
                                     </td>
-                                    <td style={{ border: "1px solid #ccc", padding: "10px" }}>{ingredient.pred_shelf_life} mins</td>
+                                    <td style={{ border: "1px solid #ccc", padding: "10px" }}>{ingredient.pred_shelf_life}</td>
+                                    <td style={{ border: "1px solid #ccc", padding: "10px" }}>{ingredient.storage_tips}</td>
+                                    <td style={{ border: "1px solid #ccc", padding: "10px" }}>{ingredient.ingredient_category_name}</td>
+                                    <td style={{ border: "1px solid #ccc", padding: "10px" }}>{ingredient.ingredient_unit}</td>
+                                    <td style={{ border: "1px solid #ccc", padding: "10px" }}>{ingredient.ingredient_unitInv}</td>
                                     <td style={{ border: "1px solid #ccc", padding: "10px" }}>
                                         <img
                                             src={`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/${ingredient.icon_path}`}
