@@ -9,6 +9,9 @@ import "./index.css";
 import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
 
+
+import { useRecipeContext } from "../Contexts/RecipeContext";
+
 const RecipeCalendar = () => {
   const [value, setValue] = useState(new Date());
   const [showModal, setShowModal] = useState(false);
@@ -18,12 +21,20 @@ const RecipeCalendar = () => {
   const timerRef = useRef(null);
   const location = useLocation(); // Get location and state
 
+  const { userData } = useRecipeContext();
+
+  // console.log("userData", userData);
+
   // Extract recipe information from navigation state
   const { recipeId, recipeName } = location.state || {}; // Destructure state if available
 
   // Fetch data from Supabase and preprocess it
   const fetchData = async () => {
-    const { data, error } = await supabase.from("meal_plan").select("*");
+    // const { data, error } = await supabase.from("meal_plan").select("*");
+    const { data, error } = await supabase
+      .from("meal_plan")
+      .select("*")
+      .eq("user_id", userData.id); // Filter by user_id
     if (error) {
       console.error("Error fetching data:", error);
       return;
