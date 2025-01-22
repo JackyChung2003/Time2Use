@@ -316,12 +316,7 @@ const Item = ({
                 >
                   Used
                 </button>
-                <button
-                  className="discard-button"
-                  onClick={() => handleActionClick("discard")}
-                >
-                  Discard
-                </button>
+                
               </>
             )}
 
