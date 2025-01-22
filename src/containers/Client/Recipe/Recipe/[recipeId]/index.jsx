@@ -489,7 +489,7 @@ const RecipeDetail = () => {
                                 state: { recipeId: id, recipeName: recipe.name },
                             })
                         }
-                        className="button reschedule-button"
+                        className="button reschedule-button floating-down"
                     >
                         Reschedule
                     </button>
@@ -501,7 +501,7 @@ const RecipeDetail = () => {
                         <>
                             <button
                                 onClick={handleCancelSchedule}
-                                className="button cancel-schedule-button"
+                                className="button cancel-schedule-button "
                                 // onMouseEnter={(e) => (e.target.style.background = "#e63939")}
                                 // onMouseLeave={(e) => (e.target.style.background = "#ff4d4d")}
                                 onMouseEnter={(e) =>
@@ -511,7 +511,7 @@ const RecipeDetail = () => {
                                     e.target.classList.remove('cancel-schedule-hover')
                                 }
                             >
-                                <span className="cancel-icon">✖</span>
+                                <span className="cancel-icon ">✖</span>
                                 Cancel Schedule for {" "}
                                 {new Date(scheduleData.planned_date).toLocaleDateString("en-US", {
                                     month: "long",
@@ -584,7 +584,7 @@ const RecipeDetail = () => {
                 <section className="scheduled-activity-buttons">
                     {scheduleData.activity_type === "view" ? (
                         <>
-                            <button
+                            {/* <button
                                 onClick={handleCancelSchedule}
                                 className="cancel-schedule-button"
                                 >
@@ -599,7 +599,7 @@ const RecipeDetail = () => {
                                 className="reschedule-button"
                                 >
                                 Reschedule Another Meal
-                            </button>
+                            </button> */}
                         </>
                     ) : (
                         <button
@@ -615,7 +615,7 @@ const RecipeDetail = () => {
                 </section>
             )}
     
-            <section className="related-recipes">
+            {/* <section className="related-recipes">
                 <h3>Related Recipes</h3>
                 <ul className="related-recipes-list">
                     {relatedRecipes.map((recipe) => (
@@ -633,7 +633,7 @@ const RecipeDetail = () => {
                         </li>
                     ))}
                 </ul>
-            </section>
+            </section> */}
     
             {showAddModal && (
                 <div className="modal">

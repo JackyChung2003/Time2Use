@@ -1511,6 +1511,7 @@ const RecipePreparationPage = () => {
                     </div>
                 </div>
             </section>
+            <div className='recipe-detail-lower-section'>
             <section className="recipe-details">
                 <h2 className="recipe-detail-title">{recipe.name}</h2>
                 <p className="recipe-description">{recipe.description}</p>
@@ -2036,6 +2037,7 @@ const RecipePreparationPage = () => {
                 </ul>
             </section>
             )}
+            </div>
         </div>
       );
     })}
@@ -2043,13 +2045,7 @@ const RecipePreparationPage = () => {
         // Show the "Mark as Cooked" button if any meal plan has status id === 3
         <button
           onClick={markAsCooked}
-          style={{
-            padding: "10px 20px",
-            background: "green",
-            color: "white",
-            borderRadius: "5px",
-            marginTop: "20px",
-          }}
+          className="mark-cooked-button floating-down"
         >
           Mark as Cooked
         </button>
@@ -2057,13 +2053,8 @@ const RecipePreparationPage = () => {
         // Show the "Start Cooking" button if not all meal plans have status id === 2
         <button
           onClick={startCooking}
-          style={{
-            padding: "10px 20px",
-            background: "orange",
-            color: "white",
-            borderRadius: "5px",
-            marginTop: "20px",
-          }}
+          className="start-cooking-button floating-down"
+        
         >
           Start Cooking
           {console.log("HEREEEEEEEE")}

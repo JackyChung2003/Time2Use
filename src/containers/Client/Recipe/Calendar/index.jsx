@@ -155,6 +155,14 @@ const RecipeCalendar = () => {
     //   }
     // }
 
+    // Handle future dates
+    if (date > today) {
+      if (dayData && dayData.planning > 0) {
+        return "future-date-planned"; // Future date with a plan
+      }
+      return "future-date"; // Future date with no plan
+    }
+
     if (dayData) {
       if (dayData.complete === 3 && dayData.hasOthersMeal === false) {
         return "complete-date"; // Apply normal complete class for 3/3 without "Others"
@@ -199,7 +207,7 @@ const RecipeCalendar = () => {
         // No meals planned
         return (
           <div className="tile-content no-plan-past-date">
-            <span>(0/0)</span>
+            {/* <span>(0/0)</span> */}
           </div>
         );
       }
@@ -218,7 +226,7 @@ const RecipeCalendar = () => {
     // No data for this day
     return (
       <div className="tile-content">
-        <span>(0/0)</span>
+        {/* <span>(0/0)</span> */}
       </div>
     );
   }}

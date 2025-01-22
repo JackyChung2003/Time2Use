@@ -1,3 +1,9 @@
+.recipe-preparation-page {
+  margin-bottom: 60px;
+  background-color: #fff;
+  /* padding: 20px; */
+}
+
 .linked-inventory-container {
   margin-top: 10px;
   padding: 10px;
@@ -198,4 +204,13 @@
 .cooking-mode-button:disabled {
   background: #ccc;
   cursor: not-allowed;
+}
+
+.floating-down {
+  /* border: 1px solid red; */
+  position: fixed;
+  bottom: 75px;
+  right: 200px;
+  /* width: 100%; */
+  /* background-color: #f8f9fa; */
 }
