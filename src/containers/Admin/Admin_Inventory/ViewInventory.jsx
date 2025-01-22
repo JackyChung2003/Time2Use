@@ -12,6 +12,7 @@ const ViewInventory = () => {
     const [profile, setProfile] = useState(null);
     const [expiryDate, setExpiryDate] = useState(null);
     const [freshnessStatus, setFreshnessStatus] = useState(null);
+    const [condition, setCondition] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
@@ -50,29 +51,19 @@ const ViewInventory = () => {
 
                 setProfile(profileData);
 
-                // Fetch expiry date from ingredients_expiry
-                const { data: expiryData, error: expiryError } = await supabase
-                    .from("ingredients_expiry")
-                    .select("date_id")
-                    .eq("ingredients_id", inventoryData.ingredient_id)
-                    .order("date_id", { ascending: false })
-                    .limit(1);
+                if (!inventoryData?.expiry_date_id) {
+                    setExpiryDate({ date: 0 }); // Set to 0 if expiry_date_id is missing
+                } else {
+                    // Fetch expiry date from expiry_date table
+                    const { data: expiryDateData, error: expiryDateError } = await supabase
+                        .from("expiry_date")
+                        .select("date")
+                        .eq("id", inventoryData.expiry_date_id)
+                        .single();
+                    if (expiryDateError) throw expiryDateError;
 
-                if (expiryError || !expiryData || expiryData.length === 0) {
-                    throw new Error("No expiry data found for the selected ingredient.");
+                    setExpiryDate(expiryDateData);
                 }
-
-                const expirydateId = expiryData[0].date_id;
-
-                // Fetch expiry date from expiry_date table
-                const { data: expiryDateData, error: expiryDateError } = await supabase
-                    .from("expiry_date")
-                    .select("date")
-                    .eq("id", expirydateId)
-                    .single();
-                if (expiryDateError) throw expiryDateError;
-
-                setExpiryDate(expiryDateData);
 
                 // Fetch freshness status based on expiry date
                 const { data: freshnessData, error: freshnessError } = await supabase
@@ -83,6 +74,15 @@ const ViewInventory = () => {
                 if (freshnessError) throw freshnessError;
 
                 setFreshnessStatus(freshnessData);
+
+                const { data: conditionData, error: conditionError } = await supabase
+                    .from("condition")
+                    .select("condition")
+                    .eq("id", inventoryData.condition_id)
+                    .single();
+                if (conditionError) throw conditionError;
+
+                setCondition(conditionData);
 
             } catch (err) {
                 setError("Failed to fetch inventory details.");
@@ -160,12 +160,13 @@ const ViewInventory = () => {
 
             <h1>{inventory.name}</h1>
             <p><span style={{ fontWeight: 'bold' }}>Quantity:</span> {inventory.quantity}</p>
-            <p><span style={{ fontWeight: 'bold' }}>Category:</span> {inventory.category}</p>
-            <p><span style={{ fontWeight: 'bold' }}>Storage Tips:</span> {inventory.storage_tips}</p>
+            <p><span style={{ fontWeight: 'bold' }}>Initial Quantity:</span> {inventory.init_quantity}</p>
             {ingredient && <p><span style={{ fontWeight: 'bold' }}>Ingredient Name:</span> {ingredient.name}</p>}
             {profile && <p><span style={{ fontWeight: 'bold' }}>Added by:</span> {profile.username}</p>}
-            {expiryDate && <p><span style={{ fontWeight: 'bold' }}>Expiry Date:</span> {expiryDate.expiry_date}</p>}
+            <p><span style={{ fontWeight: 'bold' }}>Expiry Date:</span> {expiryDate.expiry_date}</p>
+            <p><span style={{ fontWeight: 'bold' }}>Days Left:</span> {inventory.days_left}</p>
             {freshnessStatus && <p><span style={{ fontWeight: 'bold' }}>Freshness Status:</span> <span style={{ color: freshnessStatus.status_color }}>{freshnessStatus.status_color}</span></p>}
+            <p><span style={{ fontWeight: 'bold' }}>Condition:</span> {condition.condition}</p> 
 
             {inventory.icon_path && (
                 <img

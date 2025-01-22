@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from 'react-router-dom';
 import supabase from "../../../../config/supabaseClient";
 import BackButton from "../../../../components/Button/BackButton";
 import { useRecipeContext } from "../Contexts/RecipeContext";
 import CommonLoader from "../../../../components/Loader/CommonLoader";
 
-// import "./index.css";
+import "./index.css";
 
 const RecipeFavorites = () => {
   const {
@@ -14,6 +14,8 @@ const RecipeFavorites = () => {
     fetchRecipesByIds,
     loading,
     filters,
+    mealTypes,
+    userData,
     applyFilters,
   } = useRecipeContext();
 
@@ -29,7 +31,25 @@ const RecipeFavorites = () => {
   const [ingredientSearch, setIngredientSearch] = useState('');
   
   const [matchingIngredients, setMatchingIngredients] = useState([]);
+  const location = useLocation();
   const navigate = useNavigate();
+
+  const [showAddModal, setShowAddModal] = useState(null); // For showing the add modal
+    const [newMeal, setNewMeal] = useState({
+        notes: "",
+        time: "",
+        meal_type_id: "",
+        planned_date: "",
+        recipe_id: "",
+      });
+
+  // Extract the state passed from the previous page
+  const { planned_date, meal_type_id, activity_type } = location.state || {};
+  
+  // Dynamically map meal_type_id to its name
+  const mealTypeName =
+    mealTypes.find((mealType) => mealType.id === meal_type_id)?.name || "Unknown Meal Type";
+
 
   // Fetch filter options (categories, tags, and equipment)
   const fetchFilterOptions = async () => {
@@ -47,6 +67,16 @@ const RecipeFavorites = () => {
       console.error("Error fetching filter options:", error);
     }
   };
+
+  useEffect(() => {
+          // Add 'page' class to the body and set background color for the whole page
+          document.body.classList.add('page');
+  
+          // Clean up when the component is unmounted
+          return () => {
+              document.body.classList.remove('page');
+          };
+      }, []);
 
   // Fetch favorite recipes
   useEffect(() => {
@@ -217,7 +247,49 @@ const handleClear = () => {
     }
   };
 
+  const handleAddMeal = async () => {
+    try {
+      const { error } = await supabase.from("meal_plan").insert([
+        {
+          user_id: userData.id,
+          recipe_id: newMeal.recipe_id,
+          planned_date: newMeal.planned_date,
+          meal_type_id: newMeal.meal_type_id,
+          notes: newMeal.notes,
+          time: newMeal.time,
+          // serving_packs: newMeal.servingPacks,
+          serving_packs: newMeal.servingPacks || 1, // Include serving packs
+        },
+      ]);
+
+      if (error) {
+        console.error("Error adding meal:", error.message);
+        return;
+      }
+
+      alert("Meal successfully added!");
+      setShowAddModal(null); // Close modal after success
+    } catch (err) {
+      console.error("Unexpected error adding meal:", err.message);
+    }
+  };
+
   
+  const handleOpenAddModal = (recipeId) => {
+    const defaultTime =
+      mealTypes.find((type) => type.id === meal_type_id)?.default_time ||
+      "12:00";
+
+    setNewMeal({
+      notes: "",
+      time: defaultTime,
+      meal_type_id: meal_type_id,
+      planned_date: planned_date,
+      recipe_id: recipeId,
+    });
+
+    setShowAddModal(true);
+  };
 
   if (isLoading || loading) {
     return <CommonLoader />;
@@ -227,6 +299,16 @@ const handleClear = () => {
     <div className="explore-recipes-container">
       <BackButton />
       <h1 className="page-title">Your Favorite Recipes</h1>
+
+      {/* Display Planned Date and Meal Type */}
+      {planned_date && activity_type && meal_type_id && (
+                <div className="meal-info">
+                    {/* <p><strong>Scheduled Date:</strong> {planned_date}</p>
+                    <p><strong>Type:</strong> {mealTypeName}</p>
+                    <p><strong>Activity:</strong> {activity_type}</p> */}
+                    <p><strong>Scheduling for:</strong> {planned_date} ({mealTypeName})</p>
+                </div>
+                )}
   
       {/* Search Bar */}
             <div className="search-container">
@@ -257,9 +339,19 @@ const handleClear = () => {
             <div
               key={recipe.id}
               onClick={() =>
+                // navigate(`/recipes/recipe/${recipe.id}`, {
+                //   state: { recipe_id: recipe.id, recipe_name: recipe.name },
+                // })
+
                 navigate(`/recipes/recipe/${recipe.id}`, {
-                  state: { recipe_id: recipe.id, recipe_name: recipe.name },
-                })
+                  state: {
+                      planned_date,
+                      meal_type_id,
+                      recipe_id: recipe.id,
+                      recipe_name: recipe.name,
+                      activity_type: activity_type,
+                  },
+              })
               }
               className="recipe-card"
               title={`View details for ${recipe.name}`}
@@ -285,6 +377,18 @@ const handleClear = () => {
                 <p>{recipe.description}</p>
                 <p>Prep Time: {recipe.prep_time} mins</p>
                 <p>Cook Time: {recipe.cook_time} mins</p>
+
+                {planned_date && meal_type_id && (
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            handleOpenAddModal(recipe.id);
+                        }}
+                        className="add-to-meal-button"
+                    >
+                        Add to Meal
+                    </button>
+                )}
   
                 {/* Tags */}
                 {recipe.tags?.length > 0 && (
@@ -532,6 +636,80 @@ const handleClear = () => {
             </button>
         </div>
       )}
+
+          {showAddModal && (
+            <div className="favorite-modal">
+                <div className="modal-content">
+                <h2>Add a Meal</h2>
+                <p>
+                    <strong>Meal Type:</strong>{" "}
+                    {mealTypes.find((type) => type.id === newMeal.meal_type_id)?.name ||
+                    "Unknown"}
+                </p>
+                <p>
+                    <strong>Planned Date:</strong> {newMeal.planned_date}
+                </p>
+                <div className="serving-adjuster">
+                  <strong>Serving Packs:</strong>
+                  <div className="adjuster-buttons">
+                    <button
+                      onClick={() =>
+                        setNewMeal((prev) => ({
+                          ...prev,
+                          servingPacks: Math.max(1, (prev.servingPacks || 1) - 1),
+                        }))
+                      }
+                      className="adjust-serving-button"
+                    >
+                      -
+                    </button>
+                    <span className="serving-count">{newMeal.servingPacks || 1}</span>
+                    <button
+                      onClick={() =>
+                        setNewMeal((prev) => ({
+                          ...prev,
+                          servingPacks: (prev.servingPacks || 1) + 1,
+                        }))
+                      }
+                      className="adjust-serving-button"
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+                <label>
+                    Notes:
+                    <textarea
+                    value={newMeal.notes}
+                    placeholder="Enter additional notes (e.g., extra ingredients, instructions)"
+                    onChange={(e) =>
+                        setNewMeal((prev) => ({ ...prev, notes: e.target.value }))
+                    }
+                    rows="3"
+                    />
+                </label>
+                <label>
+                    Time:
+                    <input
+                    type="time"
+                    value={newMeal.time}
+                    onChange={(e) =>
+                        setNewMeal((prev) => ({ ...prev, time: e.target.value }))
+                    }
+                    />
+                </label>
+                <button onClick={handleAddMeal} className="save-meal-button">
+                    Save
+                </button>
+                <button
+                    onClick={() => setShowAddModal(null)}
+                    className="cancel-button"
+                >
+                    Cancel
+                </button>
+                </div>
+            </div>
+            )}
     </div>
   );
 };

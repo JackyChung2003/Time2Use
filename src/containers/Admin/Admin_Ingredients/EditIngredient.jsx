@@ -17,8 +17,10 @@ const EditIngredient = () => {
     const [storageTips, setStorageTips] = useState("");
     const [ingredientCategories, setIngredientCategories] = useState([]);
     const [quantityUnits, setQuantityUnits] = useState([]);
+    const [inventoryUnits, setInventoryUnits] = useState([]);
     const [selectedCategoryId, setSelectedCategoryId] = useState(null);
     const [selectedUnitId, setSelectedUnitId] = useState(null);
+    const [selectedUnitInvId, setSelectedUnitInvId] = useState(null);
     const [currentIconPath, setCurrentIconPath] = useState(""); // To display existing icon
     const navigate = useNavigate();
 
@@ -42,6 +44,7 @@ const EditIngredient = () => {
                 setStorageTips(ingredient.storage_tips);
                 setSelectedCategoryId(ingredient.ingredients_category_id);
                 setSelectedUnitId(ingredient.quantity_unit_id);
+                setSelectedUnitInvId(ingredient.quantity_unitInv_id);
                 setCurrentIconPath(ingredient.icon_path);
 
                 // Fetch dropdown data
@@ -53,11 +56,16 @@ const EditIngredient = () => {
                     .from("unit")
                     .select("id, unit_description");
 
-                if (catError || unitError) {
-                    console.error("Error fetching dropdown data:", catError || unitError);
+                const { data: unitInvs, error: unitInvsError } = await supabase
+                    .from("unitInv")
+                    .select("id, unitInv_tag");
+
+                if (catError || unitError || unitInvsError) {
+                    console.error("Error fetching dropdown data:", catError || unitError || unitInvsError);
                 } else {
                     setIngredientCategories(categories || []);
                     setQuantityUnits(units || []);
+                    setInventoryUnits(unitInvs || []);
                 }
             } catch (error) {
                 console.error("Error fetching ingredient data:", error.message);
@@ -106,6 +114,7 @@ const EditIngredient = () => {
                     storage_tips: storageTips,
                     ingredients_category_id: selectedCategoryId,
                     quantity_unit_id: selectedUnitId,
+                    quantity_unitInv_id: selectedUnitInvId,
                 })
                 .eq("id", id);
 
@@ -237,6 +246,24 @@ const EditIngredient = () => {
                                 {quantityUnits.map((unit) => (
                                     <option key={unit.id} value={unit.id}>
                                         {unit.unit_description}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div className="form-group">
+                            <label>Inventory Unit:</label>
+                            <select
+                                value={selectedUnitInvId || ""}
+                                onChange={(e) => setSelectedUnitInvId(e.target.value)}
+                                required
+                            >
+                                <option value="" disabled>
+                                    Select an inventory unit
+                                </option>
+                                {inventoryUnits.map((unitInv) => (
+                                    <option key={unitInv.id} value={unitInv.id}>
+                                        {unitInv.unitInv_tag}
                                     </option>
                                 ))}
                             </select>

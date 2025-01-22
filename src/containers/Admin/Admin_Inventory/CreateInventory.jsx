@@ -131,7 +131,7 @@ const CreateInventory = () => {
 
     return (
         <div className="create-inventory-container">
-            <h2>Add New Inventory</h2>
+            <h2>Create New Inventory</h2>
             <form onSubmit={handleSubmit}>
                 <div className="form-group">
                     <label>User:</label>

@@ -1,6 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { RecipeProvider } from "./Contexts/RecipeContext";
-
+import { useEffect } from 'react';
 import RecipeDashboard from './Dashboard';
 import RecipeExplore from './Recipe';
 // import RecipeDetail from './Recipe/%5BrecipeId%5D';
@@ -19,6 +19,17 @@ import Chatbot from './Chatbot';
 
 
 const RecipeNavigation = () => {
+
+    useEffect(() => {
+              // Add scan-page class to body when this page is loaded
+              document.body.classList.add('page');
+      
+              // Clean up when the component is unmounted
+              return () => {
+                  document.body.classList.remove('page');
+              };
+          }, []);
+
     return (
         <div style={{ position: 'relative' }}>  
             <RecipeProvider>

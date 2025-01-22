@@ -1511,6 +1511,7 @@ const RecipePreparationPage = () => {
                     </div>
                 </div>
             </section>
+            <div className='recipe-detail-lower-section'>
             <section className="recipe-details">
                 <h2 className="recipe-detail-title">{recipe.name}</h2>
                 <p className="recipe-description">{recipe.description}</p>
@@ -1915,6 +1916,42 @@ const RecipePreparationPage = () => {
           return (
             <div key={inventory.id} className="inventory-item">
               <p>
+                <strong>Quantity left:</strong>{" "}
+                {inventory.ingredients.unit?.unit_tag === inventory.ingredients.unitInv?.unitInv_tag ? (
+                  <>
+                    {inventory.inventory.quantity} {inventory.ingredients.unit?.unit_tag || ""} 
+                    (of {inventory.inventory.init_quantity} {inventory.ingredients.unit?.unit_tag || ""})
+                  </>
+                ) : inventory.ingredients.unit?.conversion_rate_to_grams ===
+                  inventory.ingredients.unitInv?.conversion_rate_to_grams_for_check ? (
+                  <>
+                    {inventory.inventory.quantity} {inventory.ingredients.unitInv?.unitInv_tag || ""} /
+                    {inventory.inventory.quantity} {inventory.ingredients.unit?.unit_tag || ""}
+                    (of {inventory.inventory.init_quantity} {inventory.ingredients.unitInv?.unitInv_tag || ""} /
+                      {inventory.inventory.init_quantity} {inventory.ingredients.unit?.unit_tag || ""}
+                    )
+                  </>
+                ) : (
+                  <>
+                    {inventory.inventory.quantity} {inventory.ingredients.unitInv?.unitInv_tag || ""} /
+                    {Math.round(
+                      (inventory.inventory.quantity *
+                        (inventory.ingredients.unitInv?.conversion_rate_to_grams_for_check || 1)) /
+                        (inventory.ingredients.unit?.conversion_rate_to_grams || 1)
+                    )}{" "}
+                    {inventory.ingredients.unit?.unit_tag || ""}
+                    (of {inventory.inventory.init_quantity} {inventory.ingredients.unitInv?.unitInv_tag || ""} /
+                      {Math.round(
+                        (inventory.inventory.init_quantity *
+                          (inventory.ingredients.unitInv?.conversion_rate_to_grams_for_check || 1)) /
+                          (inventory.ingredients.unit?.conversion_rate_to_grams || 1)
+                      )}{" "}
+                      {inventory.ingredients.unit?.unit_tag || ""}
+                    )
+                  </>
+                )}
+              </p>
+              {/* <p>
                 <strong>Original quantity:</strong>{" "}
                 {inventory.ingredients.unit?.unit_tag === inventory.ingredients.unitInv?.unitInv_tag ? (
                   <>
@@ -1961,9 +1998,9 @@ const RecipePreparationPage = () => {
                     {inventory.ingredients.unit?.unit_tag || ""}
                   </>
                 )}
-              </p>
+              </p> */}
               <p>
-                <strong>Quantity allocated:</strong>{" "}
+                <strong>This recipe use:</strong>{" "}
                 {inventory.ingredients.unit?.unit_tag === inventory.ingredients.unitInv?.unitInv_tag ? (
                   <>
                     {inventory.used_quantity} {inventory.ingredients.unit?.unit_tag || ""}
@@ -2001,12 +2038,31 @@ const RecipePreparationPage = () => {
               <p>
                 <strong>Expiry Date:</strong>{" "}
                 {inventory.inventory.expiry_date.date || "No expiry date"}
+                ({inventory.inventory.days_left} days left)
               </p>
-              <p>{inventory.inventory.days_left} days left</p>
-              <p>
+              {/* <p>{inventory.inventory.days_left} days left</p> */}
+              {/* <p>
                 <strong>Status:</strong>{" "}
                 {inventory.inventory_meal_plan_status.name}
-              </p>
+              </p> */}
+              {/* <span className="meal-plan-status planning">
+                {inventory.inventory_meal_plan_status.name}
+              </span> */}
+
+              <span
+                className={`meal-plan-status ${
+                  inventory.inventory_meal_plan_status.name === "Completed"
+                    ? "complete"
+                    : inventory.inventory_meal_plan_status.name === "Pass Deadline"
+                    ? "deadline-passed"
+                    : inventory.inventory_meal_plan_status.name === "Canceled"
+                    ? "canceled"
+                    : "planning"
+                }`}
+>
+  {inventory.inventory_meal_plan_status.name}
+</span>
+
               <InventoryVisualization linkedInventory={linkedInventory} recipe={recipe} />
             </div>
           );
@@ -2036,6 +2092,7 @@ const RecipePreparationPage = () => {
                 </ul>
             </section>
             )}
+            </div>
         </div>
       );
     })}
@@ -2043,13 +2100,7 @@ const RecipePreparationPage = () => {
         // Show the "Mark as Cooked" button if any meal plan has status id === 3
         <button
           onClick={markAsCooked}
-          style={{
-            padding: "10px 20px",
-            background: "green",
-            color: "white",
-            borderRadius: "5px",
-            marginTop: "20px",
-          }}
+          className="mark-cooked-button floating-down"
         >
           Mark as Cooked
         </button>
@@ -2057,20 +2108,15 @@ const RecipePreparationPage = () => {
         // Show the "Start Cooking" button if not all meal plans have status id === 2
         <button
           onClick={startCooking}
-          style={{
-            padding: "10px 20px",
-            background: "orange",
-            color: "white",
-            borderRadius: "5px",
-            marginTop: "20px",
-          }}
+          className="start-cooking-button floating-down"
+        
         >
           Start Cooking
           {console.log("HEREEEEEEEE")}
         </button>
       ) : null}
       {selectedIngredient && (
-        <div className="modal-overlay" onClick={() => setSelectedIngredient(null)}>
+        <div className="recipes-preparation-modal-overlay" onClick={() => setSelectedIngredient(null)}>
           <div
             className="modal-content"
             onClick={(e) => e.stopPropagation()}
@@ -2089,7 +2135,7 @@ const RecipePreparationPage = () => {
                   <p>
                     <strong>No {selectedIngredient.ingredients.name} in your inventory.</strong>
                   </p>
-                  <button
+                  {/* <button
                     onClick={() => {
                       navigate(`/recipes/shopping-list`); // Navigate to details page
                     }}
@@ -2102,7 +2148,7 @@ const RecipePreparationPage = () => {
                     }}
                   >
                     View Missing Ingredients for This Week&apos;s Plan
-                  </button>
+                  </button> */}
                 </>
                   
                 ) : (
@@ -2403,7 +2449,8 @@ const RecipePreparationPage = () => {
                               {isConversionRateMatching ? (
                                 // Display quantity and units if conversion rates match
                                 <>
-                                  {item.selectedQuantity.toFixed(2)} {displayUnit} (Expiry:{" "}
+                                  {/* {item.selectedQuantity.toFixed(2)} {displayUnit} (Expiry:{" "} */}
+                                  {item.quantity.toFixed(2)} {displayUnit} (Expiry:{" "}
                                   {item.expiry_date?.date || "No expiry date"})
                                 </>
                               ) : (

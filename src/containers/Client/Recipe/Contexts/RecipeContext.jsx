@@ -265,8 +265,7 @@ export const RecipeProvider = ({ children }) => {
             .from("steps")
             .select(`
                 step_number,
-                instruction,
-                variations
+                instruction
             `)
             .eq("recipe_id", recipeId)
             .order("step_number", { ascending: true }); // Ensure steps are in order

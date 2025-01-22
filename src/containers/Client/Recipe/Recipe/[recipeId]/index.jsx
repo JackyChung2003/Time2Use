@@ -66,6 +66,16 @@ const RecipeDetail = () => {
     const [isFavoriteRecipe, setIsFavoriteRecipe] = useState(false);
 
     const [activeTab, setActiveTab] = useState("ingredients");
+
+    useEffect(() => {
+        // Add scan-page class to body when this page is loaded
+        document.body.classList.add('page');
+
+        // Clean up when the component is unmounted
+        return () => {
+            document.body.classList.remove('page');
+        };
+    }, []);
       
     useEffect(() => {
         const fetchRecipeData = async () => {
@@ -476,10 +486,10 @@ const RecipeDetail = () => {
                     <button
                         onClick={() =>
                             navigate('/recipes/calendar', {
-                                state: { recipeId: id, recipeName: recipe.name },
+                                state: { recipeId: id, recipeName: recipe.name, servingPacks: servingPacks },
                             })
                         }
-                        className="button reschedule-button"
+                        className="button reschedule-button floating-down"
                     >
                         Reschedule
                     </button>
@@ -491,7 +501,7 @@ const RecipeDetail = () => {
                         <>
                             <button
                                 onClick={handleCancelSchedule}
-                                className="button cancel-schedule-button"
+                                className="button cancel-schedule-button "
                                 // onMouseEnter={(e) => (e.target.style.background = "#e63939")}
                                 // onMouseLeave={(e) => (e.target.style.background = "#ff4d4d")}
                                 onMouseEnter={(e) =>
@@ -501,7 +511,7 @@ const RecipeDetail = () => {
                                     e.target.classList.remove('cancel-schedule-hover')
                                 }
                             >
-                                <span className="cancel-icon">✖</span>
+                                <span className="cancel-icon ">✖</span>
                                 Cancel Schedule for {" "}
                                 {new Date(scheduleData.planned_date).toLocaleDateString("en-US", {
                                     month: "long",
@@ -570,7 +580,7 @@ const RecipeDetail = () => {
                 </section>
             )}
     
-            {scheduleData?.activity_type && (
+            {/* {scheduleData?.activity_type && (
                 <section className="scheduled-activity-buttons">
                     {scheduleData.activity_type === "view" ? (
                         <>
@@ -603,9 +613,9 @@ const RecipeDetail = () => {
                         </button>
                     )}
                 </section>
-            )}
+            )} */}
     
-            <section className="related-recipes">
+            {/* <section className="related-recipes">
                 <h3>Related Recipes</h3>
                 <ul className="related-recipes-list">
                     {relatedRecipes.map((recipe) => (
@@ -623,10 +633,10 @@ const RecipeDetail = () => {
                         </li>
                     ))}
                 </ul>
-            </section>
+            </section> */}
     
             {showAddModal && (
-                <div className="modal">
+                <div className="favorite-modal">
                     <div className="modal-content">
                         <h2>Add a Meal</h2>
                         <p>
@@ -635,26 +645,7 @@ const RecipeDetail = () => {
                         <p>
                             <strong>Planned Date:</strong> {newMeal.planned_date}
                         </p>
-                        <label>
-                            Notes:
-                            <textarea
-                                value={newMeal.notes}
-                                placeholder="Enter additional notes (e.g., extra ingredients, instructions)"
-                                onChange={(e) => setNewMeal((prev) => ({ ...prev, notes: e.target.value }))}
-                                rows="3"
-                                className="notes-textarea"
-                                />
-                        </label>
-                        <label>
-                            Time:
-                            <input
-                                type="time"
-                                value={newMeal.time}
-                                onChange={(e) => setNewMeal((prev) => ({ ...prev, time: e.target.value }))}
-                                className="time-input"
-                                />
-                        </label>
-                        <label>
+                        {/* <label>
                             Pax (Serving Packs):
                             <div className="serving-adjuster">
                                 <button
@@ -681,7 +672,57 @@ const RecipeDetail = () => {
                                     +
                                 </button>
                             </div>
+                        </label> */}
+                        <div className="serving-adjuster">
+                            <strong>Serving Packs:</strong>
+                            <div className="adjuster-buttons">
+                                <button
+                                onClick={() =>
+                                    setNewMeal((prev) => ({
+                                    ...prev,
+                                    servingPacks: Math.max(1, (prev.servingPacks || 1) - 1),
+                                    }))
+                                }
+                                className="adjust-serving-button"
+                                >
+                                -
+                                </button>
+                                {/* <span className="serving-count">{newMeal.servingPacks || 1}</span> */}
+                                <span className="serving-count">{servingPacks || 1}</span>
+
+                                <button
+                                onClick={() =>
+                                    setNewMeal((prev) => ({
+                                    ...prev,
+                                    servingPacks: (prev.servingPacks || 1) + 1,
+                                    }))
+                                }
+                                className="adjust-serving-button"
+                                >
+                                +
+                                </button>
+                            </div>
+                        </div>
+                        <label>
+                            Notes:
+                            <textarea
+                                value={newMeal.notes}
+                                placeholder="Enter additional notes (e.g., extra ingredients, instructions)"
+                                onChange={(e) => setNewMeal((prev) => ({ ...prev, notes: e.target.value }))}
+                                rows="3"
+                                className="notes-textarea"
+                                />
                         </label>
+                        <label>
+                            Time:
+                            <input
+                                type="time"
+                                value={newMeal.time}
+                                onChange={(e) => setNewMeal((prev) => ({ ...prev, time: e.target.value }))}
+                                className="time-input"
+                                />
+                        </label>
+                        
                         <div className="modal-actions">
                             <button onClick={handleAddMeal} className="save-button">
                                 Save

@@ -103,6 +103,17 @@ const RecipeExplore = () => {
     }, []);
 
     useEffect(() => {
+        // Add scan-page class to body when this page is loaded
+        document.body.classList.add('page');
+
+        // Clean up when the component is unmounted
+        return () => {
+            document.body.classList.remove('page');
+        };
+    }, []);
+    
+
+    useEffect(() => {
         fetchRecipes(); // Fetch recipes or re-filter based on filters
       }, [filters]);
 
@@ -258,12 +269,12 @@ const RecipeExplore = () => {
             {/* Display Planned Date and Meal Type */}
             {planned_date && activity_type && meal_type_id && (
                 <div className="meal-info">
-                    <p><strong>Adding meal for:</strong></p>
-                    <p><strong>Date:</strong> {planned_date}</p>
-                    <p><strong>Meal Type:</strong> {mealTypeName}</p>
-                    <p><strong>Activity Type:</strong> {activity_type}</p>
+                    {/* <p><strong>Scheduled Date:</strong> {planned_date}</p>
+                    <p><strong>Type:</strong> {mealTypeName}</p>
+                    <p><strong>Activity:</strong> {activity_type}</p> */}
+                    <p><strong>Scheduling for:</strong> {planned_date} ({mealTypeName})</p>
                 </div>
-            )}
+                )}
     
             <div className="search-container">
                 <input
@@ -583,7 +594,7 @@ const RecipeExplore = () => {
             )}
 
             {showAddModal && (
-            <div className="modal">
+            <div className="favorite-modal">
                 <div className="modal-content">
                 <h2>Add a Meal</h2>
                 <p>
@@ -594,6 +605,36 @@ const RecipeExplore = () => {
                 <p>
                     <strong>Planned Date:</strong> {newMeal.planned_date}
                 </p>
+                <div className="serving-adjuster">
+                    <strong>Serving Packs:</strong>
+                    <div className="adjuster-buttons">
+                        <button
+                        onClick={() =>
+                            setNewMeal((prev) => ({
+                            ...prev,
+                            servingPacks: Math.max(1, (prev.servingPacks || 1) - 1),
+                            }))
+                        }
+                        className="adjust-serving-button"
+                        >
+                        -
+                        </button>
+                        <span className="serving-count">{newMeal.servingPacks || 1}</span>
+                        {/* <span className="serving-count">{servingPacks || 1}</span> */}
+
+                        <button
+                        onClick={() =>
+                            setNewMeal((prev) => ({
+                            ...prev,
+                            servingPacks: (prev.servingPacks || 1) + 1,
+                            }))
+                        }
+                        className="adjust-serving-button"
+                        >
+                        +
+                        </button>
+                    </div>
+                </div>
                 <label>
                     Notes:
                     <textarea

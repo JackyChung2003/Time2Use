@@ -20,8 +20,16 @@ const MealPlannerPage = () => {
   // const [showScheduleOptions, setShowScheduleOptions] = useState(false); // State for showing schedule options modal
   const [showScheduleOptions, setShowScheduleOptions] = useState({ show: false, mealTypeId: null });
 
+  const [shouldRefetch, setShouldRefetch] = useState(false); // State to track refetch
+
+  const [successPopup, setSuccessPopup] = useState(false); // State for success popup
+
   // Accessing the state passed via navigate
   const { recipeId, recipeName, date: passedDate, servingPacks } = location.state || {};
+  console.log("Recipe ID:", recipeId);
+  console.log("Recipe Name:", recipeName);
+  console.log("Date:", date);
+  console.log("Passed Date:", passedDate);
 
   const [newMeal, setNewMeal] = useState({
     notes: "",
@@ -69,7 +77,9 @@ const MealPlannerPage = () => {
     };
 
     fetchData();
-  }, [date, fetchMealPlansByDate, fetchRecipesByIds, mealTypes]);
+  // }, [date, fetchMealPlansByDate, fetchRecipesByIds, mealTypes]);
+
+}, [date, fetchMealPlansByDate, fetchRecipesByIds, mealTypes, shouldRefetch]); // Add `shouldRefetch` as a dependency
 
   const mergeImagesForMealType = (mealsForType) => {
     if (mealsForType.length === 0) return null;
@@ -172,9 +182,20 @@ const handleAddMeal = async () => {
       },
     ]);
     setShowAddModal(null); // Close the modal
+    setShouldRefetch((prev) => !prev);
+    setSuccessPopup(true);
   } catch (err) {
     console.error("Unexpected error adding meal:", err.message);
   }
+};
+
+const handleNavigateToExplore = () => {
+  setSuccessPopup(false); // Close popup
+  navigate("/recipes/explore");
+};
+
+const handleContinueAdding = () => {
+  setSuccessPopup(false); // Close popup
 };
 
   const handleOpenAddModal = (mealTypeId) => {
@@ -222,14 +243,15 @@ const handleAddMeal = async () => {
         <div className="date-display">
           <p>{date}</p>
         </div>
-        {recipeId && recipeName && (
+        
+      </header>
+      {recipeId && recipeName && (
           <div className="recipe-calender-details">
-            <h2>Recipe Details</h2>
-            <p><strong>Recipe Name:</strong> {recipeName}</p>
-            <p><strong>Recipe ID:</strong> {recipeId}</p>
+            {/* <h2>Recipe to Schedule:</h2> */}
+            <p><strong>Recipe to Schedule:</strong> {recipeName} ({servingPacks} pax)</p>
+            {/* <p><strong>Recipe ID:</strong> {recipeId}</p> */}
           </div>
         )}
-      </header>
   
       {mealTypes.map((mealType) => {
         const mealsForType = mealPlans.filter(
@@ -392,13 +414,41 @@ const handleAddMeal = async () => {
       })}
   
       {showAddModal && (
-        <div className="modal">
+        <div className="calender-modal">
           <div className="modal-content">
             <h2>Add a Meal</h2>
             <p><strong>Recipe:</strong> {recipeName}</p>
             <p><strong>Meal Type:</strong> {mealTypes.find((type) => type.id === showAddModal)?.name || "Unknown"}</p>
             <p><strong>Date:</strong> {passedDate || date}</p>
-            <p><strong>Serving packs:</strong> {servingPacks}</p>
+            {/* <p><strong>Serving packs:</strong> {servingPacks}</p> */}
+            <div className="serving-adjuster">
+              <strong>Serving Packs:</strong>
+              <div className="serving-adjuster">
+                <button
+                  onClick={() =>
+                    setNewMeal((prev) => ({
+                      ...prev,
+                      servingPacks: Math.max(1, (prev.servingPacks || 1) - 1),
+                    }))
+                  }
+                  className="adjust-serving-button"
+                >
+                  -
+                </button>
+                <span className="serving-count">{servingPacks || 1}</span>
+                <button
+                  onClick={() =>
+                    setNewMeal((prev) => ({
+                      ...prev,
+                      servingPacks: (prev.servingPacks || 1) + 1,
+                    }))
+                  }
+                  className="adjust-serving-button"
+                >
+                  +
+                </button>
+              </div>
+            </div>
             <label>
               Notes:
               <textarea
@@ -430,7 +480,7 @@ const handleAddMeal = async () => {
   
       {showScheduleOptions.show && (
         <div className="calender-modal">
-          <div className="modal-content">
+          <div className="navigation-modal-content">
             <h2>Schedule Meal</h2>
             <p>
               Would you like to schedule a meal for <strong>{mealTypes.find((type) => type.id === showScheduleOptions.mealTypeId)?.name}</strong> from your favorites or all recipes?
@@ -455,6 +505,27 @@ const handleAddMeal = async () => {
             >
               Cancel
             </button>
+          </div>
+        </div>
+      )}
+      {successPopup && (
+        <div className="navigation-modal-overlay">
+          <div className="navigaton-modal">
+            <p>Meal Added Successfully! Would you like to navigate to the Recipe Explore page or continue adding meals?</p>
+            <div className="left-right-space-evenly-section">
+              <button 
+                className="yes-no-button"
+                onClick={() => handleNavigateToExplore ("yes")}
+              >
+                Back to Explore
+              </button>
+              <button 
+                className="yes-no-button"
+                onClick={() => handleContinueAdding ("no")}
+              >
+                Add More Meals
+              </button>
+            </div>
           </div>
         </div>
       )}

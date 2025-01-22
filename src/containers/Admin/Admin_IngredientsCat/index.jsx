@@ -204,7 +204,7 @@ const AdminIngredientsCat = () => {
             </thead>
             <tbody>
               {filteredCategories.map((category) => (
-                <tr key={category.id}>
+                <tr key={category.id}style={{ backgroundColor: '#fff' }}>
                   <td style={{ border: "1px solid #ccc", padding: "10px" }}>{category.id}</td>
                   <td style={{ border: "1px solid #ccc", padding: "10px" }}>{category.category_name}</td>
                   <td style={{ border: "1px solid #ccc", padding: "10px" }}>{category.category_tag}</td>
