@@ -1916,6 +1916,42 @@ const RecipePreparationPage = () => {
           return (
             <div key={inventory.id} className="inventory-item">
               <p>
+                <strong>Quantity left:</strong>{" "}
+                {inventory.ingredients.unit?.unit_tag === inventory.ingredients.unitInv?.unitInv_tag ? (
+                  <>
+                    {inventory.inventory.quantity} {inventory.ingredients.unit?.unit_tag || ""} 
+                    (of {inventory.inventory.init_quantity} {inventory.ingredients.unit?.unit_tag || ""})
+                  </>
+                ) : inventory.ingredients.unit?.conversion_rate_to_grams ===
+                  inventory.ingredients.unitInv?.conversion_rate_to_grams_for_check ? (
+                  <>
+                    {inventory.inventory.quantity} {inventory.ingredients.unitInv?.unitInv_tag || ""} /
+                    {inventory.inventory.quantity} {inventory.ingredients.unit?.unit_tag || ""}
+                    (of {inventory.inventory.init_quantity} {inventory.ingredients.unitInv?.unitInv_tag || ""} /
+                      {inventory.inventory.init_quantity} {inventory.ingredients.unit?.unit_tag || ""}
+                    )
+                  </>
+                ) : (
+                  <>
+                    {inventory.inventory.quantity} {inventory.ingredients.unitInv?.unitInv_tag || ""} /
+                    {Math.round(
+                      (inventory.inventory.quantity *
+                        (inventory.ingredients.unitInv?.conversion_rate_to_grams_for_check || 1)) /
+                        (inventory.ingredients.unit?.conversion_rate_to_grams || 1)
+                    )}{" "}
+                    {inventory.ingredients.unit?.unit_tag || ""}
+                    (of {inventory.inventory.init_quantity} {inventory.ingredients.unitInv?.unitInv_tag || ""} /
+                      {Math.round(
+                        (inventory.inventory.init_quantity *
+                          (inventory.ingredients.unitInv?.conversion_rate_to_grams_for_check || 1)) /
+                          (inventory.ingredients.unit?.conversion_rate_to_grams || 1)
+                      )}{" "}
+                      {inventory.ingredients.unit?.unit_tag || ""}
+                    )
+                  </>
+                )}
+              </p>
+              {/* <p>
                 <strong>Original quantity:</strong>{" "}
                 {inventory.ingredients.unit?.unit_tag === inventory.ingredients.unitInv?.unitInv_tag ? (
                   <>
@@ -1962,9 +1998,9 @@ const RecipePreparationPage = () => {
                     {inventory.ingredients.unit?.unit_tag || ""}
                   </>
                 )}
-              </p>
+              </p> */}
               <p>
-                <strong>Quantity allocated:</strong>{" "}
+                <strong>This recipe use:</strong>{" "}
                 {inventory.ingredients.unit?.unit_tag === inventory.ingredients.unitInv?.unitInv_tag ? (
                   <>
                     {inventory.used_quantity} {inventory.ingredients.unit?.unit_tag || ""}
@@ -2002,8 +2038,9 @@ const RecipePreparationPage = () => {
               <p>
                 <strong>Expiry Date:</strong>{" "}
                 {inventory.inventory.expiry_date.date || "No expiry date"}
+                ({inventory.inventory.days_left} days left)
               </p>
-              <p>{inventory.inventory.days_left} days left</p>
+              {/* <p>{inventory.inventory.days_left} days left</p> */}
               <p>
                 <strong>Status:</strong>{" "}
                 {inventory.inventory_meal_plan_status.name}
@@ -2394,7 +2431,8 @@ const RecipePreparationPage = () => {
                               {isConversionRateMatching ? (
                                 // Display quantity and units if conversion rates match
                                 <>
-                                  {item.selectedQuantity.toFixed(2)} {displayUnit} (Expiry:{" "}
+                                  {/* {item.selectedQuantity.toFixed(2)} {displayUnit} (Expiry:{" "} */}
+                                  {item.quantity.toFixed(2)} {displayUnit} (Expiry:{" "}
                                   {item.expiry_date?.date || "No expiry date"})
                                 </>
                               ) : (

@@ -21,6 +21,7 @@ const CustomTooltip = ({ active, payload }) => {
   
       return (
         <div
+        // key={data.id} // Use a unique key
           style={{
             background: "#fff",
             border: "1px solid #ccc",
@@ -28,7 +29,10 @@ const CustomTooltip = ({ active, payload }) => {
             borderRadius: "5px",
           }}
         >
-          <p><strong>{data.name}</strong></p>
+          {/* <p><strong>{data.name}</strong></p> */}
+          <p key={`tooltip-name-${data.id}`}>
+            <strong>{data.name}</strong>
+          </p>
           <p>Initial Quantity: {data.initialQuantity + data.allocatedQuantity + data.remainingQuantity}</p>
           <p>
             Remaining Quantity: {data.remainingQuantity + data.allocatedQuantity} 
@@ -53,6 +57,8 @@ const InventoryVisualization = ({ linkedInventory, recipe }) => {
       const initialQuantity = inventory.inventory.init_quantity - allocatedQuantity - remainingQuantity;
 
       return {
+        // id: inventory.id, // Add unique ID
+        id: `${inventory.id}-${inventory.ingredients.name}`, // Unique key
         name: inventory.ingredients.name || "Unknown Ingredient",
         allocatedQuantity: allocatedQuantity > 0 ? allocatedQuantity : 0,
         remainingQuantity: remainingQuantity > 0 ? remainingQuantity : 0,
@@ -63,7 +69,7 @@ const InventoryVisualization = ({ linkedInventory, recipe }) => {
   return (
     <div style={{ marginBottom: "20px" }}>
       <h4>Inventory Progress</h4>
-      <ResponsiveContainer width="100%" height={150}>
+      <ResponsiveContainer width="100%" height={200}>
         <BarChart
           data={inventoryData}
           layout="vertical"
@@ -83,21 +89,22 @@ const InventoryVisualization = ({ linkedInventory, recipe }) => {
           {/* Allocated Quantity (Green, starts on the left) */}
           <Bar
             dataKey="allocatedQuantity"
-            stackId="inventory"
+            // stackId="inventory"
+            stackId={`inventory-${recipe.id}`} // Unique stack ID
             fill="#82ca9d"
             name="Allocated Quantity"
           />
           {/* Remaining Quantity (Yellow, stacked after green) */}
           <Bar
             dataKey="remainingQuantity"
-            stackId="inventory"
+            stackId={`inventory-${recipe.id}`} // Ensure same stack ID for related data
             fill="#ffc658"
             name="Remaining Quantity"
           />
           {/* Initial Quantity (Gray, acts as the background total bar) */}
           <Bar
             dataKey="initialQuantity"
-            stackId="inventory"
+            stackId={`inventory-${recipe.id}`} // Unique stack ID
             fill="#d3d3d3"
             name="Initial Quantity"
           />
