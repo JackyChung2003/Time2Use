@@ -12,8 +12,6 @@
   max-width: 1000px;
 }
 
-
-
 .swipeable-item {
   position: relative;
   z-index: 2;
@@ -49,290 +47,286 @@
 }
 
 .inventory-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 20px;
-    background-color: #f8f9fa;
-    height: 100vh;
-    overflow-y: auto; /* Scrollable page */
-    
-  }
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  background-color: #f8f9fa;
+  height: 100vh;
+  overflow-y: auto; /* Scrollable page */
+}
 
-  .search-bar {
-    width: 80%;
-    padding: 10px;
-    font-size: 16px;
-    margin-bottom: 20px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-  }
-  
-  .tracker-header {
-    display: flex;
-    align-items: center;
-    justify-content: center; /* Centers the title horizontally */
-    position: relative; /* Set relative positioning for containing the filter icon */
-    padding: 10px;
-  }
+.search-bar {
+  width: 80%;
+  padding: 10px;
+  font-size: 16px;
+  margin-bottom: 20px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
 
-  
-  .filter-icon {
-    width: 20px;
-    height: 20px;
-    cursor: pointer; 
-    position: absolute; 
-    transform: translateX(-750%);
-    top: 40px;
-  }
-  
-  .filter-menu {
-    position: absolute;
-    top: 130px;
-    left: 20px;
-    background: white;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    padding: 1px;
-    z-index: 100;
-    font-size: 10px;
-  }
+.tracker-header {
+  display: flex;
+  align-items: center;
+  justify-content: center; /* Centers the title horizontally */
+  position: relative; /* Set relative positioning for containing the filter icon */
+  padding: 10px;
+}
 
-  .filter-menu button {
-    display: block;
-    width: 100%;
-    background: none;
-    border: none;
-    padding: 8px 10px;
-    text-align: left;
-    cursor: pointer;
-  }
-  
-  .filter-menu button:hover {
-    background: #f0f0f0;
-  }  
+.filter-icon {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  position: absolute;
+  transform: translateX(-750%);
+  top: 40px;
+}
 
-  .tracker-title {
-    font-size: 28px;
-    font-weight: bold;
-    margin-bottom: 15px;
-    text-align: center; 
-    color: #000000; 
-    letter-spacing: 1px; 
-    text-transform: capitalize; 
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-    position: relative; 
-  }
-  
-  .empty-inventory-message {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 40vh; 
-    font-size: 18px;
-    color: #555;
-    text-align: center;
-  }  
+.filter-menu {
+  position: absolute;
+  top: 130px;
+  left: 20px;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  padding: 1px;
+  z-index: 100;
+  font-size: 10px;
+}
 
-  /* Section Titles */
-  .section-title {
-    font-size: 1.3rem;
-    font-weight: bold;
-    color: #333;
-    margin-bottom: 10px;
-    text-align: left;
-    border-bottom: 2px solid #ccc;
-    padding-bottom: 5px;
-  }
+.filter-menu button {
+  display: block;
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 8px 10px;
+  text-align: left;
+  cursor: pointer;
+  color: #333;
+}
 
-  /* Expired Section */
-  .expired-section {
-    margin-bottom: 30px;
-  }
+.filter-menu button:hover {
+  background: #f0f0f0;
+}
 
-  .expired-section .section-title {
-    color: #dc3d2a; /* Red for expired food */
-  }
+.tracker-title {
+  font-size: 28px;
+  font-weight: bold;
+  margin-bottom: 15px;
+  text-align: center;
+  color: #000000;
+  letter-spacing: 1px;
+  text-transform: capitalize;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  position: relative;
+}
 
-  /* Fresh Section */
-  .fresh-section {
-    margin-bottom: 30px;
-  }
+.empty-inventory-message {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 40vh;
+  font-size: 18px;
+  color: #555;
+  text-align: center;
+}
 
-  .fresh-section .section-title {
-    color: #01a42a; /* Green for fresh food */
-  }
-  
-  .item-list {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    width: 100%;
-    flex-wrap: wrap;
-    overflow: hidden;
-  }
-  
-  .item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background-color: #ffffff;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    padding: 10px 15px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    position: relative;
-    gap: 10px;
-    overflow: hidden;
-    width: 100%;
-  }
-  
-  .left-section {
-    display: flex;
-    align-items: center;
-    justify-content: flex-start; 
-    gap: 10px;
-    flex-grow: 0;
-    flex: 1; 
-  }
+/* Section Titles */
+.section-title {
+  font-size: 1.3rem;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 10px;
+  text-align: left;
+  border-bottom: 2px solid #ccc;
+  padding-bottom: 5px;
+}
 
-  .right-section {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end; /* Adjust spacing between children */
-    gap: 0px;
-    flex-grow: 0; 
-    
-  }
-  
-  .green-dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    flex-shrink: 0; 
-  }
-  
-  .green-dot.green {
-    background-color: #28a745; /* Green color */
-  }
-  
-  .green-dot.yellow {
-    background-color: #ffc107; /* Yellow color */
-  }
-  
-  .green-dot.red {
-    background-color: #dc3545; /* Red color */
-  }
-  
-  .green-dot.brown {
-    background-color: #b4ab82; /* Brown color */
-  }
-  
-  
-  .text-section {
-    display: flex;
-    flex-direction: column;
-    gap: 0px;
-  }
-  
-  .item-name {
-    font-weight: bold;
-    color: #333;
-  }
-  
-  .item-days {
-    font-size: 12px;
-  }
+/* Expired Section */
+.expired-section {
+  margin-bottom: 30px;
+}
 
-  .days-left {
-    color: grey;
-  }
+.expired-section .section-title {
+  color: #dc3d2a; /* Red for expired food */
+}
 
-  .item-days.shelf-life.full-text {
-    white-space: normal;           /* Allow text to wrap when expanded */
-    text-overflow: unset;         /* Remove ellipsis when full text is shown */
-  }
+/* Fresh Section */
+.fresh-section {
+  margin-bottom: 30px;
+}
 
-  .item-days.shelf-life {
-    color: grey; 
-    font-style: italic; 
-    white-space: nowrap; /* Prevent text from wrapping */
-    overflow: hidden; /* Hide text overflow */
-    cursor: pointer; /* Show a pointer cursor to indicate clickability */
-    max-width: 100px;  
-  }
-  
-  .circle-image {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    border: 1px solid #ddd;
-    background-color: #ddd; /* Placeholder background for image */
-    overflow: hidden;
-    display: flex;          /* Center image inside circle */
-    justify-content: center;
-    align-items: center; 
-    flex-shrink: 0;  
-  }
-  
-  .circle-image img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-  
-  .tag {
-    background-color: #1f2b8f;
-    color: #fff;
-    font-size: 10px;
-    border-radius: 5px;
-    padding: 2px 6px;
-    margin-right: 5px;
-    margin-left: 2px;
-  }
-  
-  .item-quantity {
-    font-size: 14px;
-    color: #000000;
-    white-space: nowrap;
-  }
+.fresh-section .section-title {
+  color: #01a42a; /* Green for fresh food */
+}
 
-  
-  .dropdown-icon {
-    font-size: 10px;
-    color: #888;
-    cursor: pointer;
-  }
+.item-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  flex-wrap: wrap;
+  overflow: hidden;
+}
 
-  .dropdown-box {
-    background-color: #f9f9f9;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    padding: 10px;
-    margin-top: 0;
-    margin-left: 0%;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    width: calc(100% - 30px);
-    overflow: hidden;
-  }
+.item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #ffffff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 10px 15px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  position: relative;
+  gap: 10px;
+  overflow: hidden;
+  width: 100%;
+}
 
-  .date-purchased {
-    display: flex;
-    align-items: center;
-    font-size: 14px;
-    margin-bottom: 10px; /* Space before the next section */
-    color: #333;
-  }
-  
-  .date-icon {
-    width: 16px;
-    height: 16px;
-    margin-right: 5px; /* Space between the icon and text */
-    margin-left: 5px;
-  }
+.left-section {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  flex-grow: 0;
+  flex: 1;
+}
 
-  /* Container for quantity and unit */
+.right-section {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end; /* Adjust spacing between children */
+  gap: 0px;
+  flex-grow: 0;
+}
+
+.green-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.green-dot.green {
+  background-color: #28a745; /* Green color */
+}
+
+.green-dot.yellow {
+  background-color: #ffc107; /* Yellow color */
+}
+
+.green-dot.red {
+  background-color: #dc3545; /* Red color */
+}
+
+.green-dot.brown {
+  background-color: #b4ab82; /* Brown color */
+}
+
+.text-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0px;
+}
+
+.item-name {
+  font-weight: bold;
+  color: #333;
+}
+
+.item-days {
+  font-size: 12px;
+}
+
+.days-left {
+  color: grey;
+}
+
+.item-days.shelf-life.full-text {
+  white-space: normal; /* Allow text to wrap when expanded */
+  text-overflow: unset; /* Remove ellipsis when full text is shown */
+}
+
+.item-days.shelf-life {
+  color: grey;
+  font-style: italic;
+  white-space: nowrap; /* Prevent text from wrapping */
+  overflow: hidden; /* Hide text overflow */
+  cursor: pointer; /* Show a pointer cursor to indicate clickability */
+  max-width: 100px;
+}
+
+.circle-image {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: 1px solid #ddd;
+  background-color: #ddd; /* Placeholder background for image */
+  overflow: hidden;
+  display: flex; /* Center image inside circle */
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.circle-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.tag {
+  background-color: #1f2b8f;
+  color: #fff;
+  font-size: 10px;
+  border-radius: 5px;
+  padding: 2px 6px;
+  margin-right: 5px;
+  margin-left: 2px;
+}
+
+.item-quantity {
+  font-size: 14px;
+  color: #000000;
+  white-space: nowrap;
+}
+
+.dropdown-icon {
+  font-size: 10px;
+  color: #888;
+  cursor: pointer;
+}
+
+.dropdown-box {
+  background-color: #f9f9f9;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 10px;
+  margin-top: 0;
+  margin-left: 0%;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  width: calc(100% - 30px);
+  overflow: hidden;
+}
+
+.date-purchased {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  margin-bottom: 10px; /* Space before the next section */
+  color: #333;
+}
+
+.date-icon {
+  width: 16px;
+  height: 16px;
+  margin-right: 5px; /* Space between the icon and text */
+  margin-left: 5px;
+}
+
+/* Container for quantity and unit */
 .quantity-container {
   display: flex;
   justify-content: center;
@@ -342,10 +336,10 @@
 .quantity-box {
   font-size: 20px;
   font-weight: bold;
-  padding: 5px 10px; 
+  padding: 5px 10px;
   border: 1px solid #ddd;
   border-radius: 5px;
-  min-width: 30px; 
+  min-width: 30px;
   text-align: center;
   display: inline-block;
 }
@@ -356,7 +350,6 @@ input[type="number"] {
   font-size: 20px;
   font-weight: bold;
   padding: 5px;
-
 }
 
 .quantity-unit {
@@ -379,16 +372,16 @@ input[type="number"] {
 }
 
 .used-amount-input {
-  width: 4rem; 
-  padding: 0.2rem 0; 
+  width: 4rem;
+  padding: 0.2rem 0;
   font-size: 1rem;
-  border: none; 
-  border-bottom: 1px solid #000000; 
-  outline: none; 
+  border: none;
+  border-bottom: 1px solid #000000;
+  outline: none;
 }
 
 .done-icon {
-  width: 20px; 
+  width: 20px;
   height: 20px;
   cursor: pointer;
   transition: transform 0.2s ease-in-out;
@@ -402,7 +395,7 @@ input[type="number"] {
 .portion-row {
   display: flex;
   align-items: center;
-  gap: 5px; 
+  gap: 5px;
 }
 
 .portion-buttons button {
@@ -445,10 +438,9 @@ input[type="number"] {
   padding: 10px;
   background-color: #eef7e8; /* Light green background */
   border-radius: 5px;
-  
+
   font-size: 14px; /* Maintain original font size */
   color: #333; /* Dark text for readability */
-
 }
 
 .nutritional-facts h4 {
@@ -481,8 +473,7 @@ input[type="number"] {
 }
 
 .nutrition-details span:first-child {
-  
-  color: #333; 
+  color: #333;
   margin-right: 0;
 }
 
@@ -490,7 +481,7 @@ input[type="number"] {
   flex: 1; /* Flexible space for dots */
   display: inline-block;
   text-align: center; /* Center-align dots */
-  color: #ccc; 
+  color: #ccc;
   font-family: monospace; /* Monospace for even spacing */
   margin-right: 5px;
   overflow: hidden; /* Prevent overflow */
@@ -498,20 +489,19 @@ input[type="number"] {
 }
 
 .nutrition-details span:last-child {
-  text-align: right; 
+  text-align: right;
   flex: 0;
-  color: #333; 
+  color: #333;
 }
-
 
 /* Storage Tips Section */
 .storage-tips {
   margin-top: 10px;
   padding: 10px;
-  background-color: #fff4d4; 
+  background-color: #fff4d4;
   border-radius: 5px;
   font-size: 14px;
-  color: #333; 
+  color: #333;
 }
 
 .storage-tips h4 {
