@@ -35,10 +35,11 @@ const RecipeCalendar = () => {
           breakfast: null,
           lunch: null,
           dinner: null,
+          others: null,
         };
       }
 
-      const mealTypeMap = { 1: "breakfast", 2: "lunch", 3: "dinner" };
+      const mealTypeMap = { 1: "breakfast", 2: "lunch", 3: "dinner", 4: "others" };
       const mealType = mealTypeMap[meal_type_id];
       groupedByDate[planned_date][mealType] = status_id;
     });
@@ -49,13 +50,26 @@ const RecipeCalendar = () => {
       const noPlan = statuses.filter((status) => status === null).length;
       const complete = statuses.filter((status) => status === 2).length;
       const planning = statuses.filter((status) => status === 1).length;
+      
+      // Adjust totalMeals based on the presence of "Others"
+      const totalMeals = meals.others !== null ? 4 : 3;
+
+      // Determine if "Others" is present
+      const hasOthersMeal = meals.others !== null;
+
+      // Log details for debugging
+      console.log(`Date: ${date}`);
+      console.log("Meals:", meals);
+      console.log(`No Plan: ${noPlan}, Complete: ${complete}, Planning: ${planning}, Total Meals: ${totalMeals}`);
+
 
       return {
         date,
         noPlan,
         complete,
         planning,
-        totalMeals: 3, // breakfast, lunch, dinner
+        totalMeals, // Dynamic totalMeals based on "Others"
+        hasOthersMeal, // New field to indicate "Others" presence
       };
     });
 
@@ -108,13 +122,54 @@ const RecipeCalendar = () => {
       return "no-plan-past-date"; // Special class for 0/0 past dates
     }
   
+    // if (dayData) {
+    //   if (dayData.noPlan === 0 && dayData.complete === 3) {
+    //     return "complete-date";
+    //   } else if (dayData.complete > 0) {
+    //     return "partial-complete-date";
+    //   }
+    // }
+
+    // if (dayData) {
+    //   if (dayData.noPlan === 0) {
+    //     if (dayData.totalMeals === 4 && dayData.complete === 4) {
+    //       return "complete-date others-complete"; // Apply special class for 4/4
+    //     } else if (dayData.complete === 3) {
+    //       return "complete-date"; // Apply normal complete class for 3/3
+    //     }
+    //   } else if (dayData.complete > 0) {
+    //     return "partial-complete-date";
+    //   }
+    // }
+    // console.log("dayData", dayData)
+    // if (dayData) {
+    //   if (dayData.noPlan === 0) {
+    //     if (dayData.totalMeals === 4 && dayData.complete === 4) {
+    //       return "complete-date others-complete"; // Apply special class for 4/4
+    //     }
+    //     // } else if (dayData.totalMeals === 3 && dayData.complete === 3 && dayData.hasOthersMeal === false) {
+    //     //   return "complete-date"; // Apply normal complete class for 3/3 without "Others"
+    //     // }
+    //   } else if (dayData.complete > 0) {
+    //     return "partial-complete-date";
+    //   }
+    // }
+
     if (dayData) {
-      if (dayData.noPlan === 0 && dayData.complete === 3) {
-        return "complete-date";
+      if (dayData.complete === 3 && dayData.hasOthersMeal === false) {
+        return "complete-date"; // Apply normal complete class for 3/3 without "Others"
+      }
+    
+      if (dayData.noPlan === 0) {
+        if (dayData.totalMeals === 4 && dayData.complete === 4) {
+          return "complete-date others-complete"; // Apply special class for 4/4
+        }
       } else if (dayData.complete > 0) {
         return "partial-complete-date";
       }
     }
+    
+    
   
     return date > today ? "coming-date" : "past-date";
   };
@@ -135,7 +190,8 @@ const RecipeCalendar = () => {
     const dayData = dailyMealStatuses.find((day) => day.date === formattedDate);
 
     if (dayData) {
-      const totalPlanned = dayData.totalMeals - dayData.noPlan;
+      // const totalPlanned = dayData.totalMeals - dayData.noPlan;
+      const totalPlanned = dayData.totalMeals - (dayData.hasOthersMeal ? dayData.noPlan : dayData.noPlan - 1);
       const completed = dayData.complete;
 
       // Handle different cases
@@ -148,6 +204,7 @@ const RecipeCalendar = () => {
         );
       }
 
+      // {console.log("HEREEEEEE", dayData)}
       return (
         <div className="tile-content">
           {/* Show progress as x/y */}

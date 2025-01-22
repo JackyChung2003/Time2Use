@@ -41,14 +41,14 @@
 
 /* Styling for complete dates */
 .no-plan-past-date {
-  background-color: darkgray;
+  /* background-color: darkgray; */
   color: white;
   border-radius: 50%;
-  display: flex;
+  /* display: flex;
   justify-content: center;
-  align-items: center;
-  height: 100%;
-  width: 100%;
+  align-items: center; */
+  /* height: 100%; */
+  /* width: 100%; */
 }
 
 .past-date {
@@ -139,10 +139,50 @@
   border-radius: 50%;
 }
 
+/* .react-calendar__tile.complete-date {
+  background-color: green;
+  color: white;
+  border-radius: 50%;
+} */
+
 .react-calendar__tile.complete-date {
   background-color: green;
   color: white;
   border-radius: 50%;
+  position: relative;
+  animation: fadeIn 0.5s ease-in-out; /* Add a subtle fade-in effect for all complete dates */
+}
+
+.react-calendar__tile.complete-date.others-complete {
+  background: linear-gradient(135deg, green 60%, limegreen 100%);
+  color: white;
+  border-radius: 50%;
+  position: relative;
+  animation: pulse 1.5s infinite; /* Add a glowing pulse effect for 4/4 */
+  box-shadow: 0 0 10px limegreen, 0 0 20px limegreen;
+}
+
+/* Fade-in effect for all complete dates */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Glowing pulse effect for 4/4 */
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 10px limegreen, 0 0 20px limegreen;
+  }
+  50% {
+    box-shadow: 0 0 20px limegreen, 0 0 40px limegreen;
+  }
+  100% {
+    box-shadow: 0 0 10px limegreen, 0 0 20px limegreen;
+  }
 }
 
 .react-calendar__tile.partial-complete-date {
