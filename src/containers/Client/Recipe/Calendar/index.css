@@ -4,6 +4,21 @@
   text-align: center;
 }
 
+/* Header */
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  margin-bottom: 15px;
+}
+
+.calendar-header p {
+  font-size: 0.8rem;
+  color: #333;
+  font-weight: 300;
+}
+
 .react-calendar__tile {
   display: flex;
   justify-content: center;

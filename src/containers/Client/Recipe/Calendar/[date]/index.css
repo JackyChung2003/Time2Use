@@ -10,8 +10,9 @@
 .meal-planner-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   margin-bottom: 15px;
+  gap: 10px;
 }
 .date-display {
   font-size: 1.2rem;

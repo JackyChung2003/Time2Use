@@ -206,8 +206,22 @@ const RecipeCalendar = () => {
   
   return (
     <div className="calendar-container">
+      <header className="calendar-header">
+        <BackButton />
+        <div className="date-display">
+          {/* <p>{date}</p> */}
+          {recipeId && recipeName && (
+          <div className="recipe-calender-details">
+            {/* <h2>Recipe to Schedule:</h2> */}
+            <p><strong>Recipe to Schedule:</strong> {recipeName}</p>
+            {/* <p><strong>Recipe ID:</strong> {recipeId}</p> */}
+          </div>
+        )}
+        </div>
+        
+      </header>
       <h1>Calendar</h1>
-      <BackButton />
+      {/* <BackButton /> */}
 
       <Calendar
   onChange={(date) => setValue(date)}
