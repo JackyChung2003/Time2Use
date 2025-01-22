@@ -222,13 +222,40 @@
   justify-content: center;
   align-items: center;
 }
-.modal-content {
+
+.calender-modal .modal-content {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  /* width: 80%; */
+  /* max-width: 500px; */
+  height: 75%;
+  text-align: center;
+  overflow-y: auto;
+}
+.calender-modal .navigation-modal-content {
   background: white;
   padding: 20px;
   border-radius: 10px;
   width: 80%;
-  max-width: 500px;
+  /* max-width: 500px; */
+  /* height: 75%; */
   text-align: center;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+
+  gap: 10px;
+}
+
+.calender-modal .modal-content h2 {
+  margin-bottom: 0px;
+}
+
+.calender-modal .modal-content p {
+  margin-top: 0px;
 }
 .notes-textarea,
 .time-input {

@@ -248,7 +248,7 @@ const handleContinueAdding = () => {
       {recipeId && recipeName && (
           <div className="recipe-calender-details">
             {/* <h2>Recipe to Schedule:</h2> */}
-            <p><strong>Recipe to Schedule:</strong> {recipeName}</p>
+            <p><strong>Recipe to Schedule:</strong> {recipeName} ({servingPacks} pax)</p>
             {/* <p><strong>Recipe ID:</strong> {recipeId}</p> */}
           </div>
         )}
@@ -414,13 +414,41 @@ const handleContinueAdding = () => {
       })}
   
       {showAddModal && (
-        <div className="modal">
+        <div className="calender-modal">
           <div className="modal-content">
             <h2>Add a Meal</h2>
             <p><strong>Recipe:</strong> {recipeName}</p>
             <p><strong>Meal Type:</strong> {mealTypes.find((type) => type.id === showAddModal)?.name || "Unknown"}</p>
             <p><strong>Date:</strong> {passedDate || date}</p>
-            <p><strong>Serving packs:</strong> {servingPacks}</p>
+            {/* <p><strong>Serving packs:</strong> {servingPacks}</p> */}
+            <div className="serving-adjuster">
+              <strong>Serving Packs:</strong>
+              <div className="serving-adjuster">
+                <button
+                  onClick={() =>
+                    setNewMeal((prev) => ({
+                      ...prev,
+                      servingPacks: Math.max(1, (prev.servingPacks || 1) - 1),
+                    }))
+                  }
+                  className="adjust-serving-button"
+                >
+                  -
+                </button>
+                <span className="serving-count">{servingPacks || 1}</span>
+                <button
+                  onClick={() =>
+                    setNewMeal((prev) => ({
+                      ...prev,
+                      servingPacks: (prev.servingPacks || 1) + 1,
+                    }))
+                  }
+                  className="adjust-serving-button"
+                >
+                  +
+                </button>
+              </div>
+            </div>
             <label>
               Notes:
               <textarea
@@ -452,7 +480,7 @@ const handleContinueAdding = () => {
   
       {showScheduleOptions.show && (
         <div className="calender-modal">
-          <div className="modal-content">
+          <div className="navigation-modal-content">
             <h2>Schedule Meal</h2>
             <p>
               Would you like to schedule a meal for <strong>{mealTypes.find((type) => type.id === showScheduleOptions.mealTypeId)?.name}</strong> from your favorites or all recipes?

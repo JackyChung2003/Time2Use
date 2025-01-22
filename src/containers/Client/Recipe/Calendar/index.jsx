@@ -26,7 +26,7 @@ const RecipeCalendar = () => {
   // console.log("userData", userData);
 
   // Extract recipe information from navigation state
-  const { recipeId, recipeName } = location.state || {}; // Destructure state if available
+  const { recipeId, recipeName, servingPacks } = location.state || {}; // Destructure state if available
 
   // Fetch data from Supabase and preprocess it
   const fetchData = async () => {
@@ -126,7 +126,7 @@ const RecipeCalendar = () => {
   const handleClick = (date) => { 
     const formattedDate = format(date, "yyyy-MM-dd");
     navigate(`/recipes/calendar/${formattedDate}`, {
-      state: { recipeId, recipeName }, // Pass state along with navigation
+      state: { recipeId, recipeName, servingPacks }, // Pass state along with navigation
     });
   };
 
@@ -213,7 +213,7 @@ const RecipeCalendar = () => {
           {recipeId && recipeName && (
           <div className="recipe-calender-details">
             {/* <h2>Recipe to Schedule:</h2> */}
-            <p><strong>Recipe to Schedule:</strong> {recipeName}</p>
+            <p><strong>Recipe to Schedule:</strong> {recipeName} ({servingPacks} pax)</p>
             {/* <p><strong>Recipe ID:</strong> {recipeId}</p> */}
           </div>
         )}

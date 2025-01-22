@@ -277,6 +277,7 @@ ul li {
 .serving-count {
   font-size: 1.2rem;
   font-weight: bold;
+  margin: 0 5px;
 }
 
 /* Ingredients */
