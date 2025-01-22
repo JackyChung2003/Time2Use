@@ -33,6 +33,9 @@ const RecipeFavorites = () => {
   const [matchingIngredients, setMatchingIngredients] = useState([]);
   const location = useLocation();
   const navigate = useNavigate();
+  
+  
+  const [additionalLoading, setAdditionalLoading] = useState(true);
 
   const [showAddModal, setShowAddModal] = useState(null); // For showing the add modal
     const [newMeal, setNewMeal] = useState({
@@ -87,6 +90,8 @@ const RecipeFavorites = () => {
         return;
       }
 
+      console.log("Favorites:", favorites);
+
       try {
         const data = await fetchRecipesByIds(favorites);
         if (data) {
@@ -111,29 +116,128 @@ const RecipeFavorites = () => {
     fetchFilterOptions();
   }, [favorites, fetchRecipesByIds]);
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+    setAdditionalLoading(false);
+    }, 500);
+
+    return () => clearTimeout(timer); // Clean up the timer
+}, []);
+
   // Filter favorite recipes based on search term and filters
-  const filteredRecipes = favoriteRecipes.filter((recipe) => {
-    const matchesSearch = recipe.name?.toLowerCase().includes(search.toLowerCase());
-    const matchesCategory = filters.categories.length
-      ? filters.categories.some((category) =>
-          (recipe.categories || []).includes(category)
-        )
-      : true;
+//   const filteredRecipes = favoriteRecipes.filter((recipe) => {
+//     const matchesSearch = recipe.name?.toLowerCase().includes(search.toLowerCase());
+//     const matchesCategory = filters.categories.length
+//       ? filters.categories.some((category) =>
+//           (recipe.categories || []).includes(category)
+//         )
+//       : true;
 
-    const matchesTags = filters.tags.length
-      ? filters.tags.some((tag) => (recipe.tags || []).includes(tag))
-      : true;
+//     const matchesTags = filters.tags.length
+//       ? filters.tags.some((tag) => (recipe.tags || []).includes(tag))
+//       : true;
 
-    const matchesEquipment = filters.equipment.length
-      ? filters.equipment.some((equip) => (recipe.equipment || []).includes(equip))
-      : true;
+//     const matchesEquipment = filters.equipment.length
+//       ? filters.equipment.some((equip) => (recipe.equipment || []).includes(equip))
+//       : true;
 
-    const matchesCookTime = filters.cookTime
-      ? recipe.cook_time <= filters.cookTime
-      : true;
+//     const matchesCookTime = filters.cookTime
+//       ? recipe.cook_time <= filters.cookTime
+//       : true;
 
-    return matchesSearch && matchesCategory && matchesTags && matchesEquipment && matchesCookTime;
-  });
+//     return matchesSearch && matchesCategory && matchesTags && matchesEquipment && matchesCookTime;
+//   });
+
+//   // Filter and sort recipes
+// const orderedFilteredRecipes = filteredRecipes
+// .filter((recipe) => {
+//   const matchesSearch = recipe.name?.toLowerCase().includes(search.toLowerCase());
+//   const matchesCategory = filters.categories.length
+//     ? filters.categories.some((category) =>
+//         (recipe.categories || []).includes(category)
+//       )
+//     : true;
+
+//   const matchesTags = filters.tags.length
+//     ? filters.tags.some((tag) => (recipe.tags || []).includes(tag))
+//     : true;
+
+//   const matchesEquipment = filters.equipment.length
+//     ? filters.equipment.some((equip) => (recipe.equipment || []).includes(equip))
+//     : true;
+
+//   const matchesCookTime = filters.cookTime
+//     ? recipe.cook_time <= filters.cookTime
+//     : true;
+
+//   return matchesSearch && matchesCategory && matchesTags && matchesEquipment && matchesCookTime;
+// })
+// .sort((a, b) => {
+//   // Sort according to the order of `favorites`
+//   return favorites.indexOf(a.id) - favorites.indexOf(b.id);
+// });
+
+// Fetch favorite recipes and reorder when favorites change
+useEffect(() => {
+  const fetchFavoriteRecipes = async () => {
+    if (favorites.length === 0) {
+      setFavoriteRecipes([]);
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const data = await fetchRecipesByIds(favorites);
+      if (data) {
+        const enrichedData = data.map((recipe) => ({
+          ...recipe,
+          tags: recipe.recipe_tags?.map((tag) => tag.tags.name) || [],
+          equipment: recipe.recipe_equipment?.map((equip) => equip.equipment.name) || [],
+        }));
+        // Sort recipes based on the `favorites` array
+        const orderedRecipes = enrichedData.sort(
+          (a, b) => favorites.indexOf(a.id) - favorites.indexOf(b.id)
+        );
+        setFavoriteRecipes(orderedRecipes);
+      } else {
+        setFavoriteRecipes([]);
+      }
+    } catch (err) {
+      console.error("Error fetching favorite recipes:", err.message);
+      setFavoriteRecipes([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  fetchFavoriteRecipes();
+}, [favorites, fetchRecipesByIds]);
+
+// Filter and sort favorite recipes
+const orderedFilteredRecipes = favoriteRecipes.filter((recipe) => {
+  const matchesSearch = recipe.name?.toLowerCase().includes(search.toLowerCase());
+  const matchesCategory = filters.categories.length
+    ? filters.categories.some((category) =>
+        (recipe.categories || []).includes(category)
+      )
+    : true;
+
+  const matchesTags = filters.tags.length
+    ? filters.tags.some((tag) => (recipe.tags || []).includes(tag))
+    : true;
+
+  const matchesEquipment = filters.equipment.length
+    ? filters.equipment.some((equip) => (recipe.equipment || []).includes(equip))
+    : true;
+
+  const matchesCookTime = filters.cookTime
+    ? recipe.cook_time <= filters.cookTime
+    : true;
+
+  return matchesSearch && matchesCategory && matchesTags && matchesEquipment && matchesCookTime;
+});
+
+
 
 //   const filteredRecipes = recipes.filter((recipe) => {
 //     const matchesSearch = recipe.name?.toLowerCase().includes(search.toLowerCase());
@@ -291,7 +395,7 @@ const handleClear = () => {
     setShowAddModal(true);
   };
 
-  if (isLoading || loading) {
+  if (isLoading || loading || additionalLoading) {
     return <CommonLoader />;
   }
 
@@ -334,8 +438,8 @@ const handleClear = () => {
   
       {/* Recipe List */}
       <div className="recipes-list">
-        {filteredRecipes.length > 0 ? (
-          filteredRecipes.map((recipe) => (
+        {orderedFilteredRecipes.length > 0 ? (
+          orderedFilteredRecipes.map((recipe) => (
             <div
               key={recipe.id}
               onClick={() =>

@@ -145,7 +145,8 @@ export const RecipeProvider = ({ children }) => {
       const { data, error } = await supabase
         .from("favorites")
         .select("recipe_id") // Fetch only the recipe IDs
-        .eq("user_id", userData.id);
+        .eq("user_id", userData.id)
+        .order("id", { ascending: false });
 
       if (error) {
         console.error("Error fetching favorites:", error.message);
@@ -924,6 +925,8 @@ export const RecipeProvider = ({ children }) => {
 
         setFavorites((prev) => [...prev, recipeId]); // Update state
       }
+
+      await fetchFavorites(); // Call fetchFavorites to refresh data
     } catch (err) {
       console.error("Unexpected error toggling favorite:", err.message);
     }

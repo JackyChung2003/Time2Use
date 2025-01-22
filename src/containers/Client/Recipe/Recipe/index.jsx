@@ -34,6 +34,8 @@ const RecipeExplore = () => {
 
     // const [loading, setLoading] = useState(true);
 
+  const [additionalLoading, setAdditionalLoading] = useState(true);
+
     const [showAddModal, setShowAddModal] = useState(null); // For showing the add modal
     const [newMeal, setNewMeal] = useState({
         notes: "",
@@ -117,6 +119,14 @@ const RecipeExplore = () => {
         fetchRecipes(); // Fetch recipes or re-filter based on filters
       }, [filters]);
 
+    // Add a 1-second delay for the additional loading
+    useEffect(() => {
+        const timer = setTimeout(() => {
+        setAdditionalLoading(false);
+        }, 500);
+
+        return () => clearTimeout(timer); // Clean up the timer
+    }, []);
 
     const filteredRecipes = recipes.filter((recipe) => {
         const matchesSearch = recipe.name?.toLowerCase().includes(search.toLowerCase());
@@ -251,7 +261,7 @@ const RecipeExplore = () => {
         setShowAddModal(true);
       };
 
-      if (loading) {
+      if (loading || additionalLoading) {
         return <CommonLoader />;
       }
     
@@ -305,7 +315,10 @@ const RecipeExplore = () => {
     
             <div className="recipes-list">
                 {filteredRecipes.length > 0 ? (
-                    filteredRecipes.map((recipe) => (
+                    // filteredRecipes.map((recipe) => (
+                        [...filteredRecipes]
+                        .sort(() => Math.random() - 0.5) // Shuffle the array
+                        .map((recipe) => (
                         <div
                             key={recipe.id}
                             onClick={() =>
