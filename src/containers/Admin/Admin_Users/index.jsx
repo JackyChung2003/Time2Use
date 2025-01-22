@@ -214,7 +214,7 @@ const AdminUsers = () => {
             </thead>
             <tbody>
               {filteredUsers.map((user) => (
-                <tr key={user.id}>
+                <tr key={user.id}style={{ backgroundColor: '#fff' }}>
                   <td style={{ border: "1px solid #ccc", padding: "10px" }}>{user.id}</td>
                   <td style={{ border: "1px solid #ccc", padding: "10px" }}>{user.username}</td>
                   <td style={{ border: "1px solid #ccc", padding: "10px" }}>{user.role}</td>

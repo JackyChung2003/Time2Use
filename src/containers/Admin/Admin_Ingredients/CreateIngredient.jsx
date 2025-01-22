@@ -110,7 +110,7 @@ const CreateIngredient = () => {
         <div className='create-ingredient-container'>
             <div className="admin-content">
                 <div className="create-ingredient-container">
-                    <h2>Add New Ingredient</h2>
+                    <h2>Create New Ingredient</h2>
                     <form onSubmit={handleSubmit}>
                         <div className="form-group">
                             <label>Ingredient Name:</label>

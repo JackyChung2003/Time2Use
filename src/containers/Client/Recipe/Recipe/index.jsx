@@ -103,6 +103,17 @@ const RecipeExplore = () => {
     }, []);
 
     useEffect(() => {
+        // Add scan-page class to body when this page is loaded
+        document.body.classList.add('page');
+
+        // Clean up when the component is unmounted
+        return () => {
+            document.body.classList.remove('page');
+        };
+    }, []);
+    
+
+    useEffect(() => {
         fetchRecipes(); // Fetch recipes or re-filter based on filters
       }, [filters]);
 

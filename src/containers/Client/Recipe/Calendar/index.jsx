@@ -68,6 +68,16 @@ const RecipeCalendar = () => {
     fetchData();
   }, []);
 
+  useEffect(() => {
+          // Add 'page' class to the body and set background color for the whole page
+          document.body.classList.add('page');
+  
+          // Clean up when the component is unmounted
+          return () => {
+              document.body.classList.remove('page');
+          };
+      }, []);
+
   const handleLongPressStart = (date) => {
     timerRef.current = setTimeout(() => {
       setSelectedDate(date.toDateString());

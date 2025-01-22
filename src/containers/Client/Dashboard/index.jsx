@@ -3,6 +3,7 @@ import supabase from "../../../config/supabaseClient";
 import { useNavigate } from "react-router-dom";
 import { Chart as ChartJS, registerables } from "chart.js";
 import { Pie, Doughnut } from "react-chartjs-2";
+import chroma from 'chroma-js';
 import "./index.css";
 import Notification from '../Notification';
 
@@ -21,6 +22,16 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [showNotification, setShowNotification] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+          // Add scan-page class to body when this page is loaded
+          document.body.classList.add('page');
+  
+          // Clean up when the component is unmounted
+          return () => {
+              document.body.classList.remove('page');
+          };
+      }, []);
 
   useEffect(() => {
     // Check the notification flag
@@ -179,6 +190,23 @@ const Dashboard = () => {
     return  <CommonLoader />;
   }
 
+  // Dynamic color generation using chroma.js
+  const generateColorPalette = (numCategories) => {
+    return chroma
+      .scale("Set3")
+      .mode("lab")
+      .colors(numCategories);
+  };
+
+  // Generate colors for charts
+  const ingredientColors = generateColorPalette(ingredientData.length);
+  const nutritionColors = generateColorPalette(Object.keys(nutritionSummary).length);
+
+  // Show loading screen while data is being fetched
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
   // Check if user is new
   const isNewUser =
     ingredientData.length === 0 && expiringItems.length === 0 && expiredItems.length === 0;
@@ -201,58 +229,45 @@ const Dashboard = () => {
       ) : (
         <>
           <div className="chart-container">
-            {/* Pie Chart: Inventory by Category */}
-            <div className="chart-card">
-              <h2>Total Ingredients in Your Inventory</h2>
-              <Pie
-                data={{
-                  labels: ingredientData.map((item) => item.category_name),
-                  datasets: [
-                    {
-                      data: ingredientData.map((item) => item.total),
-                      backgroundColor: [
-                        "#84e2ca", // Vegetables
-                        "#caabd5", // Condiments
-                        "#fbdd94", // Dairy
-                        "#f58a78", // Meat
-                        "#f2cec2", // Protein
-                      ],
-                    },
-                  ],
-                }}
-              />
-            </div>
-
-          {/* Doughnut Chart: Nutritional Overview */}
-          <div className="chart-card">
-            <h2 className="chart-title">Nutritional Overview</h2>
-            <Doughnut
-              data={{
-                labels: Object.keys(nutritionSummary),
-                datasets: [
-                  {
-                    label: "Nutritional Values",
-                    data: Object.values(nutritionSummary),
-                    backgroundColor: [
-                      "#ffc98b", // Fat
-                      "#e79796", // Protein
-                      "#f5cec7", // Calories
-                      "#b6dce7", // Carbohydrate
-                      "#a5cf8c", // Green
-                      "#faae83", // Orange
+              {/* Pie Chart: Inventory by Category */}
+              <div className="chart-card">
+                <h2>Total Ingredients in Your Inventory</h2>
+                <Pie
+                  data={{
+                    labels: ingredientData.map((item) => item.category_name),
+                    datasets: [
+                      {
+                        data: ingredientData.map((item) => item.total),
+                        backgroundColor: ingredientColors,
+                      },
                     ],
-                  },
-                ],
-              }}
-              options={{
-                plugins: {
-                  title: {
-                    display: false,
-                  },
-                },
-              }}
-            />
-          </div>
+                  }}
+                />
+              </div>
+
+              {/* Doughnut Chart: Nutritional Overview */}
+              <div className="chart-card">
+                <h2 className="chart-title">Nutritional Overview</h2>
+                <Doughnut
+                  data={{
+                    labels: Object.keys(nutritionSummary),
+                    datasets: [
+                      {
+                        label: "Nutritional Values",
+                        data: Object.values(nutritionSummary),
+                        backgroundColor: nutritionColors,
+                      },
+                    ],
+                  }}
+                  options={{
+                    plugins: {
+                      title: {
+                        display: false,
+                      },
+                    },
+                  }}
+                />
+              </div>
         </div>
 
         {/* Tables for expiring and expired items */}
