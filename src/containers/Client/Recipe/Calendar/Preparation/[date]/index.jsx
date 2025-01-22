@@ -2041,10 +2041,28 @@ const RecipePreparationPage = () => {
                 ({inventory.inventory.days_left} days left)
               </p>
               {/* <p>{inventory.inventory.days_left} days left</p> */}
-              <p>
+              {/* <p>
                 <strong>Status:</strong>{" "}
                 {inventory.inventory_meal_plan_status.name}
-              </p>
+              </p> */}
+              {/* <span className="meal-plan-status planning">
+                {inventory.inventory_meal_plan_status.name}
+              </span> */}
+
+              <span
+                className={`meal-plan-status ${
+                  inventory.inventory_meal_plan_status.name === "Completed"
+                    ? "complete"
+                    : inventory.inventory_meal_plan_status.name === "Pass Deadline"
+                    ? "deadline-passed"
+                    : inventory.inventory_meal_plan_status.name === "Canceled"
+                    ? "canceled"
+                    : "planning"
+                }`}
+>
+  {inventory.inventory_meal_plan_status.name}
+</span>
+
               <InventoryVisualization linkedInventory={linkedInventory} recipe={recipe} />
             </div>
           );
@@ -2098,7 +2116,7 @@ const RecipePreparationPage = () => {
         </button>
       ) : null}
       {selectedIngredient && (
-        <div className="modal-overlay" onClick={() => setSelectedIngredient(null)}>
+        <div className="recipes-preparation-modal-overlay" onClick={() => setSelectedIngredient(null)}>
           <div
             className="modal-content"
             onClick={(e) => e.stopPropagation()}
@@ -2117,7 +2135,7 @@ const RecipePreparationPage = () => {
                   <p>
                     <strong>No {selectedIngredient.ingredients.name} in your inventory.</strong>
                   </p>
-                  <button
+                  {/* <button
                     onClick={() => {
                       navigate(`/recipes/shopping-list`); // Navigate to details page
                     }}
@@ -2130,7 +2148,7 @@ const RecipePreparationPage = () => {
                     }}
                   >
                     View Missing Ingredients for This Week&apos;s Plan
-                  </button>
+                  </button> */}
                 </>
                   
                 ) : (
