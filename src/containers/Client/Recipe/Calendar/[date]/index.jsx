@@ -22,6 +22,8 @@ const MealPlannerPage = () => {
 
   const [shouldRefetch, setShouldRefetch] = useState(false); // State to track refetch
 
+  const [successPopup, setSuccessPopup] = useState(false); // State for success popup
+
   // Accessing the state passed via navigate
   const { recipeId, recipeName, date: passedDate, servingPacks } = location.state || {};
   console.log("Recipe ID:", recipeId);
@@ -181,9 +183,19 @@ const handleAddMeal = async () => {
     ]);
     setShowAddModal(null); // Close the modal
     setShouldRefetch((prev) => !prev);
+    setSuccessPopup(true);
   } catch (err) {
     console.error("Unexpected error adding meal:", err.message);
   }
+};
+
+const handleNavigateToExplore = () => {
+  setSuccessPopup(false); // Close popup
+  navigate("/recipes/explore");
+};
+
+const handleContinueAdding = () => {
+  setSuccessPopup(false); // Close popup
 };
 
   const handleOpenAddModal = (mealTypeId) => {
@@ -231,14 +243,15 @@ const handleAddMeal = async () => {
         <div className="date-display">
           <p>{date}</p>
         </div>
-        {recipeId && recipeName && (
+        
+      </header>
+      {recipeId && recipeName && (
           <div className="recipe-calender-details">
-            <h2>Recipe Details</h2>
-            <p><strong>Recipe Name:</strong> {recipeName}</p>
-            <p><strong>Recipe ID:</strong> {recipeId}</p>
+            {/* <h2>Recipe to Schedule:</h2> */}
+            <p><strong>Recipe to Schedule:</strong> {recipeName}</p>
+            {/* <p><strong>Recipe ID:</strong> {recipeId}</p> */}
           </div>
         )}
-      </header>
   
       {mealTypes.map((mealType) => {
         const mealsForType = mealPlans.filter(
@@ -464,6 +477,27 @@ const handleAddMeal = async () => {
             >
               Cancel
             </button>
+          </div>
+        </div>
+      )}
+      {successPopup && (
+        <div className="navigation-modal-overlay">
+          <div className="navigaton-modal">
+            <p>Meal Added Successfully! Would you like to navigate to the Recipe Explore page or continue adding meals?</p>
+            <div className="left-right-space-evenly-section">
+              <button 
+                className="yes-no-button"
+                onClick={() => handleNavigateToExplore ("yes")}
+              >
+                Back to Explore
+              </button>
+              <button 
+                className="yes-no-button"
+                onClick={() => handleContinueAdding ("no")}
+              >
+                Add More Meals
+              </button>
+            </div>
           </div>
         </div>
       )}
