@@ -1,9 +1,20 @@
 import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
 import "./index.css";
 
 const RecipeDashboard = () => {
     const navigate = useNavigate();
 
+    useEffect(() => {
+        // Add 'page' class to the body and set background color for the whole page
+        document.body.classList.add('page');
+
+        // Clean up when the component is unmounted
+        return () => {
+            document.body.classList.remove('page');
+        };
+    }, []);
+          
     return (
         <div style={{ padding: '20px' }}>
             <h1>Recipe Dashboard</h1>

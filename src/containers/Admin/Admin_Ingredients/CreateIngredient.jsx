@@ -16,8 +16,10 @@ const CreateIngredient = () => {
     const [storageTips, setStorageTips] = useState("");
     const [ingredientCategories, setIngredientCategories] = useState([]);
     const [quantityUnits, setQuantityUnits] = useState([]);
+    const [inventoryUnits, setInventoryUnits] = useState([]);
     const [selectedCategoryId, setSelectedCategoryId] = useState(null);
     const [selectedUnitId, setSelectedUnitId] = useState(null);
+    const [selectedUnitInvId, setSelectedUnitInvId] = useState(null);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -31,11 +33,16 @@ const CreateIngredient = () => {
                 .from("unit")
                 .select("id, unit_description");
 
-            if (catError || unitError) {
+            const { data: unitInvs, error: unitInvsError } = await supabase
+                .from("unitInv")
+                .select("id, unitInv_tag");
+
+            if (catError || unitError || unitInvsError) {
                 console.error("Error fetching dropdown data:", catError || unitError);
             } else {
                 setIngredientCategories(categories || []);
                 setQuantityUnits(units || []);
+                setInventoryUnits(unitInvs || []);
             }
         };
 
@@ -75,6 +82,7 @@ const CreateIngredient = () => {
                 storage_tips: storageTips,
                 ingredients_category_id: selectedCategoryId,
                 quantity_unit_id: selectedUnitId,
+                quantity_unitInv_id: selectedUnitInvId,
             });
 
             if (insertError) throw insertError;
@@ -102,7 +110,7 @@ const CreateIngredient = () => {
         <div className='create-ingredient-container'>
             <div className="admin-content">
                 <div className="create-ingredient-container">
-                    <h2>Add New Ingredient</h2>
+                    <h2>Create New Ingredient</h2>
                     <form onSubmit={handleSubmit}>
                         <div className="form-group">
                             <label>Ingredient Name:</label>
@@ -208,6 +216,23 @@ const CreateIngredient = () => {
                                 {quantityUnits.map((unit) => (
                                     <option key={unit.id} value={unit.id}>
                                         {unit.unit_description}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                        <div className="form-group">
+                            <label>Inventory Unit:</label>
+                            <select
+                                value={selectedUnitInvId || ""}
+                                onChange={(e) => setSelectedUnitInvId(e.target.value)}
+                                required
+                            >
+                                <option value="" disabled>
+                                    Select an inventory unit
+                                </option>
+                                {inventoryUnits.map((unitInv) => (
+                                    <option key={unitInv.id} value={unitInv.id}>
+                                        {unitInv.unitInv_tag}
                                     </option>
                                 ))}
                             </select>

@@ -1,6 +1,7 @@
 import "./index.css";
 
 const CommonLoader = () => {
+
   return (
     <div className="loader-container">
       <div className="loader">

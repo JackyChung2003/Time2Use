@@ -59,10 +59,10 @@ const Login = () => {
             }
 
             const roleName = roleData.role_name.trim().toLowerCase();
-            
+
             // Set notification flag to true for dashboard
             sessionStorage.setItem('showNotification', 'true');
-            
+
             // Update role in context
             updateUserRole(roleName);
 
@@ -100,6 +100,11 @@ const Login = () => {
 
     return (
         <div className="container">
+            <div className="floating-shape shape-1"></div>
+            <div className="floating-shape shape-2"></div>
+            <div className="floating-shape shape-3"></div>
+            <div className="floating-shape shape-4"></div>
+
             <h1 className="header">Login</h1>
             <form onSubmit={handleEmailLogin}>
                 <input

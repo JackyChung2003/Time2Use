@@ -114,6 +114,7 @@ const AdminExpiryDate = () => {
               width: "100%",
               borderCollapse: "collapse",
               boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+              backgroundColor: "#fff", // Table background color
             }}
           >
             <thead>
@@ -124,7 +125,7 @@ const AdminExpiryDate = () => {
             </thead>
             <tbody>
               {expiryDates.map((item) => (
-                <tr key={item.id}>
+                <tr key={item.id} style={{ backgroundColor: "#fff" }}> {/* White background for rows */}
                   <td style={{ border: "1px solid #ccc", padding: "10px" }}>{item.id}</td>
                   <td style={{ border: "1px solid #ccc", padding: "10px" }}>{item.date}</td>
                 </tr>
