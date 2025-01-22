@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import Calendar from "react-calendar";
 import { format } from "date-fns";
 import supabase from "../../../../config/supabaseClient";
@@ -16,6 +16,10 @@ const RecipeCalendar = () => {
   const [dailyMealStatuses, setDailyMealStatuses] = useState([]);
   const navigate = useNavigate();
   const timerRef = useRef(null);
+  const location = useLocation(); // Get location and state
+
+  // Extract recipe information from navigation state
+  const { recipeId, recipeName } = location.state || {}; // Destructure state if available
 
   // Fetch data from Supabase and preprocess it
   const fetchData = async () => {
@@ -103,9 +107,16 @@ const RecipeCalendar = () => {
     clearTimeout(timerRef.current);
   };
 
-  const handleClick = (date) => {
+  // const handleClick = (date) => {
+  //   const formattedDate = format(date, "yyyy-MM-dd");
+  //   navigate(`/recipes/calendar/${formattedDate}`);
+  // };
+
+  const handleClick = (date) => { 
     const formattedDate = format(date, "yyyy-MM-dd");
-    navigate(`/recipes/calendar/${formattedDate}`);
+    navigate(`/recipes/calendar/${formattedDate}`, {
+      state: { recipeId, recipeName }, // Pass state along with navigation
+    });
   };
 
   const getTileClassName = ({ date }) => {

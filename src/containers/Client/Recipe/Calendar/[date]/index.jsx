@@ -20,8 +20,14 @@ const MealPlannerPage = () => {
   // const [showScheduleOptions, setShowScheduleOptions] = useState(false); // State for showing schedule options modal
   const [showScheduleOptions, setShowScheduleOptions] = useState({ show: false, mealTypeId: null });
 
+  const [shouldRefetch, setShouldRefetch] = useState(false); // State to track refetch
+
   // Accessing the state passed via navigate
   const { recipeId, recipeName, date: passedDate, servingPacks } = location.state || {};
+  console.log("Recipe ID:", recipeId);
+  console.log("Recipe Name:", recipeName);
+  console.log("Date:", date);
+  console.log("Passed Date:", passedDate);
 
   const [newMeal, setNewMeal] = useState({
     notes: "",
@@ -69,7 +75,9 @@ const MealPlannerPage = () => {
     };
 
     fetchData();
-  }, [date, fetchMealPlansByDate, fetchRecipesByIds, mealTypes]);
+  // }, [date, fetchMealPlansByDate, fetchRecipesByIds, mealTypes]);
+
+}, [date, fetchMealPlansByDate, fetchRecipesByIds, mealTypes, shouldRefetch]); // Add `shouldRefetch` as a dependency
 
   const mergeImagesForMealType = (mealsForType) => {
     if (mealsForType.length === 0) return null;
@@ -172,6 +180,7 @@ const handleAddMeal = async () => {
       },
     ]);
     setShowAddModal(null); // Close the modal
+    setShouldRefetch((prev) => !prev);
   } catch (err) {
     console.error("Unexpected error adding meal:", err.message);
   }
