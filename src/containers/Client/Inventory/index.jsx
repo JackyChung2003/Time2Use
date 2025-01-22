@@ -105,7 +105,7 @@ const Inventory = () => {
     if (amountUsed > 0 && amountUsed <= item.quantity) {
       const updatedQuantity = item.quantity - amountUsed;
       handleQuantityChange(item, updatedQuantity, user?.id);
-      setUsedAmount({ ...usedAmount, [item.id]: '' }); // Clear input after updating
+      setUsedAmount({ ...usedAmount, [item.id]: '' }); 
     } else {
       alert("Please enter a valid amount within the range!");
     }
@@ -326,12 +326,7 @@ const Item = ({
                 >
                   Used
                 </button>
-                <button
-                  className="discard-button"
-                  onClick={() => handleActionClick("discard")}
-                >
-                  Discard
-                </button>
+                
               </>
             )}
 
@@ -396,7 +391,7 @@ const Item = ({
           <span className="item-quantity">
             {item.quantity} {item.quantity_unit}
           </span>
-          <span className="tag">{item.category}</span>
+          <span className="inventory-tag">{item.category}</span>
           <span className="dropdown-icon" onClick={() => toggleDropdown(item.id)}>▼</span>
         </div>
       </div>
