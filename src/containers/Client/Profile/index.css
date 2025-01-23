@@ -269,7 +269,6 @@ body {
 }
 
 .edit-icon-button {
-  position: absolute;
   right: 65px; /* Align to the right without affecting profile-value */
   background: none;
   border: none;
@@ -277,6 +276,7 @@ body {
   padding: 0;
   color: #000;
   font-size: 1rem;
+  margin-left :80px;
 }
 
 .edit-icon-button:hover {
@@ -335,7 +335,7 @@ body {
   position: absolute;
   right: 10px;
   right: 0px;
-  top: 42%;
+  top: 60%;
   transform: translateY(-50%);
 }
 
