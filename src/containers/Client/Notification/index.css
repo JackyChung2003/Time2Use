@@ -11,9 +11,11 @@
   max-width: 400px;
   z-index: 1000;
   animation: fadeIn 0.3s ease-in-out;
-  overflow-y: auto;
-  height: 85%;
+  overflow-y: auto; /* Ensures scrolling */
+  max-height: 85vh; /* Restricts height to viewport */
+  word-wrap: break-word; /* Handles long text */
 }
+
 
 /* Notification content styling */
 .notification-content {
