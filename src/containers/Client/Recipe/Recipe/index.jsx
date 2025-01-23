@@ -315,10 +315,10 @@ const RecipeExplore = () => {
     
             <div className="recipes-list">
                 {filteredRecipes.length > 0 ? (
-                    // filteredRecipes.map((recipe) => (
-                        [...filteredRecipes]
-                        .sort(() => Math.random() - 0.5) // Shuffle the array
-                        .map((recipe) => (
+                    filteredRecipes.map((recipe) => (
+                        // [...filteredRecipes]
+                        // .sort(() => Math.random() - 0.5) // Shuffle the array
+                        // .map((recipe) => (
                         <div
                             key={recipe.id}
                             onClick={() =>
